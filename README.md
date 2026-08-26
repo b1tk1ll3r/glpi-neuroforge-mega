@@ -1,6 +1,6 @@
 # GLPI NeuroForge Mega v1.4.0
 
-> Release: **v1.4.3** · Dashboard-Status-Kompatibilitätsfix für korrekte Memory-/Synapsen-/Revision-Anzeige.
+> Release: **v1.4.4** · Legacy-Memory-ID-Reparatur und robuster Wissensraum-Graph für segmentbasierte Bestandsdaten.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 

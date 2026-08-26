@@ -57,11 +57,11 @@ func (s *Store) MemoryByProvenanceSourceID(sourceID string) (MemoryLookup, bool)
 	if sourceID == "" {
 		return MemoryLookup{}, false
 	}
-	for _, meta := range s.state.Memories {
+	for id, meta := range s.state.Memories {
 		if meta == nil || strings.TrimSpace(meta.Provenance.SourceID) != sourceID {
 			continue
 		}
-		m, ok := s.fullMemoryForReadLocked(meta.ID)
+		m, ok := s.fullMemoryForReadLocked(id)
 		if ok {
 			return MemoryLookup{Memory: cloneMemory(m)}, true
 		}

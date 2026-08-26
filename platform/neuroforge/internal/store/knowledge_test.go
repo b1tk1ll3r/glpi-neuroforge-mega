@@ -75,4 +75,31 @@ func TestKnowledgeGraphEmptyUsesEmptySlices(t *testing.T) {
 	if len(g.Nodes) != 0 || len(g.Edges) != 0 {
 		t.Fatalf("unexpected graph contents: nodes=%d edges=%d", len(g.Nodes), len(g.Edges))
 	}
+	if g.TotalMemories != 0 || g.TotalSynapses != 0 || g.Truncated {
+		t.Fatalf("unexpected empty graph totals: %+v", g)
+	}
+}
+
+func TestKnowledgeGraphShowsBoundedOrphansBeforeSynapsesExist(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	for i := 0; i < 100; i++ {
+		m := &core.Memory{ID: NewID("orphan"), Kind: "evidence", MemoryType: core.MemorySemantic, Text: "isolated evidence", Vector: []float32{1, float32(i + 1)}, Salience: float64(i) / 100, Confidence: .7}
+		if err := s.AddMemory(m); err != nil {
+			t.Fatal(err)
+		}
+	}
+	g := s.KnowledgeGraph("", 3, 600)
+	if g.TotalMemories != 100 || g.TotalSynapses != 0 {
+		t.Fatalf("unexpected totals: %+v", g)
+	}
+	if len(g.Nodes) != 64 {
+		t.Fatalf("nodes=%d want bounded orphan sample of 64", len(g.Nodes))
+	}
+	if !g.Truncated {
+		t.Fatal("graph should report sampling/truncation")
+	}
 }

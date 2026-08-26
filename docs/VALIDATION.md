@@ -1,13 +1,13 @@
 # Validierung
 
-Stand: 26.08.2026 — Release v1.4.0
+Stand: 26.08.2026 — Release v1.4.4
 
 ## Umfang
 
 - 4 Go-Module im gemeinsamen `go.work`
-- 158 Go-Dateien
-- 47.260 Go-Codezeilen inklusive Tests
-- 276 `Test...`-Testfunktionen
+- 159 Go-Dateien
+- 47.489 Go-Codezeilen inklusive Tests
+- 281 `Test...`-Testfunktionen
 - 103 produktive Knowledge-JSON-Dateien
 - 8 Compose-Services inklusive optionalem SearXNG-Profil
 - reproduzierbarer Engineering-Snapshot: 1.652 Knoten / 6.450 Kanten
@@ -70,3 +70,14 @@ Docker/Podman sind in der Prüfungsumgebung nicht installiert. Deshalb wurden ni
 - historischer Quality-Replay mit echten Betreiber-Tickets
 
 Vor Produktivfreigabe bleiben Container-Smoke-Test, echte GLPI-/Research-Konnektivität und der historische Quality-Replay Betreiber-Gates.
+
+## v1.4.4-spezifische Prüfungen
+
+- Historischer Segmentdatensatz mit kanonischer `segmentRecord.ID`, aber leerer eingebetteter `Memory.ID`: **reproduziert auf v1.4.3, behoben auf v1.4.4**
+- Legacy-ID wird beim Segment-Scan, beim vollständigen Segment-Read und beim Store-Migrationspfad aus dem kanonischen Katalogschlüssel wiederhergestellt: **OK**
+- Derselbe Legacy-Memory erscheint anschließend wieder im Knowledge Graph und in der Vektorsuche: **OK**
+- Knowledge-Graph liefert `total_memories`, `total_synapses` und `truncated` für transparente Sampling-Anzeige: **OK**
+- Ohne Synapsen zeigt der Graph einen gebundenen Start-Sample von bis zu 64 Memories statt leer zu wirken: **OK**
+- NeuroForge `go test ./...`, `go vet ./...`, `go build ./...`: **OK**
+- NeuroForge `go test -race ./internal/store ./internal/httpapi`: **OK**
+- eingebettetes NeuroForge-JavaScript `node --check`: **OK**

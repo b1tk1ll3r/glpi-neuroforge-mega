@@ -481,7 +481,17 @@ func applyNewDefaults(c *core.Config) {
 }
 
 func migrateMemories(memories map[string]*core.Memory, localShard string) {
-	for _, m := range memories {
+	for id, m := range memories {
+		if m == nil {
+			continue
+		}
+		// The catalog map key is the canonical memory identity. Older segment
+		// records could carry the ID only in the outer segment record while the
+		// embedded Memory.ID was empty. Repair that legacy representation on
+		// every open so graph/index/retention code sees one stable identity.
+		if m.ID != id {
+			m.ID = id
+		}
 		if m.MemoryType == "" {
 			m.MemoryType = inferMemoryType(m.Kind)
 		}
@@ -711,7 +721,7 @@ func (s *Store) rebuildHotIndexesLocked() {
 			continue
 		}
 		dim := len(m.Vector)
-		batches[dim] = append(batches[dim], vector.HNSWItem{ID: m.ID, Vector: m.Vector})
+		batches[dim] = append(batches[dim], vector.HNSWItem{ID: c.id, Vector: m.Vector})
 	}
 	for dim, items := range batches {
 		idx := s.newIndexLocked()
@@ -864,6 +874,8 @@ func (s *Store) fullMemoryForReadLocked(id string) (core.Memory, bool) {
 	if err != nil || !found || deleted {
 		return cloneMemory(*meta), true
 	}
+	// Segment record ID / catalog key is authoritative for legacy records.
+	m.ID = id
 	if s.pageCache != nil {
 		s.pageCache.Put(m)
 	}

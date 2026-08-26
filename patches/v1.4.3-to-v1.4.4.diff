@@ -1,0 +1,422 @@
+diff --git a/README.md b/README.md
+index aef1427..5f6f3ae 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # GLPI NeuroForge Mega v1.4.0
+ 
+-> Release: **v1.4.3** · Dashboard-Status-Kompatibilitätsfix für korrekte Memory-/Synapsen-/Revision-Anzeige.
++> Release: **v1.4.4** · Legacy-Memory-ID-Reparatur und robuster Wissensraum-Graph für segmentbasierte Bestandsdaten.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+diff --git a/VERSION b/VERSION
+index 428b770..1c99cf0 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.4.3
++1.4.4
+diff --git a/docs/VALIDATION.md b/docs/VALIDATION.md
+index 1e17961..b1702b6 100644
+--- a/docs/VALIDATION.md
++++ b/docs/VALIDATION.md
+@@ -1,13 +1,13 @@
+ # Validierung
+ 
+-Stand: 26.08.2026 — Release v1.4.0
++Stand: 26.08.2026 — Release v1.4.4
+ 
+ ## Umfang
+ 
+ - 4 Go-Module im gemeinsamen `go.work`
+-- 158 Go-Dateien
+-- 47.260 Go-Codezeilen inklusive Tests
+-- 276 `Test...`-Testfunktionen
++- 159 Go-Dateien
++- 47.489 Go-Codezeilen inklusive Tests
++- 281 `Test...`-Testfunktionen
+ - 103 produktive Knowledge-JSON-Dateien
+ - 8 Compose-Services inklusive optionalem SearXNG-Profil
+ - reproduzierbarer Engineering-Snapshot: 1.652 Knoten / 6.450 Kanten
+@@ -70,3 +70,14 @@ Docker/Podman sind in der Prüfungsumgebung nicht installiert. Deshalb wurden ni
+ - historischer Quality-Replay mit echten Betreiber-Tickets
+ 
+ Vor Produktivfreigabe bleiben Container-Smoke-Test, echte GLPI-/Research-Konnektivität und der historische Quality-Replay Betreiber-Gates.
++
++## v1.4.4-spezifische Prüfungen
++
++- Historischer Segmentdatensatz mit kanonischer `segmentRecord.ID`, aber leerer eingebetteter `Memory.ID`: **reproduziert auf v1.4.3, behoben auf v1.4.4**
++- Legacy-ID wird beim Segment-Scan, beim vollständigen Segment-Read und beim Store-Migrationspfad aus dem kanonischen Katalogschlüssel wiederhergestellt: **OK**
++- Derselbe Legacy-Memory erscheint anschließend wieder im Knowledge Graph und in der Vektorsuche: **OK**
++- Knowledge-Graph liefert `total_memories`, `total_synapses` und `truncated` für transparente Sampling-Anzeige: **OK**
++- Ohne Synapsen zeigt der Graph einen gebundenen Start-Sample von bis zu 64 Memories statt leer zu wirken: **OK**
++- NeuroForge `go test ./...`, `go vet ./...`, `go build ./...`: **OK**
++- NeuroForge `go test -race ./internal/store ./internal/httpapi`: **OK**
++- eingebettetes NeuroForge-JavaScript `node --check`: **OK**
+diff --git a/mega-project.json b/mega-project.json
+index 1a449fb..14fbfd7 100644
+--- a/mega-project.json
++++ b/mega-project.json
+@@ -28,7 +28,7 @@
+     "schema": "Wiki/Schema.md",
+     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
+   },
+-  "version": "1.4.3",
++  "version": "1.4.4",
+   "controlled_learning": {
+     "raw_chat_auto_learning": false,
+     "validated_outcomes": [
+diff --git a/platform/neuroforge/internal/httpapi/index.html b/platform/neuroforge/internal/httpapi/index.html
+index 50e566d..a0a2b3f 100644
+--- a/platform/neuroforge/internal/httpapi/index.html
++++ b/platform/neuroforge/internal/httpapi/index.html
+@@ -172,7 +172,7 @@ function lod(){return cam.z<.62?0:cam.z<1.45?1:2}function drawGraph(){let r=canv
+ function drawClusters(){let groups={};for(let p of graphPos.values()){let t=p.n.memory_type||'other';(groups[t]??=[]).push(p)}for(let[t,xs]of Object.entries(groups)){let x=xs.reduce((a,p)=>a+p.x,0)/xs.length,y=xs.reduce((a,p)=>a+p.y,0)/xs.length,s=worldToScreen({x,y}),rad=Math.min(58,20+Math.sqrt(xs.length)*6);ctx.fillStyle=(typeColors[t]||'#bd8cff')+'44';ctx.strokeStyle=typeColors[t]||'#bd8cff';ctx.lineWidth=2;ctx.beginPath();ctx.arc(s.x,s.y,rad,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle='#eef3fb';ctx.font='600 13px system-ui';ctx.textAlign='center';ctx.fillText(t,s.x,s.y-2);ctx.fillStyle='#a9b7cb';ctx.font='11px system-ui';ctx.fillText(xs.length+' nodes',s.x,s.y+15)}ctx.textAlign='left'}
+ function fitGraph(){if(!graphPos.size)return;let xs=[...graphPos.values()].map(p=>p.x),ys=[...graphPos.values()].map(p=>p.y),w=Math.max(...xs)-Math.min(...xs)+140,h=Math.max(...ys)-Math.min(...ys)+140,r=canvas.getBoundingClientRect();cam.z=Math.max(.25,Math.min(1.15,Math.min(r.width/w,r.height/h)));cam.x=cam.y=0;drawGraph()}
+ canvas.addEventListener('wheel',e=>{e.preventDefault();let before=screenToWorld(e.offsetX,e.offsetY),factor=Math.exp(-e.deltaY*.0012);cam.z=Math.max(.2,Math.min(5,cam.z*factor));let after=worldToScreen(before);cam.x+=e.offsetX-after.x;cam.y+=e.offsetY-after.y;drawGraph()},{passive:false});canvas.addEventListener('pointerdown',e=>{pointer.down=true;pointer.x=e.clientX;pointer.y=e.clientY;pointer.moved=false;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(!pointer.down)return;let dx=e.clientX-pointer.x,dy=e.clientY-pointer.y;if(Math.hypot(dx,dy)>2)pointer.moved=true;cam.x+=dx;cam.y+=dy;pointer.x=e.clientX;pointer.y=e.clientY;drawGraph()});canvas.addEventListener('pointerup',e=>{pointer.down=false;if(pointer.moved)return;let rect=canvas.getBoundingClientRect(),x=e.clientX-rect.left,y=e.clientY-rect.top;if(lod()===0){cam.z=.8;drawGraph();return}let best=null,bd=15;for(let p of graphPos.values()){let s=worldToScreen(p),d=Math.hypot(s.x-x,s.y-y);if(d<bd){best=p;bd=d}}if(best)openMemory(best.n.id)});$('zoomInBtn').addEventListener('click',()=>{cam.z=Math.min(5,cam.z*1.3);drawGraph()});$('zoomOutBtn').addEventListener('click',()=>{cam.z=Math.max(.2,cam.z/1.3);drawGraph()});$('fitBtn').addEventListener('click',fitGraph);
+-async function loadKnowledgeGraph(center=''){try{let d=await req('/admin/api/knowledge/graph?depth=3&max_nodes=600'+(center?'&center='+encodeURIComponent(center):''));graphData={...(d||{}),nodes:Array.isArray(d?.nodes)?d.nodes:[],edges:Array.isArray(d?.edges)?d.edges:[]};$('graphCount').textContent=fmtN(graphData.nodes.length)+' Knoten · '+fmtN(graphData.edges.length)+' Kanten';layoutGraph()}catch(e){graphData={nodes:[],edges:[]};graphLayoutReady=false;$('graphCount').textContent='0 Knoten · 0 Kanten';drawGraph();toast(e.message,true)}}$('graphReloadBtn').addEventListener('click',()=>loadKnowledgeGraph(selectedMemory));
++async function loadKnowledgeGraph(center=''){try{let d=await req('/admin/api/knowledge/graph?depth=3&max_nodes=600'+(center?'&center='+encodeURIComponent(center):''));graphData={...(d||{}),nodes:Array.isArray(d?.nodes)?d.nodes:[],edges:Array.isArray(d?.edges)?d.edges:[]};let tn=Number(d?.total_memories??graphData.nodes.length),te=Number(d?.total_synapses??graphData.edges.length),ns=fmtN(graphData.nodes.length)+(tn>graphData.nodes.length?' / '+fmtN(tn):''),es=fmtN(graphData.edges.length)+(te>graphData.edges.length?' / '+fmtN(te):'');$('graphCount').textContent=ns+' Knoten · '+es+' Kanten';if(tn>0&&graphData.nodes.length===0)toast('Memory-Katalog enthält '+fmtN(tn)+' Einträge, aber der Graph konnte keine kanonischen IDs auflösen.',true);layoutGraph()}catch(e){graphData={nodes:[],edges:[]};graphLayoutReady=false;$('graphCount').textContent='0 Knoten · 0 Kanten';drawGraph();toast(e.message,true)}}$('graphReloadBtn').addEventListener('click',()=>loadKnowledgeGraph(selectedMemory));
+ $('knowledgeSearchBtn').addEventListener('click',searchKnowledge);$('knowledgeQuery').addEventListener('keydown',e=>{if(e.key==='Enter')searchKnowledge()});async function searchKnowledge(){let q=$('knowledgeQuery').value.trim();if(!q)return;try{let d=await req('/admin/api/knowledge/search',{method:'POST',body:JSON.stringify({text:q,k:16})});$('knowledgeHits').innerHTML=(d.hits||[]).map(h=>`<div class="item click" data-mid="${esc(h.memory.id)}"><div class="itemTitle"><b>${esc(h.memory.text.slice(0,120))}</b><span class="pill">${Number(h.score||0).toFixed(3)}</span></div><div class="meta"><span>${esc(h.candidate_source||'')}</span><span>sim ${Number(h.similarity||0).toFixed(3)}</span><span>base ${Number(h.base_score||0).toFixed(3)}</span><span>graph +${Number(h.graph_boost||0).toFixed(3)}</span></div></div>`).join('')||'<p class="muted">Keine Treffer.</p>';$$('#knowledgeHits [data-mid]').forEach(x=>x.addEventListener('click',()=>openMemory(x.dataset.mid)));if(d.hits?.[0]){selectedMemory=d.hits[0].memory.id;await loadKnowledgeGraph(selectedMemory);await openMemory(selectedMemory,false)}}catch(e){toast(e.message,true)}}
+ async function openMemory(id,recenter=true){selectedMemory=id;try{let d=await req('/admin/api/knowledge/memory/'+encodeURIComponent(id)),m=d.memory||{},p=m.provenance||{};$('knowledgeInspector').innerHTML=`<div class="meta"><span class="pill">${esc(m.memory_type)}</span><span class="pill">${esc(m.kind)}</span><span class="pill ${m.status==='active'?'good':m.status==='conflicted'?'warn':''}">${esc(m.status||'active')}</span></div><h3>${esc(m.truth_key||p.source_title||m.id)}</h3><div style="white-space:pre-wrap;line-height:1.5;font-size:13px">${esc(m.text)}</div><h3>Qualität</h3><div class="kv"><div>Confidence</div><div>${Number(m.confidence||0).toFixed(3)}</div><div>Salience</div><div>${Number(m.salience||0).toFixed(3)}</div><div>Reward</div><div>${Number(m.reward||0).toFixed(3)}</div><div>Evidenzquellen</div><div>${fmtN(m.evidence_count||m.evidence_source_ids?.length||0)}</div><div>Aufrufe</div><div>${fmtN(m.access_count)}</div></div><h3>Provenance</h3><div class="kv"><div>Quelle</div><div>${esc(p.source||'legacy/unknown')}</div><div>Source-ID</div><div class="mono">${esc(p.source_id||'–')}</div><div>Titel</div><div>${esc(p.source_title||'–')}</div><div>URI</div><div>${p.source_uri?`<a href="${esc(safeHref(p.source_uri))}" target="_blank" rel="noopener" style="color:var(--accent)">${esc(p.source_uri)}</a>`:'–'}</div><div>Chunk</div><div>${p.chunk_index||'–'} / ${p.chunk_count||'–'}</div><div>Embedding</div><div>${esc([p.embedding_model,p.embedding_node_id].filter(Boolean).join(' · ')||'–')}</div><div>Generierung</div><div>${esc([p.generation_model,p.generation_node_id].filter(Boolean).join(' · ')||'–')}</div></div><h3>Stärkste Synapsen</h3>${(d.edges||[]).slice(0,12).map(e=>`<div class="item click" data-mid="${esc(e.a===id?e.b:e.a)}"><div class="itemTitle"><span class="mono small">${esc(e.a===id?e.b:e.a)}</span><span class="pill">w ${Number(e.weight).toFixed(2)}</span></div></div>`).join('')||'<p class="muted">Keine Synapsen.</p>'}<h3>Timeline</h3>${(d.events||[]).map(e=>`<div class="item"><b>${esc(e.type)}</b><p>${esc(e.summary)}</p><div class="meta">${new Date(e.created_at).toLocaleString()}</div></div>`).join('')||'<p class="muted">Keine Events.</p>'}`;$$('#knowledgeInspector [data-mid]').forEach(x=>x.addEventListener('click',()=>openMemory(x.dataset.mid)));drawGraph();if(recenter)loadKnowledgeGraph(id)}catch(e){toast(e.message,true)}}
+ 
+diff --git a/platform/neuroforge/internal/store/knowledge.go b/platform/neuroforge/internal/store/knowledge.go
+index 817175a..c6e4f34 100644
+--- a/platform/neuroforge/internal/store/knowledge.go
++++ b/platform/neuroforge/internal/store/knowledge.go
+@@ -68,9 +68,12 @@ type KnowledgeEdge struct {
+ }
+ 
+ type KnowledgeGraph struct {
+-	Center string          `json:"center,omitempty"`
+-	Nodes  []MemoryPreview `json:"nodes"`
+-	Edges  []KnowledgeEdge `json:"edges"`
++	Center        string          `json:"center,omitempty"`
++	Nodes         []MemoryPreview `json:"nodes"`
++	Edges         []KnowledgeEdge `json:"edges"`
++	TotalMemories int             `json:"total_memories"`
++	TotalSynapses int             `json:"total_synapses"`
++	Truncated     bool            `json:"truncated"`
+ }
+ 
+ type KnowledgeMemoryDetail struct {
+@@ -216,7 +219,10 @@ func (s *Store) KnowledgeMemories(limit int, before time.Time, memoryType, statu
+ 	s.mu.RLock()
+ 	h := &previewHeap{}
+ 	heap.Init(h)
+-	for _, meta := range s.state.Memories {
++	for id, meta := range s.state.Memories {
++		if meta == nil {
++			continue
++		}
+ 		if !before.IsZero() && !meta.CreatedAt.Before(before) {
+ 			continue
+ 		}
+@@ -237,6 +243,7 @@ func (s *Store) KnowledgeMemories(limit int, before time.Time, memoryType, statu
+ 			continue
+ 		}
+ 		p := memoryPreview(*meta)
++		p.ID = id
+ 		if h.Len() < limit {
+ 			heap.Push(h, p)
+ 		} else if p.CreatedAt.After((*h)[0].CreatedAt) {
+@@ -285,16 +292,28 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
+ 		selected[center] = true
+ 		frontier = []string{center}
+ 	} else {
+-		// Keep only a tiny top-K seed set; never allocate one preview per memory.
++		// Start from a bounded top-K seed set. With no synapses yet, show a
++		// broader sample so a freshly ingested knowledge space is still useful
++		// and visibly populated before associative links have formed.
++		seedLimit := 12
++		if len(s.state.Synapses) == 0 {
++			seedLimit = 64
++		}
++		if seedLimit > maxNodes {
++			seedLimit = maxNodes
++		}
+ 		type seedItem struct {
+ 			id      string
+ 			score   float64
+ 			created time.Time
+ 		}
+-		seeds := make([]seedItem, 0, 12)
+-		for _, m := range s.state.Memories {
+-			x := seedItem{id: m.ID, score: m.Salience + float64(m.AccessCount)*0.01, created: m.CreatedAt}
+-			if len(seeds) < 12 {
++		seeds := make([]seedItem, 0, seedLimit)
++		for id, m := range s.state.Memories {
++			if m == nil {
++				continue
++			}
++			x := seedItem{id: id, score: m.Salience + float64(m.AccessCount)*0.01, created: m.CreatedAt}
++			if len(seeds) < seedLimit {
+ 				seeds = append(seeds, x)
+ 				continue
+ 			}
+@@ -338,7 +357,10 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
+ 		}
+ 		frontier = next
+ 	}
+-	out := KnowledgeGraph{Center: center, Nodes: make([]MemoryPreview, 0), Edges: make([]KnowledgeEdge, 0)}
++	out := KnowledgeGraph{
++		Center: center, Nodes: make([]MemoryPreview, 0), Edges: make([]KnowledgeEdge, 0),
++		TotalMemories: len(s.state.Memories), TotalSynapses: len(s.state.Synapses),
++	}
+ 	for id := range selected {
+ 		if m, ok := s.fullMemoryForReadLocked(id); ok {
+ 			out.Nodes = append(out.Nodes, memoryPreview(m))
+@@ -353,6 +375,7 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
+ 	if len(out.Edges) > maxNodes*4 {
+ 		out.Edges = out.Edges[:maxNodes*4]
+ 	}
++	out.Truncated = len(out.Nodes) < out.TotalMemories || len(out.Edges) < out.TotalSynapses
+ 	return out
+ }
+ 
+@@ -401,9 +424,9 @@ func (s *Store) KnowledgeMemoryDetail(id string) (KnowledgeMemoryDetail, bool) {
+ 		return nil
+ 	}
+ 	out.Parent = previewByID(m.ParentID)
+-	for _, mm := range s.state.Memories {
+-		if mm.ParentID == id {
+-			if full, ok := s.fullMemoryForReadLocked(mm.ID); ok {
++	for childID, mm := range s.state.Memories {
++		if mm != nil && mm.ParentID == id {
++			if full, ok := s.fullMemoryForReadLocked(childID); ok {
+ 				out.Children = append(out.Children, memoryPreview(full))
+ 			}
+ 		}
+@@ -419,10 +442,13 @@ func (s *Store) KnowledgeMemoryDetail(id string) (KnowledgeMemoryDetail, bool) {
+ 			out.Supersedes = append(out.Supersedes, *p)
+ 		}
+ 	}
+-	for _, mm := range s.state.Memories {
++	for successorID, mm := range s.state.Memories {
++		if mm == nil {
++			continue
++		}
+ 		for _, x := range mm.Supersedes {
+ 			if x == id {
+-				if full, ok := s.fullMemoryForReadLocked(mm.ID); ok {
++				if full, ok := s.fullMemoryForReadLocked(successorID); ok {
+ 					out.SupersededBy = append(out.SupersededBy, memoryPreview(full))
+ 				}
+ 			}
+diff --git a/platform/neuroforge/internal/store/knowledge_test.go b/platform/neuroforge/internal/store/knowledge_test.go
+index 2ce942e..e5d6174 100644
+--- a/platform/neuroforge/internal/store/knowledge_test.go
++++ b/platform/neuroforge/internal/store/knowledge_test.go
+@@ -75,4 +75,31 @@ func TestKnowledgeGraphEmptyUsesEmptySlices(t *testing.T) {
+ 	if len(g.Nodes) != 0 || len(g.Edges) != 0 {
+ 		t.Fatalf("unexpected graph contents: nodes=%d edges=%d", len(g.Nodes), len(g.Edges))
+ 	}
++	if g.TotalMemories != 0 || g.TotalSynapses != 0 || g.Truncated {
++		t.Fatalf("unexpected empty graph totals: %+v", g)
++	}
++}
++
++func TestKnowledgeGraphShowsBoundedOrphansBeforeSynapsesExist(t *testing.T) {
++	s, err := New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	for i := 0; i < 100; i++ {
++		m := &core.Memory{ID: NewID("orphan"), Kind: "evidence", MemoryType: core.MemorySemantic, Text: "isolated evidence", Vector: []float32{1, float32(i + 1)}, Salience: float64(i) / 100, Confidence: .7}
++		if err := s.AddMemory(m); err != nil {
++			t.Fatal(err)
++		}
++	}
++	g := s.KnowledgeGraph("", 3, 600)
++	if g.TotalMemories != 100 || g.TotalSynapses != 0 {
++		t.Fatalf("unexpected totals: %+v", g)
++	}
++	if len(g.Nodes) != 64 {
++		t.Fatalf("nodes=%d want bounded orphan sample of 64", len(g.Nodes))
++	}
++	if !g.Truncated {
++		t.Fatal("graph should report sampling/truncation")
++	}
+ }
+diff --git a/platform/neuroforge/internal/store/segment.go b/platform/neuroforge/internal/store/segment.go
+index e05590e..6fdaf60 100644
+--- a/platform/neuroforge/internal/store/segment.go
++++ b/platform/neuroforge/internal/store/segment.go
+@@ -184,6 +184,9 @@ func (s *SegmentStore) scanFile(path string) error {
+ 				delete(s.scanMetadata, rec.ID)
+ 			} else if rec.Memory != nil {
+ 				m := cloneMemory(*rec.Memory)
++				// Historical segment records may have stored the canonical ID only
++				// in segmentRecord.ID. Restore the invariant Memory.ID == record ID.
++				m.ID = rec.ID
+ 				if m.VectorDim == 0 && len(m.Vector) > 0 {
+ 					m.VectorDim = len(m.Vector)
+ 				}
+@@ -353,7 +356,10 @@ func (s *SegmentStore) Get(id string) (core.Memory, bool, bool, error) {
+ 	if rec.Memory == nil {
+ 		return core.Memory{}, true, false, errors.New("segment upsert has no memory body")
+ 	}
+-	return cloneMemory(*rec.Memory), true, false, nil
++	m := cloneMemory(*rec.Memory)
++	// The lookup key comes from the outer segment record and is authoritative.
++	m.ID = id
++	return m, true, false, nil
+ }
+ 
+ type liveSegmentCursor struct {
+diff --git a/platform/neuroforge/internal/store/segment_test.go b/platform/neuroforge/internal/store/segment_test.go
+index 1fe248e..4a99b8c 100644
+--- a/platform/neuroforge/internal/store/segment_test.go
++++ b/platform/neuroforge/internal/store/segment_test.go
+@@ -134,3 +134,51 @@ func TestIterateLiveVectorsSequentialUsesLatestSearchableRecords(t *testing.T) {
+ 		t.Fatal("deleted memory must not be encoded")
+ 	}
+ }
++
++func TestLegacySegmentRecordRestoresCanonicalMemoryIDAndKnowledgeGraph(t *testing.T) {
++	dir := t.TempDir()
++	ss, err := openSegmentStore(filepath.Join(dir, "memory-segments"), 1<<20, false)
++	if err != nil {
++		t.Fatal(err)
++	}
++	// Historical compatibility fixture: the outer segment record owns the ID,
++	// while the embedded memory body has no ID. Older persisted data can have
++	// this shape even though current writers always populate both fields.
++	legacy := core.Memory{
++		Kind:       "evidence",
++		MemoryType: core.MemorySemantic,
++		Text:       "legacy segment evidence",
++		Vector:     []float32{1, 0},
++		Salience:   1,
++		Confidence: .8,
++	}
++	if err := ss.appendRecord(segmentRecord{Revision: 1, Op: "upsert", ID: "legacy-id", Memory: &legacy}); err != nil {
++		t.Fatal(err)
++	}
++	ss.Close()
++
++	s, err := New(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++
++	if meta := s.state.Memories["legacy-id"]; meta == nil || meta.ID != "legacy-id" {
++		t.Fatalf("catalog identity was not repaired: %#v", meta)
++	}
++	got, ok := s.GetMemory("legacy-id")
++	if !ok || got.ID != "legacy-id" || got.Text != legacy.Text {
++		t.Fatalf("hydrated memory identity/body mismatch: ok=%v memory=%#v", ok, got)
++	}
++	g := s.KnowledgeGraph("", 3, 600)
++	if len(g.Nodes) != 1 || g.Nodes[0].ID != "legacy-id" {
++		t.Fatalf("legacy memory missing from knowledge graph: %#v", g.Nodes)
++	}
++	if g.TotalMemories != 1 || g.TotalSynapses != 0 || g.Truncated {
++		t.Fatalf("unexpected graph totals: %+v", g)
++	}
++	hits := s.SearchVector([]float32{1, 0}, 4, .1, 0)
++	if len(hits) == 0 || hits[0].Memory.ID != "legacy-id" {
++		t.Fatalf("legacy memory missing from vector retrieval: %#v", hits)
++	}
++}
+diff --git a/platform/neuroforge/internal/store/source_index.go b/platform/neuroforge/internal/store/source_index.go
+index 293d171..9ef6131 100644
+--- a/platform/neuroforge/internal/store/source_index.go
++++ b/platform/neuroforge/internal/store/source_index.go
+@@ -57,11 +57,11 @@ func (s *Store) MemoryByProvenanceSourceID(sourceID string) (MemoryLookup, bool)
+ 	if sourceID == "" {
+ 		return MemoryLookup{}, false
+ 	}
+-	for _, meta := range s.state.Memories {
++	for id, meta := range s.state.Memories {
+ 		if meta == nil || strings.TrimSpace(meta.Provenance.SourceID) != sourceID {
+ 			continue
+ 		}
+-		m, ok := s.fullMemoryForReadLocked(meta.ID)
++		m, ok := s.fullMemoryForReadLocked(id)
+ 		if ok {
+ 			return MemoryLookup{Memory: cloneMemory(m)}, true
+ 		}
+diff --git a/platform/neuroforge/internal/store/store.go b/platform/neuroforge/internal/store/store.go
+index 5c16531..ad9d791 100644
+--- a/platform/neuroforge/internal/store/store.go
++++ b/platform/neuroforge/internal/store/store.go
+@@ -481,7 +481,17 @@ func applyNewDefaults(c *core.Config) {
+ }
+ 
+ func migrateMemories(memories map[string]*core.Memory, localShard string) {
+-	for _, m := range memories {
++	for id, m := range memories {
++		if m == nil {
++			continue
++		}
++		// The catalog map key is the canonical memory identity. Older segment
++		// records could carry the ID only in the outer segment record while the
++		// embedded Memory.ID was empty. Repair that legacy representation on
++		// every open so graph/index/retention code sees one stable identity.
++		if m.ID != id {
++			m.ID = id
++		}
+ 		if m.MemoryType == "" {
+ 			m.MemoryType = inferMemoryType(m.Kind)
+ 		}
+@@ -711,7 +721,7 @@ func (s *Store) rebuildHotIndexesLocked() {
+ 			continue
+ 		}
+ 		dim := len(m.Vector)
+-		batches[dim] = append(batches[dim], vector.HNSWItem{ID: m.ID, Vector: m.Vector})
++		batches[dim] = append(batches[dim], vector.HNSWItem{ID: c.id, Vector: m.Vector})
+ 	}
+ 	for dim, items := range batches {
+ 		idx := s.newIndexLocked()
+@@ -864,6 +874,8 @@ func (s *Store) fullMemoryForReadLocked(id string) (core.Memory, bool) {
+ 	if err != nil || !found || deleted {
+ 		return cloneMemory(*meta), true
+ 	}
++	// Segment record ID / catalog key is authoritative for legacy records.
++	m.ID = id
+ 	if s.pageCache != nil {
+ 		s.pageCache.Put(m)
+ 	}
+diff --git a/platform/neuroforge/internal/store/v3.go b/platform/neuroforge/internal/store/v3.go
+index a2651ef..f0e1cea 100644
+--- a/platform/neuroforge/internal/store/v3.go
++++ b/platform/neuroforge/internal/store/v3.go
+@@ -29,7 +29,7 @@ func (s *Store) resolveConflictLocked(in *core.Memory) []core.Memory {
+ 	var changed []core.Memory
+ 	group := "conflict:" + strings.ToLower(key)
+ 	for id, meta := range s.state.Memories {
+-		if meta.ID == in.ID || !strings.EqualFold(strings.TrimSpace(meta.TruthKey), key) || meta.Status == core.MemoryArchived {
++		if id == in.ID || !strings.EqualFold(strings.TrimSpace(meta.TruthKey), key) || meta.Status == core.MemoryArchived {
+ 			continue
+ 		}
+ 		old, ok := s.materializeMemoryLocked(id)
+@@ -359,19 +359,22 @@ func (s *Store) RunRetention(now time.Time) (RetentionResult, error) {
+ 	candidates := make([]retentionCandidate, 0, len(s.state.Memories))
+ 	deleteSet := map[string]bool{}
+ 	changed := []core.Memory{}
+-	for _, m := range s.state.Memories {
++	for id, m := range s.state.Memories {
++		if m == nil {
++			continue
++		}
+ 		ageDays := now.Sub(m.CreatedAt).Hours() / 24
+ 		if m.MemoryType == core.MemoryWorking && cfg.WorkingTTLHours > 0 && now.Sub(m.CreatedAt).Hours() >= cfg.WorkingTTLHours {
+-			deleteSet[m.ID] = true
++			deleteSet[id] = true
+ 			continue
+ 		}
+ 		utility := memoryUtility(m, now)
+-		candidates = append(candidates, retentionCandidate{id: m.ID, utility: utility, ageDays: ageDays})
++		candidates = append(candidates, retentionCandidate{id: id, utility: utility, ageDays: ageDays})
+ 		if ageDays < cfg.MinAgeDays || utility >= cfg.MinUtility || m.Status == core.MemoryArchived {
+ 			continue
+ 		}
+ 		if cfg.DeleteConsolidated && m.ConsolidatedInto != "" {
+-			deleteSet[m.ID] = true
++			deleteSet[id] = true
+ 			continue
+ 		}
+ 		full, ok := s.materializeMemoryLocked(m.ID)

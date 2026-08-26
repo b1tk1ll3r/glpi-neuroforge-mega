@@ -184,6 +184,9 @@ func (s *SegmentStore) scanFile(path string) error {
 				delete(s.scanMetadata, rec.ID)
 			} else if rec.Memory != nil {
 				m := cloneMemory(*rec.Memory)
+				// Historical segment records may have stored the canonical ID only
+				// in segmentRecord.ID. Restore the invariant Memory.ID == record ID.
+				m.ID = rec.ID
 				if m.VectorDim == 0 && len(m.Vector) > 0 {
 					m.VectorDim = len(m.Vector)
 				}
@@ -353,7 +356,10 @@ func (s *SegmentStore) Get(id string) (core.Memory, bool, bool, error) {
 	if rec.Memory == nil {
 		return core.Memory{}, true, false, errors.New("segment upsert has no memory body")
 	}
-	return cloneMemory(*rec.Memory), true, false, nil
+	m := cloneMemory(*rec.Memory)
+	// The lookup key comes from the outer segment record and is authoritative.
+	m.ID = id
+	return m, true, false, nil
 }
 
 type liveSegmentCursor struct {

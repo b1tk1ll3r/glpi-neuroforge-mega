@@ -134,3 +134,51 @@ func TestIterateLiveVectorsSequentialUsesLatestSearchableRecords(t *testing.T) {
 		t.Fatal("deleted memory must not be encoded")
 	}
 }
+
+func TestLegacySegmentRecordRestoresCanonicalMemoryIDAndKnowledgeGraph(t *testing.T) {
+	dir := t.TempDir()
+	ss, err := openSegmentStore(filepath.Join(dir, "memory-segments"), 1<<20, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Historical compatibility fixture: the outer segment record owns the ID,
+	// while the embedded memory body has no ID. Older persisted data can have
+	// this shape even though current writers always populate both fields.
+	legacy := core.Memory{
+		Kind:       "evidence",
+		MemoryType: core.MemorySemantic,
+		Text:       "legacy segment evidence",
+		Vector:     []float32{1, 0},
+		Salience:   1,
+		Confidence: .8,
+	}
+	if err := ss.appendRecord(segmentRecord{Revision: 1, Op: "upsert", ID: "legacy-id", Memory: &legacy}); err != nil {
+		t.Fatal(err)
+	}
+	ss.Close()
+
+	s, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	if meta := s.state.Memories["legacy-id"]; meta == nil || meta.ID != "legacy-id" {
+		t.Fatalf("catalog identity was not repaired: %#v", meta)
+	}
+	got, ok := s.GetMemory("legacy-id")
+	if !ok || got.ID != "legacy-id" || got.Text != legacy.Text {
+		t.Fatalf("hydrated memory identity/body mismatch: ok=%v memory=%#v", ok, got)
+	}
+	g := s.KnowledgeGraph("", 3, 600)
+	if len(g.Nodes) != 1 || g.Nodes[0].ID != "legacy-id" {
+		t.Fatalf("legacy memory missing from knowledge graph: %#v", g.Nodes)
+	}
+	if g.TotalMemories != 1 || g.TotalSynapses != 0 || g.Truncated {
+		t.Fatalf("unexpected graph totals: %+v", g)
+	}
+	hits := s.SearchVector([]float32{1, 0}, 4, .1, 0)
+	if len(hits) == 0 || hits[0].Memory.ID != "legacy-id" {
+		t.Fatalf("legacy memory missing from vector retrieval: %#v", hits)
+	}
+}

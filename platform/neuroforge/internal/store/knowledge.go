@@ -68,9 +68,12 @@ type KnowledgeEdge struct {
 }
 
 type KnowledgeGraph struct {
-	Center string          `json:"center,omitempty"`
-	Nodes  []MemoryPreview `json:"nodes"`
-	Edges  []KnowledgeEdge `json:"edges"`
+	Center        string          `json:"center,omitempty"`
+	Nodes         []MemoryPreview `json:"nodes"`
+	Edges         []KnowledgeEdge `json:"edges"`
+	TotalMemories int             `json:"total_memories"`
+	TotalSynapses int             `json:"total_synapses"`
+	Truncated     bool            `json:"truncated"`
 }
 
 type KnowledgeMemoryDetail struct {
@@ -216,7 +219,10 @@ func (s *Store) KnowledgeMemories(limit int, before time.Time, memoryType, statu
 	s.mu.RLock()
 	h := &previewHeap{}
 	heap.Init(h)
-	for _, meta := range s.state.Memories {
+	for id, meta := range s.state.Memories {
+		if meta == nil {
+			continue
+		}
 		if !before.IsZero() && !meta.CreatedAt.Before(before) {
 			continue
 		}
@@ -237,6 +243,7 @@ func (s *Store) KnowledgeMemories(limit int, before time.Time, memoryType, statu
 			continue
 		}
 		p := memoryPreview(*meta)
+		p.ID = id
 		if h.Len() < limit {
 			heap.Push(h, p)
 		} else if p.CreatedAt.After((*h)[0].CreatedAt) {
@@ -285,16 +292,28 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
 		selected[center] = true
 		frontier = []string{center}
 	} else {
-		// Keep only a tiny top-K seed set; never allocate one preview per memory.
+		// Start from a bounded top-K seed set. With no synapses yet, show a
+		// broader sample so a freshly ingested knowledge space is still useful
+		// and visibly populated before associative links have formed.
+		seedLimit := 12
+		if len(s.state.Synapses) == 0 {
+			seedLimit = 64
+		}
+		if seedLimit > maxNodes {
+			seedLimit = maxNodes
+		}
 		type seedItem struct {
 			id      string
 			score   float64
 			created time.Time
 		}
-		seeds := make([]seedItem, 0, 12)
-		for _, m := range s.state.Memories {
-			x := seedItem{id: m.ID, score: m.Salience + float64(m.AccessCount)*0.01, created: m.CreatedAt}
-			if len(seeds) < 12 {
+		seeds := make([]seedItem, 0, seedLimit)
+		for id, m := range s.state.Memories {
+			if m == nil {
+				continue
+			}
+			x := seedItem{id: id, score: m.Salience + float64(m.AccessCount)*0.01, created: m.CreatedAt}
+			if len(seeds) < seedLimit {
 				seeds = append(seeds, x)
 				continue
 			}
@@ -338,7 +357,10 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
 		}
 		frontier = next
 	}
-	out := KnowledgeGraph{Center: center, Nodes: make([]MemoryPreview, 0), Edges: make([]KnowledgeEdge, 0)}
+	out := KnowledgeGraph{
+		Center: center, Nodes: make([]MemoryPreview, 0), Edges: make([]KnowledgeEdge, 0),
+		TotalMemories: len(s.state.Memories), TotalSynapses: len(s.state.Synapses),
+	}
 	for id := range selected {
 		if m, ok := s.fullMemoryForReadLocked(id); ok {
 			out.Nodes = append(out.Nodes, memoryPreview(m))
@@ -353,6 +375,7 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
 	if len(out.Edges) > maxNodes*4 {
 		out.Edges = out.Edges[:maxNodes*4]
 	}
+	out.Truncated = len(out.Nodes) < out.TotalMemories || len(out.Edges) < out.TotalSynapses
 	return out
 }
 
@@ -401,9 +424,9 @@ func (s *Store) KnowledgeMemoryDetail(id string) (KnowledgeMemoryDetail, bool) {
 		return nil
 	}
 	out.Parent = previewByID(m.ParentID)
-	for _, mm := range s.state.Memories {
-		if mm.ParentID == id {
-			if full, ok := s.fullMemoryForReadLocked(mm.ID); ok {
+	for childID, mm := range s.state.Memories {
+		if mm != nil && mm.ParentID == id {
+			if full, ok := s.fullMemoryForReadLocked(childID); ok {
 				out.Children = append(out.Children, memoryPreview(full))
 			}
 		}
@@ -419,10 +442,13 @@ func (s *Store) KnowledgeMemoryDetail(id string) (KnowledgeMemoryDetail, bool) {
 			out.Supersedes = append(out.Supersedes, *p)
 		}
 	}
-	for _, mm := range s.state.Memories {
+	for successorID, mm := range s.state.Memories {
+		if mm == nil {
+			continue
+		}
 		for _, x := range mm.Supersedes {
 			if x == id {
-				if full, ok := s.fullMemoryForReadLocked(mm.ID); ok {
+				if full, ok := s.fullMemoryForReadLocked(successorID); ok {
 					out.SupersededBy = append(out.SupersededBy, memoryPreview(full))
 				}
 			}

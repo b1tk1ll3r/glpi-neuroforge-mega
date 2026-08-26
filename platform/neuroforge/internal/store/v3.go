@@ -29,7 +29,7 @@ func (s *Store) resolveConflictLocked(in *core.Memory) []core.Memory {
 	var changed []core.Memory
 	group := "conflict:" + strings.ToLower(key)
 	for id, meta := range s.state.Memories {
-		if meta.ID == in.ID || !strings.EqualFold(strings.TrimSpace(meta.TruthKey), key) || meta.Status == core.MemoryArchived {
+		if id == in.ID || !strings.EqualFold(strings.TrimSpace(meta.TruthKey), key) || meta.Status == core.MemoryArchived {
 			continue
 		}
 		old, ok := s.materializeMemoryLocked(id)
@@ -359,19 +359,22 @@ func (s *Store) RunRetention(now time.Time) (RetentionResult, error) {
 	candidates := make([]retentionCandidate, 0, len(s.state.Memories))
 	deleteSet := map[string]bool{}
 	changed := []core.Memory{}
-	for _, m := range s.state.Memories {
+	for id, m := range s.state.Memories {
+		if m == nil {
+			continue
+		}
 		ageDays := now.Sub(m.CreatedAt).Hours() / 24
 		if m.MemoryType == core.MemoryWorking && cfg.WorkingTTLHours > 0 && now.Sub(m.CreatedAt).Hours() >= cfg.WorkingTTLHours {
-			deleteSet[m.ID] = true
+			deleteSet[id] = true
 			continue
 		}
 		utility := memoryUtility(m, now)
-		candidates = append(candidates, retentionCandidate{id: m.ID, utility: utility, ageDays: ageDays})
+		candidates = append(candidates, retentionCandidate{id: id, utility: utility, ageDays: ageDays})
 		if ageDays < cfg.MinAgeDays || utility >= cfg.MinUtility || m.Status == core.MemoryArchived {
 			continue
 		}
 		if cfg.DeleteConsolidated && m.ConsolidatedInto != "" {
-			deleteSet[m.ID] = true
+			deleteSet[id] = true
 			continue
 		}
 		full, ok := s.materializeMemoryLocked(m.ID)
