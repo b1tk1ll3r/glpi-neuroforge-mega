@@ -57,3 +57,22 @@ func TestKnowledgeEventPersistsAcrossRestart(t *testing.T) {
 		t.Fatalf("events=%+v", evs)
 	}
 }
+
+func TestKnowledgeGraphEmptyUsesEmptySlices(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+
+	g := s.KnowledgeGraph("", 3, 600)
+	if g.Nodes == nil {
+		t.Fatal("nodes must be [] rather than null in JSON")
+	}
+	if g.Edges == nil {
+		t.Fatal("edges must be [] rather than null in JSON")
+	}
+	if len(g.Nodes) != 0 || len(g.Edges) != 0 {
+		t.Fatalf("unexpected graph contents: nodes=%d edges=%d", len(g.Nodes), len(g.Edges))
+	}
+}

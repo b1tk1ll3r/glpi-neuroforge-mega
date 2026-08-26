@@ -338,7 +338,7 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
 		}
 		frontier = next
 	}
-	out := KnowledgeGraph{Center: center}
+	out := KnowledgeGraph{Center: center, Nodes: make([]MemoryPreview, 0), Edges: make([]KnowledgeEdge, 0)}
 	for id := range selected {
 		if m, ok := s.fullMemoryForReadLocked(id); ok {
 			out.Nodes = append(out.Nodes, memoryPreview(m))
