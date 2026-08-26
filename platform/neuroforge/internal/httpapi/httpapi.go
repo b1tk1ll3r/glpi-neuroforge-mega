@@ -460,12 +460,18 @@ func (s *Server) adminStatus(w http.ResponseWriter, r *http.Request) {
 		"last_index": obs.ClusterLastIndex, "commit_index": obs.ClusterCommitIndex, "peers": obs.ClusterPeers, "voters": obs.ClusterVoters, "quorum": obs.ClusterQuorum,
 		"replicated_log": obs.ClusterLog,
 	}
-	s.json(w, 200, map[string]any{
+	payload := map[string]any{
 		"stats": stats, "wal": s.store.WALStatus(),
 		"storage": map[string]any{"memory_segments": obs.Segments, "index_snapshot": map[string]any{"revision": obs.IndexSnapshotRevision, "deltas": obs.IndexDeltaCount, "segmented": cfg.Storage.IndexSegments.Enabled}, "tiering": tiering, "disk_ann": s.store.DiskANNStatus()},
 		"cluster": cluster, "cost": s.cost.Totals(), "providers": providers, "usage": s.store.RecentUsage(25),
 		"observability": obs, "runtime": currentRuntimeSnapshot(), "http": s.metrics.dashboardSnapshot(),
-	})
+	}
+	// Keep the original flat status fields for dashboard and external-client
+	// compatibility while retaining the richer nested stats object.
+	for k, v := range stats {
+		payload[k] = v
+	}
+	s.json(w, 200, payload)
 }
 func (s *Server) adminGetConfig(w http.ResponseWriter, r *http.Request) {
 	s.json(w, 200, s.store.Config())

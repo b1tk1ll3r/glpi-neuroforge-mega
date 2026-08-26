@@ -3,14 +3,15 @@
 ed22fda7661db8203563611dc144998161cd024e161b0471d615eaf0defeb7db  ./.gitea/workflows/release-tag.yml
 e1ff71187cc3411a85067b964264011db7bd109a585ef7b9ea5b08bda039d813  ./.gitignore
 9c18555764b03bdb004098bf6b8ca7f3eaebdccb8c17f15a11d2cebbab28cbd3  ./Makefile
-52adec38e0256b594e84ddab42cb6694bd1649bf5e12dd6e94851a8b4cc01d10  ./README.md
+4ce9d3f1bd0c4c95a3783d38fb69e1a6f302c88af3c71eea4980c6f722cce163  ./README.md
 4858caa52c0fb6cf302a1c581d07d448e5e90e0daa797e5819610fd6223bd348  ./RELEASE-NOTES-v1.1.0.md
 01163462f46314f57660677fdef407c6c2884412ea850aab13a4f650e8c29f50  ./RELEASE-NOTES-v1.2.0.md
 4da388ce660aa3b7a0d8075ec066a025b5437960973397360fcb9a5d4cb58c96  ./RELEASE-NOTES-v1.3.0.md
 257d6d3ea1d22b8ab97adb5d35ca5ac806702d75cea66982dc711754040fc7a2  ./RELEASE-NOTES-v1.4.0.md
 0723a0151b72d492899a5c5409e1fef37de1fe4c458c3053f2f7eccd4b6e70c5  ./RELEASE-NOTES-v1.4.1.md
 58923d3292f11487526b8dc4d6c0992025c0f946df8435fde5c91ef4581d46fd  ./RELEASE-NOTES-v1.4.2.md
-78b591400c56b7b67b8cb3b2b8a8e65e9093897f02ce0878e6b5405c68620fa7  ./VERSION
+548f3168f8f29add4f510c4c8048a74465f311dbc3ba2436e5b8db5cc898c552  ./RELEASE-NOTES-v1.4.3.md
+bd31e8d9cf8d14a1e9e3fdf3b9f6a524819aed0d1b14627523c6765767c7d8f1  ./VERSION
 e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  ./backups/.gitkeep
 8127e9db5e5e0af1d88770dc8fa60b381de45dbcc843262698cf9501409b4d58  ./deploy/searxng/settings.yml
 f95897d6e96afbbcc230f56ae1968a046f76cf24ec78d9c18aa2b22bd8335e34  ./docker-compose.yml
@@ -139,7 +140,7 @@ cb3cde795233c0d4842dc7451c5855d1c071e459efbde3be0cabac32a837ba1b  ./knowledge/14
 7f1d67faf4a6cea0c41c84d7b275d8a8979b19420b52db4925d8e2cd71ead3e0  ./knowledge/16_office-aktivierung-und-lizenzierung.json
 f1eab883370e0a40ef52a6b6d785a510d8ed48a19d25e0a2bc95f4f2cc8e329e  ./knowledge/17_serienbriefe-und-dokumentfunktionen.json
 5a0b3d5d5bc712e30a67a4de3432f69070f7e43dd99931f675e72c213006b363  ./knowledge/example-vpn.json
-e95d55331b2dfe8326ef4af50cee141d2c003a3f8a01eecaba028f1d4e6d3424  ./mega-project.json
+e94bbbfe2769b3d30c69bdf4239b030d23423249cb3fa7f5de3171656cd3a908  ./mega-project.json
 c02d6d702401343e6d7002c3db117935964e2abd18db966b604871e59715ee05  ./patches/SHA256SUMS
 47a6fa2c79bbba0c04af86dfa65d58529f492c698060fe586456c22a4eadb877  ./patches/glpi-agent-mega.diff
 9b411c90d96a86c80f088ee4637046eeefaf31c62059d11aa1a999d6eb08b5b4  ./patches/glpi-knowledge-mega.diff
@@ -149,6 +150,7 @@ f0491de3cb6201f98ca6be8e865237adbba4772471f7fc7165d030e0c045fdb6  ./patches/neur
 163a8a990aacd986bacb385494c2b2062ac10a9a8f0a456d19a6d1746c2fc500  ./patches/v1.3.0-to-v1.4.0.diff
 654de4aac7cf318680872897c3de192afbafb61c7169acb8e7514116df86efde  ./patches/v1.4.0-envfix-to-v1.4.1.diff
 1ebc306bd6870389500c86cf07dcd677b5bd0448c762812c7e1c0f8732f36eb1  ./patches/v1.4.1-to-v1.4.2.diff
+651c883facddfd0316f89e3cf3c24fd913371fcec2a5f447b8d105fa5dec463e  ./patches/v1.4.2-to-v1.4.3.diff
 564817f8edabde0c4e4a1a427a3aa5418aae7bf12e9463044a7e6e0f13973657  ./platform/neuroforge/.env.example
 39319b6f2058e4c8d6656a9cf01675374f81a04075b956b093a2befb5e05ada4  ./platform/neuroforge/.gitignore
 189486a885c7fb78e0eb878d93cda0c70ca6d7ff9bfdfb3f5f32487cf03a9688  ./platform/neuroforge/BENCHMARK-v0.5.0.md
@@ -204,8 +206,8 @@ edfedb67b1f55b2fa8a4a4d29b809b53083b36752e8dc087fa8603f4ec26154e  ./platform/neu
 65a8b8196343e7cfd9444ca314da4a83c81bc046d9478b8b93217d9cc68ba562  ./platform/neuroforge/internal/cost/cost.go
 b9bb2934e01ed2bfb6b16e4139e10e51f1387112eb8654f7f692779a2fd2d273  ./platform/neuroforge/internal/cost/cost_test.go
 fb66ce4ab760b979eacd4f7f17dedc41916f93c53ba582be572d250f99654695  ./platform/neuroforge/internal/httpapi/admin_app_auth_test.go
-4071eb134f63f19c95bba709c505e3748fcb7613264b6876350f49e6b693d61b  ./platform/neuroforge/internal/httpapi/httpapi.go
-c5884789a3ae17be5d61367e5dc19f89a87ac83f9516e80310f66fc9e49f5103  ./platform/neuroforge/internal/httpapi/index.html
+4b8555feb594fb71aac1c868eca00cc952eb4e998fbea10b442389f7d5e8160b  ./platform/neuroforge/internal/httpapi/httpapi.go
+b6df45ac405afddcd68d21a7f1cd7a5a2b4e2379d350eafa2589de6b1dc2540c  ./platform/neuroforge/internal/httpapi/index.html
 20f4a6cc30d5ce84ceed4fbdfc9f5c57ab5f82274e0c54464817d571e0e881b0  ./platform/neuroforge/internal/httpapi/integration.go
 7f6e4767dfcb948570e05baadca6917f27a406fe57ef82eeb63e3b3979ec94b6  ./platform/neuroforge/internal/httpapi/integration_api_test.go
 f8cfcc7a2bc781394231c25e36e75c41563f5250a1387e5687880d2591efd93b  ./platform/neuroforge/internal/httpapi/integration_graph.go
@@ -220,6 +222,7 @@ c40412c77dd8635bbd4bf9c6d7eb11b0d7902aee896bdd1ee99e5cdfb72c7453  ./platform/neu
 093f6c37c1021cb252501d2aa9c0f42a75444ed69748b455847623da122947b1  ./platform/neuroforge/internal/httpapi/outcomes_test.go
 b3b1f5cfd6b0ec04341978898d72856af03a95b8922daf9864caeb27e37f1925  ./platform/neuroforge/internal/httpapi/research_live.go
 b37f7ec3be867666999a9ec314139dd1bc4c74efb53edfa224b4fe8119858aac  ./platform/neuroforge/internal/httpapi/research_live_test.go
+4e65ab0a760369a6d6c4932c180ff6c67f0768d91e08ccf471f53c6ecd5d09be  ./platform/neuroforge/internal/httpapi/status_dashboard_test.go
 8a2251d4f4ae8114ac3f5e98fe2e1d6ce24e7817adcfbfc1f383d770e6ce139c  ./platform/neuroforge/internal/httpapi/v3.go
 b1587e066b56ef72f17162583698614d31c413e2ac7e75359b731c2e882a50ee  ./platform/neuroforge/internal/httpapi/v4.go
 1ef5cacb0652f2a6301c57f8987dd848fbe590abb73cab44899d9152ccce45d0  ./platform/neuroforge/internal/httpapi/v5.go

@@ -1,0 +1,191 @@
+diff --git a/README.md b/README.md
+index d92c1b8..aef1427 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+ # GLPI NeuroForge Mega v1.4.0
+ 
+-> Release: **v1.4.2** · Bugfix für leeren NeuroForge-Wissensraum-Graph.
++> Release: **v1.4.3** · Dashboard-Status-Kompatibilitätsfix für korrekte Memory-/Synapsen-/Revision-Anzeige.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+diff --git a/RELEASE-NOTES-v1.4.3.md b/RELEASE-NOTES-v1.4.3.md
+new file mode 100644
+index 0000000..12ffe94
+--- /dev/null
++++ b/RELEASE-NOTES-v1.4.3.md
+@@ -0,0 +1,24 @@
++# GLPI NeuroForge Mega v1.4.3
++
++## NeuroForge Dashboard status fix
++
++Diese Patch-Version behebt eine Inkonsistenz zwischen der erweiterten `/admin/api/status`-Antwort und dem eingebetteten NeuroForge-Dashboard.
++
++### Behoben
++
++- `Memories` zeigte `0`, obwohl der Knowledge-Summary bereits semantische Memories meldete.
++- `Synapsen` konnte fälschlich `0` anzeigen.
++- die Seitenleiste zeigte `rev undefined`.
++- die Betriebsansicht konnte HNSW-, PQ-, Job- und Maintenance-Werte als `0`/leer darstellen.
++
++### Ursache
++
++Der Status-Endpunkt liefert die schnellen Zähler seit der erweiterten Observability-Antwort unter `stats`, während ältere Dashboard-Teile weiterhin die ursprünglichen flachen Felder erwarteten.
++
++### Lösung
++
++- Der Server liefert die Status-Zähler wieder zusätzlich auf Top-Level und behält parallel das strukturierte `stats`-Objekt.
++- Das WebUI normalisiert beide Antwortformen defensiv. Dadurch ist sowohl ein neues UI gegen einen älteren Server als auch ein älteres UI gegen den neuen Server robuster.
++- Ein Regressionstest stellt sicher, dass die flachen Dashboard-Felder nicht erneut verschwinden.
++
++Keine Datenmigration und keine `.env`-Änderung erforderlich.
+diff --git a/VERSION b/VERSION
+index 88c5fb8..428b770 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.4.0
++1.4.3
+diff --git a/mega-project.json b/mega-project.json
+index 32d52e5..1a449fb 100644
+--- a/mega-project.json
++++ b/mega-project.json
+@@ -28,7 +28,7 @@
+     "schema": "Wiki/Schema.md",
+     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
+   },
+-  "version": "1.4.2",
++  "version": "1.4.3",
+   "controlled_learning": {
+     "raw_chat_auto_learning": false,
+     "validated_outcomes": [
+diff --git a/platform/neuroforge/internal/httpapi/httpapi.go b/platform/neuroforge/internal/httpapi/httpapi.go
+index e6bf73c..dce944f 100644
+--- a/platform/neuroforge/internal/httpapi/httpapi.go
++++ b/platform/neuroforge/internal/httpapi/httpapi.go
+@@ -460,12 +460,18 @@ func (s *Server) adminStatus(w http.ResponseWriter, r *http.Request) {
+ 		"last_index": obs.ClusterLastIndex, "commit_index": obs.ClusterCommitIndex, "peers": obs.ClusterPeers, "voters": obs.ClusterVoters, "quorum": obs.ClusterQuorum,
+ 		"replicated_log": obs.ClusterLog,
+ 	}
+-	s.json(w, 200, map[string]any{
++	payload := map[string]any{
+ 		"stats": stats, "wal": s.store.WALStatus(),
+ 		"storage": map[string]any{"memory_segments": obs.Segments, "index_snapshot": map[string]any{"revision": obs.IndexSnapshotRevision, "deltas": obs.IndexDeltaCount, "segmented": cfg.Storage.IndexSegments.Enabled}, "tiering": tiering, "disk_ann": s.store.DiskANNStatus()},
+ 		"cluster": cluster, "cost": s.cost.Totals(), "providers": providers, "usage": s.store.RecentUsage(25),
+ 		"observability": obs, "runtime": currentRuntimeSnapshot(), "http": s.metrics.dashboardSnapshot(),
+-	})
++	}
++	// Keep the original flat status fields for dashboard and external-client
++	// compatibility while retaining the richer nested stats object.
++	for k, v := range stats {
++		payload[k] = v
++	}
++	s.json(w, 200, payload)
+ }
+ func (s *Server) adminGetConfig(w http.ResponseWriter, r *http.Request) {
+ 	s.json(w, 200, s.store.Config())
+diff --git a/platform/neuroforge/internal/httpapi/index.html b/platform/neuroforge/internal/httpapi/index.html
+index 95b9eb6..50e566d 100644
+--- a/platform/neuroforge/internal/httpapi/index.html
++++ b/platform/neuroforge/internal/httpapi/index.html
+@@ -148,6 +148,7 @@ function toast(msg,bad=false){let t=$('toast');t.textContent=msg;t.className='to
+ function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+ function safeHref(raw){try{let u=new URL(String(raw||''),location.origin);return (u.protocol==='http:'||u.protocol==='https:')?u.href:'#'}catch{return '#'}}
+ function fmtN(n){return Number(n||0).toLocaleString('de-DE')}function fmtBytes(n){n=Number(n||0);if(n<1024)return n+' B';if(n<1048576)return(n/1024).toFixed(1)+' KiB';if(n<1073741824)return(n/1048576).toFixed(1)+' MiB';return(n/1073741824).toFixed(2)+' GiB'}
++function normalizeStatus(s){s=s&&typeof s==='object'?s:{};let st=s.stats&&typeof s.stats==='object'?s.stats:{};return {...s,...st}}
+ function when(d){if(!d)return'–';let x=new Date(d),ms=x-Date.now(),a=Math.abs(ms),m=Math.round(a/60000);if(a<60000)return ms>0?'gleich':'gerade';if(m<60)return(ms>0?'in ':'vor ')+m+' min';let h=Math.round(m/60);return(ms>0?'in ':'vor ')+h+' h'}
+ function validHeaderToken(value){return typeof value==='string'&&/^[\x21-\x7E]+$/.test(value)}
+ function tokenHeaders(json=true){if(!admin)throw new Error('Admin-Token fehlt.');if(!validHeaderToken(admin))throw new Error('Admin-Token enthält Leerzeichen/Unicode. Bitte echten ASCII-Token neu eingeben.');let h={'X-Admin-Token':admin};if(json)h['Content-Type']='application/json';return h}
+@@ -156,7 +157,7 @@ async function setToken(){let v=prompt('Admin-Token',admin||'');if(v===null)retu
+ function switchView(v){currentView=v;$$('.view').forEach(x=>x.classList.toggle('active',x.id==='view-'+v));$$('[data-view]').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$('pageTitle').textContent=viewMeta[v][0];$('pageSub').textContent=viewMeta[v][1];if(v!=='goals')stopResearchPolling();if(v==='knowledge')loadKnowledgeGraph();if(v==='sources')loadSources();if(v==='research')loadResearchConfig();if(v==='goals'){loadGoals();if(researchWatch.goalId)startResearchPolling()}if(v==='models')loadModels();if(v==='ops')loadOps()}
+ $$('[data-view]').forEach(b=>b.addEventListener('click',()=>switchView(b.dataset.view)));$('tokenBtn').addEventListener('click',setToken);$('refreshBtn').addEventListener('click',refreshAll);
+ 
+-async function refreshAll(){if(!admin){$('sideStatus').textContent='Admin-Token setzen';return}try{let [s,k,g,src]=await Promise.all([req('/admin/api/status'),req('/admin/api/knowledge/summary'),req('/api/v1/goals'),req('/api/v1/sources?limit=8')]);$('sideDot').className='dot ok';$('sideStatus').textContent='bereit · rev '+s.revision;$('mMem').textContent=fmtN(s.memories);$('mSyn').textContent=fmtN(s.synapses);$('mSources').textContent=fmtN(k.sources||src.length);let active=(g||[]).filter(x=>x.status==='active');$('mGoals').textContent=active.length;$('mNextGoal').textContent=active.length?('nächster '+when(active.map(x=>x.next_cycle_at).filter(Boolean).sort()[0])):'keine aktiven Ziele';$('mTypes').textContent=Object.entries(k.by_type||{}).map(([a,b])=>a+' '+b).join(' · ');renderSystemState(s);renderEvents(k.recent_events||[],'dashEvents');renderDashboardGoals(active.slice(0,5));if(currentView==='ops')loadOps()}catch(e){$('sideDot').className='dot bad';$('sideStatus').textContent='Fehler';toast(e.message,true)}}
++async function refreshAll(){if(!admin){$('sideStatus').textContent='Admin-Token setzen';return}try{let [raw,k,g,src]=await Promise.all([req('/admin/api/status'),req('/admin/api/knowledge/summary'),req('/api/v1/goals'),req('/api/v1/sources?limit=8')]),s=normalizeStatus(raw);src=Array.isArray(src)?src:[];g=Array.isArray(g)?g:[];$('sideDot').className='dot ok';$('sideStatus').textContent='bereit · rev '+fmtN(s.revision);$('mMem').textContent=fmtN(s.memories);$('mSyn').textContent=fmtN(s.synapses);$('mSources').textContent=fmtN(k?.sources||src.length);let active=g.filter(x=>x.status==='active');$('mGoals').textContent=active.length;$('mNextGoal').textContent=active.length?('nächster '+when(active.map(x=>x.next_cycle_at).filter(Boolean).sort()[0])):'keine aktiven Ziele';$('mTypes').textContent=Object.entries(k?.by_type||{}).map(([a,b])=>a+' '+b).join(' · ');renderSystemState(s);renderEvents(k?.recent_events||[],'dashEvents');renderDashboardGoals(active.slice(0,5));if(currentView==='ops')loadOps()}catch(e){$('sideDot').className='dot bad';$('sideStatus').textContent='Fehler';toast(e.message,true)}}
+ function renderSystemState(s){let o=s.observability||{},m=s.maintenance||{};$('systemState').innerHTML=[['Index',`${s.index_mode||o.index_mode||'–'} · HNSW ${fmtN(s.hnsw_nodes)} · PQ ${fmtN(s.disk_pq_items)}`],['Jobs',fmtN(s.pending_jobs)+' ausstehend'],['Cluster',s.cluster?.enabled?(s.cluster.role+' · term '+s.cluster.term):'deaktiviert'],['Letzter Autonomie-Lauf',m.last_autonomy_run?new Date(m.last_autonomy_run).toLocaleString():'–'],['Letzter Fehler',m.last_error||'keiner']].map(([a,b])=>`<div class="item"><div class="itemTitle"><b>${esc(a)}</b><span class="muted small">${esc(b)}</span></div></div>`).join('')}
+ function renderEvents(xs,id){xs=Array.isArray(xs)?xs:[];$(id).innerHTML=xs.length?xs.map(e=>`<div class="item"><div class="itemTitle"><b>${esc(e.type)}</b><span class="pill">${esc(e.actor||'system')}</span></div><p>${esc(e.summary||'')}</p><div class="meta"><span>${new Date(e.created_at).toLocaleString()}</span>${e.reason?`<span>${esc(e.reason)}</span>`:''}</div></div>`).join(''):'<p class="muted">Noch keine Lernereignisse.</p>'}
+ function renderDashboardGoals(xs){$('dashGoals').innerHTML=xs.length?xs.map(g=>`<div class="item"><div class="itemTitle"><b>${esc(g.title)}</b><span class="pill ${g.auto_run?'good':''}">${g.auto_run?'AUTO':'MANUELL'}</span></div><div class="progress" style="margin:9px 0"><span style="width:${Math.round((g.progress||0)*100)}%"></span></div><div class="meta"><span>${Math.round((g.progress||0)*100)}%</span><span>${g.research_enabled?'Research an':'Research aus'}</span><span>${g.next_cycle_at?when(g.next_cycle_at):'nicht geplant'}</span></div></div>`).join(''):'<p class="muted">Keine aktiven Ziele.</p>'}
+@@ -222,7 +223,7 @@ $('chatBtn').addEventListener('click',async()=>{let input=document.getElementByI
+ async function loadModels(){try{let d=await req('/admin/api/model-routing');$('modelJSON').value=JSON.stringify(d,null,2);let nodes=d.ollama||[];$('modelCards').innerHTML=nodes.map(n=>`<div class="item"><div class="itemTitle"><b>${esc(n.name||n.id)}</b><span class="pill ${n.enabled?'good':''}">${n.enabled?'aktiv':'aus'}</span></div><p class="mono small">${esc(n.base_url)}</p><div class="meta"><span>Chat: ${esc(n.chat_model)}</span><span>Embed: ${esc(n.embedding_model)}</span><span>ctx ${n.num_ctx||'default'}</span><span>think ${esc(n.think||'off')}</span></div></div>`).join('')}catch(e){toast(e.message,true)}}$('modelSaveBtn').addEventListener('click',async()=>{try{let d=JSON.parse($('modelJSON').value);await req('/admin/api/model-routing',{method:'PUT',body:JSON.stringify(d)});toast('Modelle & Routing gespeichert.');loadModels()}catch(e){toast(e.message,true)}});$('modelHealthBtn').addEventListener('click',async()=>{try{$('modelHealth').textContent='prüfe …';let d=await req('/admin/api/provider-health',{method:'POST',body:'{}'});$('modelHealth').textContent=JSON.stringify(d,null,2)}catch(e){$('modelHealth').textContent=e.message}});
+ 
+ // ---- Operations ----
+-async function loadOps(){try{let [s,st,cfg]=await Promise.all([req('/admin/api/status'),req('/admin/api/storage'),req('/admin/api/config')]);$('opsIndex').innerHTML=`<div class="item">HNSW <b>${fmtN(s.hnsw_nodes)}</b></div><div class="item">Disk-PQ <b>${fmtN(s.disk_pq_items)}</b></div><div class="item">Mode <b>${esc(s.index_mode||'–')}</b></div>`;$('opsStorage').innerHTML=`<div class="item">Revision <b>${fmtN(s.revision)}</b></div><div class="item">Segmente <b>${fmtN(st.segments?.files||st.memory_segments?.files||0)}</b></div><div class="item">Disk <b>${fmtBytes(st.segments?.bytes||st.memory_segments?.bytes||0)}</b></div>`;$('opsObs').innerHTML=`<div class="item">Pending jobs <b>${fmtN(s.pending_jobs)}</b></div><div class="item">Remote shards <b>${fmtN(s.remote_shards)}</b></div><div class="item">Letzter Fehler <span class="small">${esc(s.maintenance?.last_error||'keiner')}</span></div>`;$('configJSON').value=JSON.stringify(cfg,null,2)}catch(e){toast(e.message,true)}}$('configSaveBtn').addEventListener('click',async()=>{try{let c=JSON.parse($('configJSON').value);await req('/admin/api/config',{method:'PUT',body:JSON.stringify(c)});toast('Konfiguration gespeichert.')}catch(e){toast(e.message,true)}});$('checkpointBtn').addEventListener('click',()=>opPost('/admin/api/checkpoint','Checkpoint erstellt'));$('compactBtn').addEventListener('click',()=>opPost('/admin/api/storage/compact','Segmente kompaktiert'));$('pqBuildBtn').addEventListener('click',()=>opPost('/admin/api/index/disk/rebuild','PQ-Index neu gebaut'));$('indexMergeBtn').addEventListener('click',()=>opPost('/admin/api/index/merge','Index gemerged'));async function opPost(path,msg){try{await req(path,{method:'POST',body:'{}'});toast(msg);loadOps()}catch(e){toast(e.message,true)}}
++async function loadOps(){try{let [raw,st,cfg]=await Promise.all([req('/admin/api/status'),req('/admin/api/storage'),req('/admin/api/config')]),s=normalizeStatus(raw);$('opsIndex').innerHTML=`<div class="item">HNSW <b>${fmtN(s.hnsw_nodes)}</b></div><div class="item">Disk-PQ <b>${fmtN(s.disk_pq_items)}</b></div><div class="item">Mode <b>${esc(s.index_mode||'–')}</b></div>`;$('opsStorage').innerHTML=`<div class="item">Revision <b>${fmtN(s.revision)}</b></div><div class="item">Segmente <b>${fmtN(st.segments?.files||st.memory_segments?.files||0)}</b></div><div class="item">Disk <b>${fmtBytes(st.segments?.bytes||st.memory_segments?.bytes||0)}</b></div>`;$('opsObs').innerHTML=`<div class="item">Pending jobs <b>${fmtN(s.pending_jobs)}</b></div><div class="item">Remote shards <b>${fmtN(s.remote_shards)}</b></div><div class="item">Letzter Fehler <span class="small">${esc(s.maintenance?.last_error||'keiner')}</span></div>`;$('configJSON').value=JSON.stringify(cfg,null,2)}catch(e){toast(e.message,true)}}$('configSaveBtn').addEventListener('click',async()=>{try{let c=JSON.parse($('configJSON').value);await req('/admin/api/config',{method:'PUT',body:JSON.stringify(c)});toast('Konfiguration gespeichert.')}catch(e){toast(e.message,true)}});$('checkpointBtn').addEventListener('click',()=>opPost('/admin/api/checkpoint','Checkpoint erstellt'));$('compactBtn').addEventListener('click',()=>opPost('/admin/api/storage/compact','Segmente kompaktiert'));$('pqBuildBtn').addEventListener('click',()=>opPost('/admin/api/index/disk/rebuild','PQ-Index neu gebaut'));$('indexMergeBtn').addEventListener('click',()=>opPost('/admin/api/index/merge','Index gemerged'));async function opPost(path,msg){try{await req(path,{method:'POST',body:'{}'});toast(msg);loadOps()}catch(e){toast(e.message,true)}}
+ 
+ async function boot(){if(!admin){await setToken();if(!admin)return}await refreshAll();setInterval(()=>{if(admin&&['dashboard','goals'].includes(currentView))refreshAll()},15000)}boot();
+ </script>
+diff --git a/platform/neuroforge/internal/httpapi/status_dashboard_test.go b/platform/neuroforge/internal/httpapi/status_dashboard_test.go
+new file mode 100644
+index 0000000..0e15a3a
+--- /dev/null
++++ b/platform/neuroforge/internal/httpapi/status_dashboard_test.go
+@@ -0,0 +1,68 @@
++package httpapi
++
++import (
++	"encoding/json"
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"testing"
++
++	"neuroforge/internal/core"
++)
++
++func TestAdminStatusKeepsFlatDashboardFields(t *testing.T) {
++	s, _ := newMetricsTestServer(t)
++	if err := s.store.AddMemory(&core.Memory{Text: "status dashboard regression", MemoryType: "semantic"}); err != nil {
++		t.Fatal(err)
++	}
++
++	req := httptest.NewRequest(http.MethodGet, "/admin/api/status", nil)
++	req.Header.Set("X-Admin-Token", s.store.Secrets().AdminToken)
++	rr := httptest.NewRecorder()
++	s.Handler().ServeHTTP(rr, req)
++	if rr.Code != http.StatusOK {
++		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
++	}
++
++	var body map[string]any
++	if err := json.Unmarshal(rr.Body.Bytes(), &body); err != nil {
++		t.Fatal(err)
++	}
++	stats, ok := body["stats"].(map[string]any)
++	if !ok {
++		t.Fatalf("missing nested stats: %#v", body["stats"])
++	}
++	for _, key := range []string{"revision", "memories", "synapses", "pending_jobs", "hnsw_nodes", "disk_pq_items", "index_mode", "maintenance"} {
++		flat, exists := body[key]
++		if !exists {
++			t.Fatalf("flat status field %q missing", key)
++		}
++		nested, exists := stats[key]
++		if !exists {
++			t.Fatalf("nested status field %q missing", key)
++		}
++		if key != "maintenance" && key != "index_mode" && flat != nested {
++			t.Fatalf("field %q flat=%v nested=%v", key, flat, nested)
++		}
++	}
++	if got := int(body["memories"].(float64)); got != 1 {
++		t.Fatalf("memories=%d want 1", got)
++	}
++}
++
++func TestAdminDashboardNormalizesNestedStatusResponse(t *testing.T) {
++	b, err := webFS.ReadFile("index.html")
++	if err != nil {
++		t.Fatal(err)
++	}
++	html := string(b)
++	for _, want := range []string{
++		"function normalizeStatus(s)",
++		"s=normalizeStatus(raw)",
++		"bereit · rev '+fmtN(s.revision)",
++	} {
++		if !strings.Contains(html, want) {
++			t.Fatalf("dashboard missing status compatibility guard %q", want)
++		}
++	}
++}
