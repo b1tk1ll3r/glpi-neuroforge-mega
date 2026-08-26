@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-VERDACHTIGE-E-MAIL-UND-PHISHING-SELECT",
+    "title":  "Verdächtige E-Mail und Phishing",
+    "text":  "Auswahlziel: IT-Sicherheit und Datensicherung \u003e Verdächtige E-Mail und Phishing. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine E-Mail verdächtig wirkt, einen ungewöhnlichen Link oder Anhang enthält, Zugangsdaten abfragt, eine Zahlung fordert oder der Absender möglicherweise gefälscht ist. Typische Ticketformulierungen sind: „Verdächtige Rechnung per E-Mail“; „Link in Mail angeklickt“; „Absender scheint gefälscht“; „Passwortabfrage per Mail“. Nicht auswählen, wenn es sich nur um normalen Spam ohne Sicherheitsbezug, eine Outlook-Client-Störung oder eine bekannte legitime Nachricht handelt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei geklicktem Link, geöffnetem Anhang oder eingegebenen Zugangsdaten ist die Dringlichkeit zu erhöhen und gegebenenfalls Sicherheitsvorfall zu wählen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „IT-Sicherheit und Datensicherung \u003e Verdächtige E-Mail und Phishing“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "IT-Sicherheit und Datensicherung \u003e Verdächtige E-Mail und Phishing"
+                   ],
+    "keywords":  [
+                     "Phishing",
+                     "verdächtige E-Mail",
+                     "Fake Mail",
+                     "gefälschter Absender",
+                     "verdächtiger Link",
+                     "Anhang",
+                     "Spam",
+                     "Zugangsdaten",
+                     "CEO-Fraud",
+                     "Verdächtige E-Mail und Phishing",
+                     "IT-Sicherheit und Datensicherung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/it-sicherheit-und-datensicherung/verdachtige-e-mail-und-phishing",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

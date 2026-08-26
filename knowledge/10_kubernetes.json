@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-KUBERNETES-SELECT",
+    "title":  "Kubernetes",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Kubernetes. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Kubernetes-Cluster, Nodes, Namespaces, Deployments, Services, Ingress, Pods oder clusterbezogene Plattformdienste betroffen sind. Typische Ticketformulierungen sind: „Pod startet nicht“; „Deployment fehlerhaft“; „Namespace anlegen“; „Kubernetes-Cluster erweitern“. Nicht auswählen, wenn nur ein einzelner Docker-Host ohne Kubernetes, eine klassische VM oder eine fachliche Anwendung ohne Clusterbezug gemeint ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Anwendungsdeployment kann mit DevOps zusammenhängen; Clusterbetrieb bleibt in dieser Kategorie.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Kubernetes“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Kubernetes"
+                   ],
+    "keywords":  [
+                     "Kubernetes",
+                     "K8s",
+                     "Pod",
+                     "Deployment",
+                     "Namespace",
+                     "Ingress",
+                     "Service",
+                     "Node",
+                     "Cluster",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/kubernetes",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

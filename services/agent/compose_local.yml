@@ -1,0 +1,40 @@
+services:
+  agent-data-init:
+    image: alpine:3.22
+    user: 0:0
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /app/data
+        chown -R 65532:65532 /app/data
+    volumes:
+      - agent-data:/app/data
+    restart: no
+  agent:
+    image: git.send.nrw/sendnrw/glpi-ai-agent:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - 7080:7080
+    volumes:
+      - agent-data:/app/data
+      - ./knowledge:/app/knowledge:ro
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    # GPU users can add the appropriate device/runtime stanza for their platform.
+
+volumes:
+  agent-data: null
+  ollama-data: null
+networks: {}

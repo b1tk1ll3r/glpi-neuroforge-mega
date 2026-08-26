@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-SCAN-TO-MAIL-UND-SCAN-TO-FOLDER-SELECT",
+    "title":  "Scan-to-Mail und Scan-to-Folder",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Scan-to-Mail und Scan-to-Folder. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Scanner oder Multifunktionsgerät Scans nicht per E-Mail versendet oder nicht in einen zentralen Ordner ablegt, obwohl das Scannen selbst funktioniert. Typische Ticketformulierungen sind: „Scan kommt nicht per Mail an“; „Scan-to-Folder schlägt fehl“; „Zielordner nicht erreichbar“; „SMTP-Fehler am Kopierer“. Nicht auswählen, wenn das Gerät generell nicht scannt, das E-Mail-System organisationsweit ausfällt oder eine allgemeine Dateifreigabe gestört ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Support übernimmt Erstprüfung; Mail-, Netzwerk- und Dateidienste werden bei zentraler Ursache an Infrastruktur übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Scan-to-Mail und Scan-to-Folder“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Scan-to-Mail und Scan-to-Folder"
+                   ],
+    "keywords":  [
+                     "Scan-to-Mail",
+                     "Scan-to-Folder",
+                     "SMTP",
+                     "Zielordner",
+                     "Scanversand",
+                     "Netzwerkordner",
+                     "Scannen per E-Mail",
+                     "Scan-to-Mail und Scan-to-Folder",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/scan-to-mail-und-scan-to-folder",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

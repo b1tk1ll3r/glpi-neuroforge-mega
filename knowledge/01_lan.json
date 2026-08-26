@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-LAN-SELECT",
+    "title":  "LAN",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e LAN. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine kabelgebundene Netzwerkverbindung, Netzwerkdose, Patchung oder Ethernet-Verbindung nicht funktioniert, instabil ist oder neu bereitgestellt werden soll. Typische Ticketformulierungen sind: „Netzwerkdose ohne Verbindung“; „LAN bricht ab“; „Kein Netzwerk über Kabel“; „Neue Dose patchen“. Nicht auswählen, wenn ausschließlich WLAN, VPN, Internetzugang oder ein einzelner defekter Dockingadapter betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei nur einem Arbeitsplatz prüft der Support zunächst Kabel, Dock und Gerät; zentrale Komponenten liegen bei Infrastruktur.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e LAN“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e LAN"
+                   ],
+    "keywords":  [
+                     "LAN",
+                     "Ethernet",
+                     "Netzwerkdose",
+                     "Netzwerkkabel",
+                     "Patchen",
+                     "kabelgebunden",
+                     "kein Netzwerk",
+                     "Switchport",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/lan",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-PROTOKOLLIERUNG-UND-AUSWERTUNG-SELECT",
+    "title":  "Protokollierung und Auswertung",
+    "text":  "Auswahlziel: IT-Sicherheit und Datensicherung \u003e Protokollierung und Auswertung. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn technische Logs, Auditdaten, zentrale Protokollierung, SIEM-Auswertung, Nachvollziehbarkeit oder sicherheitsbezogene Ereignisanalyse benötigt oder gestört sind. Typische Ticketformulierungen sind: „Logdaten für Analyse bereitstellen“; „Auditprotokoll fehlt“; „SIEM-Regel anpassen“; „Anmeldeereignisse auswerten“. Nicht auswählen, wenn nur eine fachliche Statistik, ein normaler Monitoring-Check oder ein konkreter aktiver Sicherheitsvorfall ohne Analyseauftrag gemeldet wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Datenschutz, Zweckbindung und Aufbewahrungsregeln sind bei personenbezogenen Protokollen zu beachten.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „IT-Sicherheit und Datensicherung \u003e Protokollierung und Auswertung“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "IT-Sicherheit und Datensicherung \u003e Protokollierung und Auswertung"
+                   ],
+    "keywords":  [
+                     "Protokollierung",
+                     "Log",
+                     "Audit",
+                     "SIEM",
+                     "Ereignisprotokoll",
+                     "Event Log",
+                     "Nachvollziehbarkeit",
+                     "Loganalyse",
+                     "Security Event",
+                     "Protokollierung und Auswertung",
+                     "IT-Sicherheit und Datensicherung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/it-sicherheit-und-datensicherung/protokollierung-und-auswertung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

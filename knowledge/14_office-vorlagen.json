@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-OFFICE-VORLAGEN-SELECT",
+    "title":  "Office-Vorlagen",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Office-Vorlagen. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn zentrale Word-, Excel- oder PowerPoint-Vorlagen erstellt, geändert, verteilt oder korrigiert werden sollen, einschließlich Briefkopf, Layout, Textbausteinen und Organisationsvorgaben. Typische Ticketformulierungen sind: „Briefvorlage anpassen“; „Neues Corporate-Design-Layout“; „Vorlage wird nicht geladen“; „Textbaustein zentral ändern“. Nicht auswählen, wenn nur ein einzelnes Dokument formatiert werden soll, ein Makro fehlerhaft ist oder ein Drucker die Vorlage nicht ausgibt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Inhaltliche Freigaben durch zuständige Organisationseinheiten bleiben erforderlich.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Office-Vorlagen“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Office-Vorlagen"
+                   ],
+    "keywords":  [
+                     "Office-Vorlage",
+                     "Word-Vorlage",
+                     "Excel-Vorlage",
+                     "PowerPoint-Vorlage",
+                     "Briefkopf",
+                     "Template",
+                     "Textbaustein",
+                     "Corporate Design",
+                     "Office-Vorlagen",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/office-vorlagen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

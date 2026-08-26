@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-STANDORTANBINDUNG-SELECT",
+    "title":  "Standortanbindung",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e Standortanbindung. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine Außenstelle, Schule, Verwaltungsstelle oder ein gesamtes Gebäude keine Verbindung zum kommunalen Netz oder Rechenzentrum hat beziehungsweise eine neue Standortverbindung benötigt. Typische Ticketformulierungen sind: „Außenstelle nicht erreichbar“; „Standortverbindung ausgefallen“; „Neue Liegenschaft anbinden“; „Gesamte Schule ohne Verwaltungsnetz“. Nicht auswählen, wenn nur ein einzelner Arbeitsplatz oder eine einzelne Netzwerkdose betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Standortausfälle betreffen meist mehrere Nutzer und sind höher zu priorisieren als Einzelplatzprobleme.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e Standortanbindung“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e Standortanbindung"
+                   ],
+    "keywords":  [
+                     "Standortanbindung",
+                     "Außenstelle",
+                     "Liegenschaft",
+                     "Gebäude offline",
+                     "Standleitung",
+                     "WAN",
+                     "Standortverbindung",
+                     "MPLS",
+                     "Glasfaser",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/standortanbindung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

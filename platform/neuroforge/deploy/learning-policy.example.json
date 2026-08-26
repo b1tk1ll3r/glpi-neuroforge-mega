@@ -1,0 +1,30 @@
+{
+  "auto_learn": true,
+  "policy": {
+    "enabled": true,
+    "learn_chat_inputs": false,
+    "learn_chat_responses": false,
+    "allow_explicit_learn": true,
+    "allow_imports": false,
+    "learn_goal_cycles": false,
+    "min_confidence": 0.35,
+    "duplicate_similarity": 0.985,
+    "semantic_min_confirmations": 3,
+    "semantic_min_confidence": 0.65,
+    "archive_negative_responses": true,
+    "negative_archive_threshold": -0.75,
+    "max_memory_text_chars": 50000,
+    "source_trust": {
+      "chat.input": 0.25,
+      "chat.response": 0.20,
+      "api.learn": 0.80,
+      "api.import": 0.50,
+      "web.search": 0.45,
+      "web.page": 0.60,
+      "goal-cycle": 0.50,
+      "glpi.outcome.accepted": 1.0,
+      "glpi.outcome.corrected": 1.0,
+      "consolidation": 1.0
+    }
+  }
+}

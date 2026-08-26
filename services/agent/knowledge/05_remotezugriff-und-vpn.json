@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-REMOTEZUGRIFF-UND-VPN-SELECT",
+    "title":  "Remotezugriff und VPN",
+    "text":  "Auswahlziel: Benutzerkonten und Berechtigungen \u003e Remotezugriff und VPN. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn ein neuer oder geänderter Fernzugriff auf interne Systeme benötigt wird, ein VPN-Zugang beantragt werden soll oder Zugriffsrechte für Homeoffice, Bereitschaft oder externe Administration eingerichtet werden müssen. Typische Ticketformulierungen sind: „VPN-Zugang beantragen“; „Homeoffice-Zugriff freischalten“; „Remotezugriff für Bereitschaft“; „Externer Dienstleister benötigt zeitlich begrenzten Zugang“. Nicht auswählen, wenn ein bereits eingerichteter VPN-Tunnel technisch nicht verbindet; dafür ist die Kategorie Netzwerk und Verbindungen \u003e VPN vorgesehen. Ein allgemeines Kennwortproblem gehört zu Kennwort zurücksetzen. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Diese Kategorie beschreibt die Berechtigung beziehungsweise Bereitstellung. Technische Verbindungsstörungen eines vorhandenen VPN werden unter Netzwerk \u003e VPN erfasst.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Benutzerkonten und Berechtigungen \u003e Remotezugriff und VPN“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Benutzerkonten und Berechtigungen \u003e Remotezugriff und VPN"
+                   ],
+    "keywords":  [
+                     "Remotezugriff",
+                     "Fernzugriff",
+                     "VPN-Zugang",
+                     "Homeoffice",
+                     "Remote Access",
+                     "Zugriff von außen",
+                     "Bereitschaft",
+                     "externer Zugriff",
+                     "Freischaltung VPN",
+                     "Remotezugriff und VPN",
+                     "Benutzerkonten und Berechtigungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/benutzerkonten-und-berechtigungen/remotezugriff-und-vpn",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

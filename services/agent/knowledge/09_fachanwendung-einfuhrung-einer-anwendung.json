@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-FACHANWENDUNG-EINFUHRUNG-EINER-ANWENDUNG-SELECT",
+    "title":  "Fachanwendung – Einführung einer Anwendung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Einführung einer Anwendung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn ein neues Fachverfahren oder eine neue fachliche Software ausgewählt, beschafft, konfiguriert, migriert, getestet, geschult und produktiv eingeführt werden soll. Typische Ticketformulierungen sind: „Neues Fachverfahren einführen“; „Migration auf neue Anwendung“; „Pilotbetrieb einer Fachsoftware“; „Ablösung des Altsystems“. Nicht auswählen, wenn eine bestehende Anwendung nur aktualisiert oder erweitert wird oder lediglich Standardsoftware an einem Arbeitsplatz installiert werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Beschaffung, Datenschutz, Informationssicherheit und Infrastruktur sind je nach Umfang als Schnittstellen einzubeziehen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Einführung einer Anwendung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Einführung einer Anwendung"
+                   ],
+    "keywords":  [
+                     "Einführung",
+                     "neue Anwendung",
+                     "neues Fachverfahren",
+                     "Migration",
+                     "Ablösung",
+                     "Rollout",
+                     "Pilot",
+                     "Implementierung",
+                     "Projekt Fachsoftware",
+                     "Fachanwendung – Einführung einer Anwendung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-einfuhrung-einer-anwendung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

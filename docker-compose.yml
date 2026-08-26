@@ -1,0 +1,235 @@
+name: glpi-neuroforge-mega
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "127.0.0.1:${OLLAMA_HOST_PORT:-11434}:11434"
+    security_opt:
+      - no-new-privileges:true
+
+  searxng:
+    image: ${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}
+    profiles: ["research"]
+    restart: unless-stopped
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET}
+      SEARXNG_BASE_URL: http://searxng:8080/
+      FORCE_OWNERSHIP: "false"
+    volumes:
+      - ./deploy/searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - searxng-cache:/var/cache/searxng
+    ports:
+      - "127.0.0.1:${SEARXNG_HOST_PORT:-8888}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+
+  neuroforge:
+    build:
+      context: ./platform/neuroforge
+      target: server
+    command: ["-data", "/app/data", "-listen", ":8080"]
+    restart: unless-stopped
+    environment:
+      NEUROFORGE_ADMIN_TOKEN: ${NEUROFORGE_ADMIN_TOKEN}
+      NEUROFORGE_APP_API_KEY: ${NEUROFORGE_APP_API_KEY}
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN}
+      NEUROFORGE_METRICS_TOKEN: ${NEUROFORGE_METRICS_TOKEN}
+      NEUROFORGE_CLUSTER_TOKEN: ${NEUROFORGE_CLUSTER_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      NEUROFORGE_OLLAMA_URL: http://ollama:11434
+      NEUROFORGE_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
+      NEUROFORGE_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+      NEUROFORGE_CONTROLLED_LEARNING: ${NEUROFORGE_CONTROLLED_LEARNING:-true}
+      NEUROFORGE_RESEARCH_ENABLED: ${NEUROFORGE_RESEARCH_ENABLED:-false}
+      NEUROFORGE_SEARXNG_ENABLED: ${NEUROFORGE_SEARXNG_ENABLED:-false}
+      NEUROFORGE_SEARXNG_URL: ${NEUROFORGE_SEARXNG_URL:-http://searxng:8080}
+      NEUROFORGE_RESEARCH_GOAL_ENABLED: ${NEUROFORGE_RESEARCH_GOAL_ENABLED:-true}
+      NEUROFORGE_AUTONOMY_ENABLED: ${NEUROFORGE_AUTONOMY_ENABLED:-false}
+      NEUROFORGE_AUTONOMY_INTERVAL_MINUTES: ${NEUROFORGE_AUTONOMY_INTERVAL_MINUTES:-30}
+      NEUROFORGE_RESEARCH_MAX_QUERIES: ${NEUROFORGE_RESEARCH_MAX_QUERIES:-2}
+      NEUROFORGE_RESEARCH_MAX_PAGES: ${NEUROFORGE_RESEARCH_MAX_PAGES:-4}
+    ports:
+      - "127.0.0.1:${NEUROFORGE_HOST_PORT:-8090}:8080"
+    volumes:
+      - neuroforge-data:/app/data
+    depends_on:
+      - ollama
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/readyz"]
+      interval: 15s
+      timeout: 3s
+      retries: 8
+      start_period: 10s
+
+  neuroforge-worker:
+    build:
+      context: ./platform/neuroforge
+      target: worker
+    command: ["-server", "http://neuroforge:8080", "-token", "${NEUROFORGE_WORKER_TOKEN}", "-id", "mega-worker-1"]
+    restart: unless-stopped
+    depends_on:
+      neuroforge:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+
+  agent-data-init:
+    build:
+      context: ./services/agent
+      target: data-init
+    restart: "no"
+    user: "0:0"
+    volumes:
+      - agent-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+    cap_add: ["CHOWN", "FOWNER"]
+
+  agent:
+    build:
+      context: ./services/agent
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+      KNOWLEDGE_DIR: /app/knowledge
+      OLLAMA_URL: http://ollama:11434
+      KNOWLEDGE_VECTOR_BACKEND: ${KNOWLEDGE_VECTOR_BACKEND:-dual}
+      NEUROFORGE_URL: http://neuroforge:8080
+      NEUROFORGE_API_KEY: ${NEUROFORGE_APP_API_KEY}
+      NEUROFORGE_NAMESPACE: ${NEUROFORGE_NAMESPACE:-glpi-agent}
+      NEUROFORGE_SEARCH_K: ${NEUROFORGE_SEARCH_K:-128}
+      NEUROFORGE_FAIL_OPEN: ${NEUROFORGE_FAIL_OPEN:-true}
+      BRAIN_ACTIVITY_URL: http://neuroforge:8080/api/v1/integrations/events
+      BRAIN_ACTIVITY_API_KEY: ${NEUROFORGE_APP_API_KEY}
+      OUTCOME_LEARNING_ENABLED: ${OUTCOME_LEARNING_ENABLED:-true}
+      OUTCOME_LEARNING_FAIL_OPEN: ${OUTCOME_LEARNING_FAIL_OPEN:-false}
+      OUTCOME_LEARNING_MAX_OUTCOMES: ${OUTCOME_LEARNING_MAX_OUTCOMES:-2000}
+      OUTCOME_RETRIEVAL_ENABLED: ${OUTCOME_RETRIEVAL_ENABLED:-true}
+      OUTCOME_RETRIEVAL_SEARCH_K: ${OUTCOME_RETRIEVAL_SEARCH_K:-6}
+      OUTCOME_RETRIEVAL_MIN_SIMILARITY: ${OUTCOME_RETRIEVAL_MIN_SIMILARITY:-0.58}
+      OUTCOME_RETRIEVAL_FAIL_OPEN: ${OUTCOME_RETRIEVAL_FAIL_OPEN:-true}
+      CONTROL_READ_TOKEN: ${CONTROL_READ_TOKEN}
+    ports:
+      - "127.0.0.1:${AGENT_HOST_PORT:-8080}:8080"
+    volumes:
+      - agent-data:/app/data
+      - ./knowledge:/app/knowledge:ro
+    depends_on:
+      agent-data-init:
+        condition: service_completed_successfully
+      neuroforge:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+
+  knowledge:
+    build:
+      context: ./services/knowledge
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      APP_MODE: ${KB_APP_MODE:-editor}
+      DATA_DIR: /data/knowledge
+      BACKUP_DIR: /data/backups
+      STAGING_DIR: /data/staging
+      LISTEN_ADDR: :8080
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-gemma3}
+      BRAIN_ACTIVITY_URL: http://neuroforge:8080/api/v1/integrations/events
+      BRAIN_ACTIVITY_API_KEY: ${NEUROFORGE_APP_API_KEY}
+      KB_INTEGRATION_TOKEN: ${KB_INTEGRATION_TOKEN}
+    ports:
+      - "127.0.0.1:${KNOWLEDGE_HOST_PORT:-8081}:8080"
+    volumes:
+      - ./knowledge:/data/knowledge:rw
+      - ./staging:/data/staging:rw
+      - ./backups:/data/backups:rw
+    depends_on:
+      neuroforge:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+
+  control:
+    build:
+      context: ./services/control
+    restart: unless-stopped
+    environment:
+      CONTROL_ADDR: :8070
+      AGENT_URL: http://agent:8080
+      KNOWLEDGE_URL: http://knowledge:8080
+      NEUROFORGE_URL: http://neuroforge:8080
+      NEUROFORGE_API_KEY: ${NEUROFORGE_APP_API_KEY}
+      CONTROL_READ_TOKEN: ${CONTROL_READ_TOKEN}
+      CODEBASE_MEMORY_URL: ${CODEBASE_MEMORY_URL:-}
+      PUBLIC_CODEBASE_MEMORY_URL: ${PUBLIC_CODEBASE_MEMORY_URL:-}
+      KNOWLEDGE_VECTOR_BACKEND: ${KNOWLEDGE_VECTOR_BACKEND:-dual}
+      NEUROFORGE_SEARCH_K: ${NEUROFORGE_SEARCH_K:-128}
+      NEUROFORGE_FAIL_OPEN: ${NEUROFORGE_FAIL_OPEN:-true}
+      NEUROFORGE_CONTROLLED_LEARNING: ${NEUROFORGE_CONTROLLED_LEARNING:-true}
+      OUTCOME_LEARNING_ENABLED: ${OUTCOME_LEARNING_ENABLED:-true}
+      OUTCOME_RETRIEVAL_ENABLED: ${OUTCOME_RETRIEVAL_ENABLED:-true}
+      OUTCOME_RETRIEVAL_SEARCH_K: ${OUTCOME_RETRIEVAL_SEARCH_K:-6}
+      OUTCOME_RETRIEVAL_MIN_SIMILARITY: ${OUTCOME_RETRIEVAL_MIN_SIMILARITY:-0.58}
+      OUTCOME_RETRIEVAL_FAIL_OPEN: ${OUTCOME_RETRIEVAL_FAIL_OPEN:-true}
+      NEUROFORGE_RESEARCH_ENABLED: ${NEUROFORGE_RESEARCH_ENABLED:-false}
+      NEUROFORGE_SEARXNG_ENABLED: ${NEUROFORGE_SEARXNG_ENABLED:-false}
+      NEUROFORGE_AUTONOMY_ENABLED: ${NEUROFORGE_AUTONOMY_ENABLED:-false}
+      PUBLIC_AGENT_URL: http://localhost:${AGENT_HOST_PORT:-8080}
+      PUBLIC_KNOWLEDGE_URL: http://localhost:${KNOWLEDGE_HOST_PORT:-8081}
+      PUBLIC_NEUROFORGE_URL: http://localhost:${NEUROFORGE_HOST_PORT:-8090}/admin
+    ports:
+      - "127.0.0.1:${CONTROL_HOST_PORT:-8070}:8070"
+    depends_on:
+      neuroforge:
+        condition: service_healthy
+      agent:
+        condition: service_started
+      knowledge:
+        condition: service_started
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: ["ALL"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  neuroforge-data:
+  agent-data:
+  ollama-data:
+  searxng-cache:

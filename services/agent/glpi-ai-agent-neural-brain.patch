@@ -1,0 +1,128 @@
+diff --git a/internal/brainactivity/client.go b/internal/brainactivity/client.go
+new file mode 100644
+index 0000000..fb16e0a
+--- /dev/null
++++ b/internal/brainactivity/client.go
+@@ -0,0 +1,90 @@
++package brainactivity
++
++import (
++	"bytes"
++	"encoding/json"
++	"net/http"
++	"os"
++	"strings"
++	"sync"
++	"time"
++)
++
++type Hit struct {
++	ID    string  `json:"id"`
++	Score float64 `json:"score,omitempty"`
++}
++
++type event struct {
++	Type     string         `json:"type"`
++	Source   string         `json:"source"`
++	Query    string         `json:"query,omitempty"`
++	Message  string         `json:"message,omitempty"`
++	Hits     []Hit          `json:"hits,omitempty"`
++	Metadata map[string]any `json:"metadata,omitempty"`
++}
++
++var sender = newSender()
++
++type asyncSender struct {
++	once sync.Once
++	url  string
++	key  string
++	ch   chan event
++	http *http.Client
++}
++
++func newSender() *asyncSender {
++	return &asyncSender{ch: make(chan event, 128), http: &http.Client{Timeout: 3 * time.Second}}
++}
++
++// EmitSearch is fail-open and has no effect unless BRAIN_ACTIVITY_URL is set.
++// It never blocks the ticket-processing path and silently drops telemetry when
++// the optional visualization is unavailable or the local queue is full.
++func EmitSearch(source, query string, hits []Hit, duration time.Duration) {
++	sender.once.Do(sender.start)
++	if sender.url == "" {
++		return
++	}
++	query = strings.TrimSpace(query)
++	if len([]rune(query)) > 4000 {
++		query = string([]rune(query)[:4000])
++	}
++	e := event{
++		Type: "knowledge.search", Source: source, Query: query,
++		Message: "Wissenssuche aus " + source,
++		Hits:    hits, Metadata: map[string]any{"duration_ms": duration.Milliseconds(), "result_count": len(hits)},
++	}
++	select {
++	case sender.ch <- e:
++	default:
++	}
++}
++
++func (s *asyncSender) start() {
++	s.url = strings.TrimSpace(os.Getenv("BRAIN_ACTIVITY_URL"))
++	s.key = strings.TrimSpace(os.Getenv("BRAIN_ACTIVITY_API_KEY"))
++	if s.url == "" {
++		return
++	}
++	go func() {
++		for e := range s.ch {
++			b, err := json.Marshal(e)
++			if err != nil {
++				continue
++			}
++			req, err := http.NewRequest(http.MethodPost, s.url, bytes.NewReader(b))
++			if err != nil {
++				continue
++			}
++			req.Header.Set("Content-Type", "application/json")
++			if s.key != "" {
++				req.Header.Set("Authorization", "Bearer "+s.key)
++			}
++			resp, err := s.http.Do(req)
++			if err == nil {
++				_ = resp.Body.Close()
++			}
++		}
++	}()
++}
+diff --git a/internal/knowledge/store.go b/internal/knowledge/store.go
+index 5c762c8..0c186a1 100644
+--- a/internal/knowledge/store.go
++++ b/internal/knowledge/store.go
+@@ -17,6 +17,7 @@ import (
+ 	"time"
+ 	"unicode"
+ 
++	"github.com/example/glpi-ai-agent/internal/brainactivity"
+ 	"github.com/example/glpi-ai-agent/internal/model"
+ )
+ 
+@@ -1073,6 +1074,7 @@ func safeID(v string) bool {
+ // are scored separately. Missing metadata does not lower a document's score:
+ // the weights of available components are normalized dynamically.
+ func (s *Store) Search(ctx context.Context, text string, topK int, categorySets ...[]model.Category) ([]model.KnowledgeHit, error) {
++	startedAt := time.Now()
+ 	if s == nil {
+ 		return nil, fmt.Errorf("knowledge store is not initialized")
+ 	}
+@@ -1191,6 +1193,11 @@ func (s *Store) Search(ctx context.Context, text string, topK int, categorySets
+ 	if topK > 0 && len(hits) > topK {
+ 		hits = hits[:topK]
+ 	}
++	activityHits := make([]brainactivity.Hit, 0, len(hits))
++	for _, hit := range hits {
++		activityHits = append(activityHits, brainactivity.Hit{ID: hit.Doc.ID, Score: hit.Score})
++	}
++	brainactivity.EmitSearch("agent", text, activityHits, time.Since(startedAt))
+ 	return hits, nil
+ }
+ 

@@ -1,0 +1,22 @@
+[Unit]
+Description=GLPI AI Agent
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=glpi-ai-agent
+Group=glpi-ai-agent
+WorkingDirectory=/opt/glpi-ai-agent
+EnvironmentFile=/etc/glpi-ai-agent.env
+ExecStart=/opt/glpi-ai-agent/glpi-ai-agent
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/glpi-ai-agent
+
+[Install]
+WantedBy=multi-user.target

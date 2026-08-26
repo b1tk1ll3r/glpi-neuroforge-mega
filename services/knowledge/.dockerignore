@@ -1,0 +1,6 @@
+.git
+.gitignore
+backups
+knowledge
+*.zip
+kb-editor

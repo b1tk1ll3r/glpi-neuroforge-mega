@@ -1,0 +1,11 @@
+{
+  "cases": [
+    {
+      "id": "vpn-login-001",
+      "query": "VPN verbindet nicht, Anmeldung schlägt nach Passwortwechsel fehl",
+      "expected_knowledge_id": "REPLACE-WITH-KB-ID",
+      "expected_solution_terms": ["vpn"],
+      "k": 10
+    }
+  ]
+}

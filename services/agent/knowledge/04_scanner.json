@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-SCANNER-SELECT",
+    "title":  "Scanner",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Scanner. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Arbeitsplatz- oder Dokumentenscanner nicht erkannt wird, nicht scannt, Einzugsprobleme zeigt oder die lokale Scansoftware fehlerhaft ist. Typische Ticketformulierungen sind: „Scanner wird nicht erkannt“; „Dokumenteneinzug fehlerhaft“; „Scanprogramm startet nicht“; „Scandatei wird nicht erzeugt“. Nicht auswählen, wenn die zentrale Übertragung per Scan-to-Mail oder Scan-to-Folder scheitert oder ein Multifunktionsgerät insgesamt betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Übertragungsziele und zentrale Dienste werden in Scan-to-Mail und Scan-to-Folder erfasst.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Scanner“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Scanner"
+                   ],
+    "keywords":  [
+                     "Scanner",
+                     "Scannen",
+                     "Dokumentenscanner",
+                     "Einzug",
+                     "Scanprogramm",
+                     "TWAIN",
+                     "WIA",
+                     "Scanfehler",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/scanner",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

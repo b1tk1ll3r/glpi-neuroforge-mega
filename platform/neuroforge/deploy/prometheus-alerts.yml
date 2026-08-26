@@ -1,0 +1,33 @@
+groups:
+  - name: neuroforge
+    rules:
+      - alert: NeuroForgeDown
+        expr: up{job="neuroforge"} == 0
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "NeuroForge is unavailable"
+      - alert: NeuroForgeHTTP5xx
+        expr: sum(rate(neuroforge_http_requests_total{code=~"5.."}[5m])) > 0.1
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge is returning 5xx responses"
+      - alert: NeuroForgeClusterCommitLag
+        expr: neuroforge_cluster_log_index - neuroforge_cluster_commit_index > 100
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge cluster commit lag is growing"
+      - alert: NeuroForgePageCacheThrash
+        expr: rate(neuroforge_page_cache_evictions_total[10m]) > 10
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge page cache is evicting aggressively"
+      - alert: NeuroForgeDailyBudget80Percent
+        expr: neuroforge_openai_cost_usd{period="day"} / clamp_min(neuroforge_openai_budget_usd{period="day"}, 0.000001) > 0.8
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge OpenAI daily budget is above 80%"

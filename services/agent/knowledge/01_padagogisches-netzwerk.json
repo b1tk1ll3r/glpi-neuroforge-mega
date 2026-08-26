@@ -1,0 +1,25 @@
+{
+    "id":  "KAT-PADAGOGISCHES-NETZWERK-SELECT",
+    "title":  "Pädagogisches Netzwerk",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Pädagogisches Netzwerk. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn das pädagogische Netz einer Schule, seine Zugänge, Segmentierung, Internetnutzung oder schulbezogene Netzwerkdienste betroffen sind. Typische Ticketformulierungen sind: „Schülernetz nicht erreichbar“; „Pädagogisches WLAN gestört“; „Unterrichtsnetz ausgefallen“; „Zugang im pädagogischen Netz fehlt“. Nicht auswählen, wenn ausschließlich das Verwaltungsnetz, eine einzelne allgemeine Netzwerkdose oder die zentrale kommunale Standortanbindung betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Während der Übergangszeit primär Team Schulen; zentrale Infrastrukturursachen werden an Infrastruktur und Backend übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Pädagogisches Netzwerk“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Pädagogisches Netzwerk"
+                   ],
+    "keywords":  [
+                     "pädagogisches Netzwerk",
+                     "Schülernetz",
+                     "Unterrichtsnetz",
+                     "pädagogisches WLAN",
+                     "Schulnetz",
+                     "Pädagogiknetz",
+                     "Pädagogisches Netzwerk",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/padagogisches-netzwerk",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

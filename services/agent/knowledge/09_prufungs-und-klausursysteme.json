@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-PRUFUNGS-UND-KLAUSURSYSTEME-SELECT",
+    "title":  "Prüfungs- und Klausursysteme",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Prüfungs- und Klausursysteme. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn digitale Prüfungsumgebungen, Klausurclients, Prüfungsaccounts, sichere Browser, Prüfungsnetz oder technische Vorbereitung einer digitalen Prüfung betroffen sind. Typische Ticketformulierungen sind: „Prüfungsbrowser startet nicht“; „Klausuraccount fehlt“; „Digitale Prüfung vorbereiten“; „Prüfungsnetz gestört“. Nicht auswählen, wenn eine normale Lernplattformaufgabe oder allgemeine Computerraumstörung ohne Prüfungsbezug vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Tickets mit unmittelbarem Prüfungstermin sind zeitkritisch und entsprechend zu priorisieren.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Prüfungs- und Klausursysteme“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Prüfungs- und Klausursysteme"
+                   ],
+    "keywords":  [
+                     "Prüfungssystem",
+                     "Klausursystem",
+                     "Prüfungsbrowser",
+                     "Safe Exam Browser",
+                     "digitale Prüfung",
+                     "Klausuraccount",
+                     "Prüfungsnetz",
+                     "Prüfungs- und Klausursysteme",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/prufungs-und-klausursysteme",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

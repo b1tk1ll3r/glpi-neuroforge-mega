@@ -1,0 +1,29 @@
+{
+    "id":  "KAT-KENNWORT-ZURUCKSETZEN-SELECT",
+    "title":  "Kennwort zurücksetzen",
+    "text":  "Auswahlziel: Benutzerkonten und Berechtigungen \u003e Kennwort zurücksetzen. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Benutzer sein Kennwort vergessen hat, das Kennwort abgelaufen ist, eine Anmeldung wegen falscher Kennworteingaben scheitert oder das persönliche Domänenkonto gesperrt wurde. Auch typische Folgeprobleme nach einer Kennwortänderung, etwa gespeicherte alte Kennwörter auf weiteren Geräten, gehören hierher. Typische Ticketformulierungen sind: „Kennwort vergessen“; „Passwort abgelaufen“; „Konto gesperrt“; „Account locked“; „Anmeldung funktioniert nach Kennwortänderung nicht“. Nicht auswählen, wenn ein Konto neu angelegt, umbenannt oder gelöscht werden soll; wenn Rollen in einer Fachanwendung fehlen; wenn eine technische Störung des Active Directory mehrere Benutzer betrifft. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Der Support prüft Identität, betroffenen Dienst und mögliche Altkennwörter. Zentrale AD-Störungen werden an Infrastruktur und Backend übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Benutzerkonten und Berechtigungen \u003e Kennwort zurücksetzen“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Benutzerkonten und Berechtigungen \u003e Kennwort zurücksetzen"
+                   ],
+    "keywords":  [
+                     "Kennwort",
+                     "Passwort",
+                     "Kennwort zurücksetzen",
+                     "Passwort vergessen",
+                     "Konto gesperrt",
+                     "Account locked",
+                     "Login",
+                     "Anmeldung",
+                     "Domänenkonto",
+                     "AD-Konto",
+                     "falsches Kennwort",
+                     "Benutzerkonten und Berechtigungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/benutzerkonten-und-berechtigungen/kennwort-zurucksetzen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Helpdesk Search</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Zur Startseite">
+      <span class="brand-mark">H</span>
+      <span class="brand-copy">
+        <strong id="brandTitle">Helpdesk Search</strong>
+        <small id="brandSubtitle">Interne Wissenssuche für den Helpdesk</small>
+      </span>
+    </a>
+    <div class="top-meta">
+      <span id="modeBadge" class="mode-badge">Nur lesen</span>
+      <span id="countBadge" class="count-badge">Wissensbasis lädt …</span>
+      <a class="mode-badge" href="/api/export/obsidian" title="Obsidian/llm-wiki-kompatiblen Vault exportieren">⇩ Obsidian Export</a>
+    </div>
+  </header>
+
+  <main>
+    <section id="hero" class="hero">
+      <div class="hero-orb orb-one"></div>
+      <div class="hero-orb orb-two"></div>
+      <div class="hero-content">
+        <div class="eyebrow">INTERNES HELPDESK-WISSEN</div>
+        <h1>Was möchtest du lösen?</h1>
+        <p>Durchsuche Fehlercodes, Symptome, Produkte, Keywords und dokumentierte Lösungen in einer zentralen Wissensbasis.</p>
+        <form id="heroSearchForm" class="search-box hero-search" role="search">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="heroSearch" type="search" placeholder="z. B. 0x80070005, Outlook startet nicht, BitLocker …" autocomplete="off" autofocus>
+          <kbd>/</kbd>
+          <button type="submit">Suchen</button>
+        </form>
+        <div id="quickLinks" class="quick-links" aria-label="Häufige Kategorien"></div>
+      </div>
+    </section>
+
+    <section id="resultsView" class="results-view hidden">
+      <div class="results-header">
+        <form id="topSearchForm" class="search-box top-search" role="search">
+          <span class="search-icon" aria-hidden="true">⌕</span>
+          <input id="topSearch" type="search" autocomplete="off" aria-label="Wissensbasis durchsuchen">
+          <button type="submit">Suchen</button>
+        </form>
+        <div class="results-summary">
+          <div>
+            <strong id="resultCount">0 Treffer</strong>
+            <span id="resultHint"></span>
+          </div>
+          <button id="clearSearch" class="text-btn" type="button">Neue Suche</button>
+        </div>
+      </div>
+
+      <div class="results-layout">
+        <aside class="side-panel">
+          <div class="side-card">
+            <span class="side-label">Schnellzugriff</span>
+            <div id="sideFacets" class="facet-list"></div>
+          </div>
+          <div class="side-card help-card">
+            <span class="help-icon">?</span>
+            <strong>Such-Tipp</strong>
+            <p>Fehlercodes wie <code>0x80070005</code> oder konkrete Meldungsteile liefern meist die präzisesten Treffer.</p>
+          </div>
+        </aside>
+
+        <div class="results-column">
+          <div id="loading" class="loading hidden"><span></span><span></span><span></span></div>
+          <div id="noResults" class="no-results hidden">
+            <div class="no-results-icon">⌕</div>
+            <h2>Keine passenden Einträge gefunden</h2>
+            <p id="noResultsHint">Versuche einen kürzeren Fehlercode, einen Produktnamen oder einzelne Wörter aus der Fehlermeldung.</p>
+          </div>
+
+          <section id="aiFallbackPanel" class="ai-fallback hidden" aria-live="polite">
+            <div class="ai-glow" aria-hidden="true"></div>
+            <div class="ai-head">
+              <div class="ai-mark">AI</div>
+              <div>
+                <div class="section-kicker">OLLAMA · STAGING</div>
+                <h2 id="aiTitle">KI erstellt einen Helpdesk-Entwurf</h2>
+              </div>
+              <span id="aiTimer" class="ai-timer">00:00</span>
+            </div>
+            <p id="aiStatus">Die interne Wissensbasis hat keinen Treffer. Die Anfrage wird an das konfigurierte Ollama-Modell übergeben.</p>
+            <div id="aiProgress" class="ai-progress"><span></span></div>
+            <div class="ai-actions">
+              <span id="aiNote">Der Entwurf wird getrennt von der produktiven KB gespeichert und muss geprüft werden.</span>
+              <button id="openAIResult" class="copy-btn hidden" type="button">Entwurf öffnen</button>
+              <button id="retryAI" class="copy-btn hidden" type="button">Erneut versuchen</button>
+            </div>
+          </section>
+          <div id="resultList" class="result-list" aria-live="polite"></div>
+          <nav id="pagination" class="pagination hidden" aria-label="Suchergebnisse"></nav>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="articleDialog" class="article-dialog">
+    <article class="article-shell">
+      <header class="article-head">
+        <div>
+          <div class="article-eyebrow-row"><div id="articleEyebrow" class="article-eyebrow"></div><span id="stagingBadge" class="staging-badge hidden">AI-STAGING · UNGEPRÜFT</span></div>
+          <h2 id="articleTitle"></h2>
+        </div>
+        <button id="closeArticle" class="close-btn" type="button" aria-label="Artikel schließen">×</button>
+      </header>
+
+      <div class="article-body">
+        <div id="articleMeta" class="meta-row"></div>
+
+        <section id="problemSection" class="article-section">
+          <div class="section-kicker">PROBLEM / ERKENNUNG</div>
+          <div id="articleProblem" class="article-text"></div>
+        </section>
+
+        <section id="answerSection" class="article-section answer-section">
+          <div class="answer-head">
+            <div>
+              <div class="section-kicker">LÖSUNG / ANTWORT</div>
+              <strong>Empfohlene Vorgehensweise</strong>
+            </div>
+            <button id="copyAnswer" class="copy-btn" type="button">Antwort kopieren</button>
+          </div>
+          <div id="articleAnswer" class="article-text answer-text"></div>
+        </section>
+
+        <section id="tagsSection" class="article-section compact-section">
+          <div class="section-kicker">EINORDNUNG</div>
+          <div id="articleTags" class="tag-list"></div>
+        </section>
+
+        <section id="sourceSection" class="article-section source-section hidden">
+          <div class="section-kicker">QUELLE</div>
+          <div class="source-line">
+            <div>
+              <strong id="articleSource"></strong>
+              <span id="articleSourceUri"></span>
+            </div>
+            <a id="sourceLink" class="source-link" href="#" target="_blank" rel="noopener noreferrer">Quelle öffnen ↗</a>
+          </div>
+        </section>
+      </div>
+
+      <footer class="article-foot">
+        <span id="articlePath"></span>
+        <button id="copyLink" class="text-btn" type="button">Link zu diesem Artikel kopieren</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

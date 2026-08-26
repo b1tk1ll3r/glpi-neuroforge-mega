@@ -1,0 +1,2149 @@
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/.env.example ./.env.example
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/.env.example	2026-08-25 16:06:06.000000000 +0000
++++ ./.env.example	2026-08-25 19:19:15.237283985 +0000
+@@ -64,3 +64,34 @@
+ KNOWLEDGE_HOST_PORT=8081
+ NEUROFORGE_HOST_PORT=8090
+ OLLAMA_HOST_PORT=11434
++
++# -----------------------------
++# Controlled learning / research
++# -----------------------------
++# Enforces: no automatic learning from raw chat input or assistant output;
++# explicit validated outcomes and research evidence keep distinct provenance.
++NEUROFORGE_CONTROLLED_LEARNING=true
++
++# Ticket -> AI proposal -> technician accept/correct -> NeuroForge learn.
++OUTCOME_LEARNING_ENABLED=true
++# false = technician sees an error when NeuroForge cannot persist the validated outcome.
++# The local outcome audit is still retained with sync_status=failed.
++OUTCOME_LEARNING_FAIL_OPEN=false
++OUTCOME_LEARNING_MAX_OUTCOMES=2000
++
++# Research is opt-in. Starting the SearXNG profile alone does not enable learning.
++NEUROFORGE_RESEARCH_ENABLED=false
++NEUROFORGE_SEARXNG_ENABLED=false
++NEUROFORGE_SEARXNG_URL=http://searxng:8080
++NEUROFORGE_RESEARCH_GOAL_ENABLED=true
++# Separate switch for scheduled self-directed goal cycles.
++NEUROFORGE_AUTONOMY_ENABLED=false
++NEUROFORGE_AUTONOMY_INTERVAL_MINUTES=30
++NEUROFORGE_RESEARCH_MAX_QUERIES=2
++NEUROFORGE_RESEARCH_MAX_PAGES=4
++
++# Required only when the optional `research` compose profile is started.
++# Pin this to a version/digest in production if reproducible images are required.
++SEARXNG_IMAGE=docker.io/searxng/searxng:latest
++SEARXNG_SECRET=CHANGE_ME_SEARXNG_LONG_RANDOM_SECRET
++SEARXNG_HOST_PORT=8888
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/Makefile ./Makefile
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/Makefile	2026-08-25 15:59:02.000000000 +0000
++++ ./Makefile	2026-08-25 19:13:14.014255166 +0000
+@@ -1,6 +1,6 @@
+ SHELL := /bin/sh
+ 
+-.PHONY: test vet build up down logs status ps
++.PHONY: test vet build up research-up down logs status ps
+ 
+ test:
+ 	cd platform/neuroforge && go test ./...
+@@ -20,6 +20,9 @@
+ up:
+ 	docker compose up -d --build
+ 
++research-up:
++	./scripts/research-up.sh
++
+ down:
+ 	docker compose down
+ 
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/README.md ./README.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/README.md	2026-08-25 18:59:12.576471455 +0000
++++ ./README.md	2026-08-25 19:16:33.910735909 +0000
+@@ -1,4 +1,4 @@
+-# GLPI NeuroForge Mega
++# GLPI NeuroForge Mega v1.2.0
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+@@ -53,6 +53,39 @@
+ 
+ Details: [`docs/MIGRATION-CUTOVER.md`](docs/MIGRATION-CUTOVER.md).
+ 
++## Kontrolliertes Lernen: erst Outcome, dann Wissen
++
++Im produktionsnahen Standard (`NEUROFORGE_CONTROLLED_LEARNING=true`) werden rohe Chat-Eingaben und KI-Antworten **nicht automatisch** zu vertrauenswürdigem Langzeitwissen. Der Helpdesk-Lernpfad ist explizit menschlich gegated:
++
++```text
++Ticket -> KI-Vorschlag -> Techniker bestätigt/korrigiert -> auditiertes Outcome -> NeuroForge lernt
++```
++
++Im Agent-Dashboard kann ein Antwortvorschlag als **„KI-Antwort bestätigen“** oder **„KI-Antwort korrigieren“** validiert werden. Jede Entscheidung wird lokal in `ticket-outcomes.json` mit Sync-Status gespeichert. Eine spätere Korrektur überschreibt die frühere Entscheidung nicht, sondern erzeugt eine neue Revision mit `supersedes_id`. Nur `accepted` und `corrected` dürfen den App-Key-geschützten NeuroForge-Endpunkt `/api/v1/integrations/outcomes` verwenden; NeuroForge weist die vertrauenswürdige Provenance serverseitig zu.
++
++Vor der Hochstufung verifiziert der Agent außerdem, dass sich der GLPI-Ticketzustand seit dem analysierten Run nicht geändert hat. Ein veralteter Run darf nicht als Trusted Outcome gelernt werden.
++
++Standardmäßig ist `OUTCOME_LEARNING_FAIL_OPEN=false`: Kann das bestätigte Outcome nicht nach NeuroForge synchronisiert werden, sieht der Techniker einen Fehler. Der lokale Audit-Eintrag bleibt mit `sync_status=failed` für einen kontrollierten Retry erhalten.
++
++Details: [`docs/CONTROLLED-AUTONOMY.md`](docs/CONTROLLED-AUTONOMY.md).
++
++## Optionales SearXNG / kontrollierte Autonomie
++
++SearXNG ist ein echtes, aber **optionales** Compose-Profil. Der normale Stack startet es nicht. Research und zeitgesteuerte Autonomie besitzen getrennte Schalter:
++
++```bash
++# .env: echten SEARXNG_SECRET setzen
++./scripts/research-up.sh
++```
++
++`research-up.sh` startet SearXNG sowie NeuroForge mit Research/SearXNG aktiviert. `NEUROFORGE_AUTONOMY_ENABLED` bleibt davon unberührt und ist standardmäßig `false`. Damit sind drei Betriebsstufen möglich:
++
++1. Research aus – keine Webrecherche.
++2. Research an, Autonomy aus – Recherche kann explizit/manuell angestoßen werden.
++3. Research an, Autonomy an – fällige Research-Goals dürfen zyklisch selbst recherchieren.
++
++Web-Evidence erhält bewusst niedrigere Source-Trust-Werte als menschlich bestätigte GLPI-Outcomes. Unabhängige Quellen können bestehende Evidence über die vorhandene Corroboration-Logik stärken; produktive KB-Promotion bleibt trotzdem menschlich kontrolliert.
++
+ ## Research → Staging
+ 
+ Die Knowledgebase stellt einen getrennt authentifizierten Eingang bereit:
+@@ -109,6 +142,6 @@
+ 
+ Die importierten GLPI-Projekte wurden im Mega-Repo auf Go 1.23 normalisiert. Die komplette Testbasis läuft damit in der bereitgestellten Umgebung. Die ursprünglichen Quellarchive bleiben davon unberührt.
+ 
+-## Noch bewusst nicht autonom
++## Bewusst begrenzte Autonomie
+ 
+-NeuroForge Research veröffentlicht **nicht selbstständig** in die produktive Knowledgebase. Der technische Draft-Ingress ist vorhanden, aber der Übergang von einem konkreten Research-Run zu einem KB-Draft soll über einen expliziten Workflow/Job erfolgen. Das ist eine Governance-Entscheidung, kein fehlender Schreibweg.
++Auch bei aktivierter Research-Autonomie veröffentlicht NeuroForge **nicht selbstständig** in die produktive Knowledgebase. Der technische Draft-Ingress ist vorhanden, aber der Übergang von einem konkreten Research-Run zu einem KB-Draft soll über einen expliziten Workflow/Job erfolgen. Das ist eine Governance-Entscheidung, kein fehlender Schreibweg.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/RELEASE-NOTES-v1.2.0.md ./RELEASE-NOTES-v1.2.0.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/RELEASE-NOTES-v1.2.0.md	1970-01-01 00:00:00.000000000 +0000
++++ ./RELEASE-NOTES-v1.2.0.md	2026-08-25 19:16:33.911460019 +0000
+@@ -0,0 +1,45 @@
++# Release Notes v1.2.0 — Controlled Autonomy
++
++## Schwerpunkt
++
++v1.2.0 macht aus „autonom lernfähig“ ein kontrolliert autonomes Betriebsmodell. Rohes Chat-/Modellverhalten wird im Mega-Stack nicht mehr automatisch zu vertrauenswürdigem Langzeitwissen. Helpdesk-Lernen folgt stattdessen dem Ablauf **Ticket → KI-Vorschlag → Techniker bestätigt/korrigiert → Outcome → Learn**.
++
++## Neu
++
++- optionaler SearXNG-Service als Compose-Profil `research`
++- gehärtete private SearXNG-Konfiguration unter `deploy/searxng/settings.yml`
++- `scripts/research-up.sh` für bewusstes Research-Enabling
++- separate Schalter für Research/SearXNG und zeitgesteuerte Autonomy
++- `NEUROFORGE_CONTROLLED_LEARNING=true` als konservativer Mega-Stack-Standard
++- kein automatisches Lernen von Chat-Inputs oder Assistant-Antworten im Controlled Mode
++- neue App-Key-geschützte API `POST /api/v1/integrations/outcomes`
++- serverseitig gesetzte Provenance `glpi.outcome.accepted|corrected`
++- Agent-Audit `ticket-outcomes.json` mit `pending|learned|failed`
++- Stale-Run-Schutz: Trusted Outcome nur, wenn der GLPI-Ticketzustand noch zum analysierten Run passt
++- unveränderliche Outcome-Revisionskette via `supersedes_id`
++- idempotente Wiederholung bereits gelernter menschlicher Entscheidungen
++- UI-Aktionen **KI-Antwort bestätigen** und **KI-Antwort korrigieren** im Run-Drawer
++- Control Center zeigt Controlled Learning, Outcome Learning, Research/SearXNG und Autonomy read-only an
++- `SEARXNG_SECRET` im Secret-Generator
++
++## Vertrauensmodell
++
++- Web Search: 0.45
++- Web Page/Document: 0.60
++- human accepted outcome: 1.00
++- human corrected outcome: 1.00
++
++Web-Evidence bleibt source-backed, deduplizierbar und korroborierbar. Sie wird nicht mit einem menschlich bestätigten Helpdesk-Outcome gleichgesetzt.
++
++## Bewusste Grenzen
++
++- SearXNG ist standardmäßig aus.
++- Research ist standardmäßig aus.
++- Autonomy ist standardmäßig aus.
++- Research darf nicht direkt in die Produktions-KB schreiben.
++- Das Control Center bleibt read-only.
++- GLPI-Aktionen bleiben beim policy-gated Agenten.
++
++## Upgrade
++
++Siehe `docs/MIGRATION-v1.1.0-to-v1.2.0.md` und `docs/CONTROLLED-AUTONOMY.md`.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/VERSION ./VERSION
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/VERSION	2026-08-25 18:37:16.026769139 +0000
++++ ./VERSION	2026-08-25 18:57:43.995247001 +0000
+@@ -1 +1 @@
+-1.1.0
++1.2.0
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/deploy/searxng/settings.yml ./deploy/searxng/settings.yml
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/deploy/searxng/settings.yml	1970-01-01 00:00:00.000000000 +0000
++++ ./deploy/searxng/settings.yml	2026-08-25 19:03:31.940921490 +0000
+@@ -0,0 +1,26 @@
++# Private SearXNG instance for NeuroForge research.
++# SEARXNG_SECRET and SEARXNG_BASE_URL override the corresponding server values.
++use_default_settings: true
++
++general:
++  debug: false
++  instance_name: "NeuroForge Research Search"
++
++search:
++  safe_search: 1
++  formats:
++    - html
++    - json
++
++server:
++  secret_key: "overridden-by-SEARXNG_SECRET"
++  limiter: false
++  public_instance: false
++  image_proxy: false
++  default_http_headers:
++    X-Robots-Tag: "noindex, nofollow"
++    Referrer-Policy: "no-referrer"
++
++outgoing:
++  request_timeout: 5.0
++  max_request_timeout: 15.0
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docker-compose.yml ./docker-compose.yml
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docker-compose.yml	2026-08-25 16:06:06.000000000 +0000
++++ ./docker-compose.yml	2026-08-25 19:19:15.237095886 +0000
+@@ -11,6 +11,26 @@
+     security_opt:
+       - no-new-privileges:true
+ 
++  searxng:
++    image: ${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}
++    profiles: ["research"]
++    restart: unless-stopped
++    environment:
++      SEARXNG_SECRET: ${SEARXNG_SECRET}
++      SEARXNG_BASE_URL: http://searxng:8080/
++      FORCE_OWNERSHIP: "false"
++    volumes:
++      - ./deploy/searxng/settings.yml:/etc/searxng/settings.yml:ro
++      - searxng-cache:/var/cache/searxng
++    ports:
++      - "127.0.0.1:${SEARXNG_HOST_PORT:-8888}:8080"
++    read_only: true
++    tmpfs:
++      - /tmp:size=64m,mode=1777
++    security_opt:
++      - no-new-privileges:true
++    cap_drop: ["ALL"]
++
+   neuroforge:
+     build:
+       context: ./platform/neuroforge
+@@ -27,6 +47,15 @@
+       NEUROFORGE_OLLAMA_URL: http://ollama:11434
+       NEUROFORGE_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
+       NEUROFORGE_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
++      NEUROFORGE_CONTROLLED_LEARNING: ${NEUROFORGE_CONTROLLED_LEARNING:-true}
++      NEUROFORGE_RESEARCH_ENABLED: ${NEUROFORGE_RESEARCH_ENABLED:-false}
++      NEUROFORGE_SEARXNG_ENABLED: ${NEUROFORGE_SEARXNG_ENABLED:-false}
++      NEUROFORGE_SEARXNG_URL: ${NEUROFORGE_SEARXNG_URL:-http://searxng:8080}
++      NEUROFORGE_RESEARCH_GOAL_ENABLED: ${NEUROFORGE_RESEARCH_GOAL_ENABLED:-true}
++      NEUROFORGE_AUTONOMY_ENABLED: ${NEUROFORGE_AUTONOMY_ENABLED:-false}
++      NEUROFORGE_AUTONOMY_INTERVAL_MINUTES: ${NEUROFORGE_AUTONOMY_INTERVAL_MINUTES:-30}
++      NEUROFORGE_RESEARCH_MAX_QUERIES: ${NEUROFORGE_RESEARCH_MAX_QUERIES:-2}
++      NEUROFORGE_RESEARCH_MAX_PAGES: ${NEUROFORGE_RESEARCH_MAX_PAGES:-4}
+     ports:
+       - "127.0.0.1:${NEUROFORGE_HOST_PORT:-8090}:8080"
+     volumes:
+@@ -92,6 +121,9 @@
+       NEUROFORGE_FAIL_OPEN: ${NEUROFORGE_FAIL_OPEN:-true}
+       BRAIN_ACTIVITY_URL: http://neuroforge:8080/api/v1/integrations/events
+       BRAIN_ACTIVITY_API_KEY: ${NEUROFORGE_APP_API_KEY}
++      OUTCOME_LEARNING_ENABLED: ${OUTCOME_LEARNING_ENABLED:-true}
++      OUTCOME_LEARNING_FAIL_OPEN: ${OUTCOME_LEARNING_FAIL_OPEN:-false}
++      OUTCOME_LEARNING_MAX_OUTCOMES: ${OUTCOME_LEARNING_MAX_OUTCOMES:-2000}
+     ports:
+       - "127.0.0.1:${AGENT_HOST_PORT:-8080}:8080"
+     volumes:
+@@ -158,6 +190,11 @@
+       KNOWLEDGE_VECTOR_BACKEND: ${KNOWLEDGE_VECTOR_BACKEND:-dual}
+       NEUROFORGE_SEARCH_K: ${NEUROFORGE_SEARCH_K:-128}
+       NEUROFORGE_FAIL_OPEN: ${NEUROFORGE_FAIL_OPEN:-true}
++      NEUROFORGE_CONTROLLED_LEARNING: ${NEUROFORGE_CONTROLLED_LEARNING:-true}
++      OUTCOME_LEARNING_ENABLED: ${OUTCOME_LEARNING_ENABLED:-true}
++      NEUROFORGE_RESEARCH_ENABLED: ${NEUROFORGE_RESEARCH_ENABLED:-false}
++      NEUROFORGE_SEARXNG_ENABLED: ${NEUROFORGE_SEARXNG_ENABLED:-false}
++      NEUROFORGE_AUTONOMY_ENABLED: ${NEUROFORGE_AUTONOMY_ENABLED:-false}
+       PUBLIC_AGENT_URL: http://localhost:${AGENT_HOST_PORT:-8080}
+       PUBLIC_KNOWLEDGE_URL: http://localhost:${KNOWLEDGE_HOST_PORT:-8081}
+       PUBLIC_NEUROFORGE_URL: http://localhost:${NEUROFORGE_HOST_PORT:-8090}/admin
+@@ -181,3 +218,4 @@
+   neuroforge-data:
+   agent-data:
+   ollama-data:
++  searxng-cache:
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/ARCHITECTURE.md ./docs/ARCHITECTURE.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/ARCHITECTURE.md	2026-08-25 18:59:13.092472558 +0000
++++ ./docs/ARCHITECTURE.md	2026-08-25 19:14:47.048287348 +0000
+@@ -20,6 +20,7 @@
+                      │ HNSW / Disk-PQ      │      │ read-only    │
+                      │ NFVJ2 + SQAR        │      └──────────────┘
+                      │ memory / research   │
++                     │ validated outcomes  │
+                      └─────────┬───────────┘
+                                │ draft proposal only
+                                ▼
+@@ -131,3 +132,45 @@
+ ```
+ 
+ Diese Events sind Telemetrie/Audit, keine Policy-Eingaben. Beispiele sind `knowledge.search` sowie Synchronisationsereignisse.
++
++
++## Kontrolliertes Lernmodell (v1.2.0)
++
++### Human Outcome Gate
++
++```text
++Ticket -> AI proposal -> technician accept/correct
++                         |
++                         v
++                  immutable local audit
++                         | App Key
++                         v
++             /api/v1/integrations/outcomes
++                         |
++                         v
++          trusted semantic outcome memory
++```
++
++Der Agent bestimmt nicht selbst die vertrauenswürdige Provenance. NeuroForge akzeptiert über diesen Pfad ausschließlich `accepted` und `corrected` und setzt `glpi.outcome.*` serverseitig. Eine spätere Korrektur wird als neue Outcome-Version mit `supersedes_id` geführt.
++
++### Optionaler Research-Layer
++
++```text
++             [compose profile: research]
++                      SearXNG
++                         |
++                         v
++Goal/manual research -> Search -> Fetch -> Evidence
++                                      |
++                                      v
++                         provenance + dedup +
++                         independent corroboration
++                                      |
++                                      v
++                              NeuroForge Memory
++                                      |
++                                      v
++                              KB staging only
++```
++
++Research-Infrastruktur und zeitgesteuerte Autonomie sind getrennt. `NEUROFORGE_AUTONOMY_ENABLED=false` verhindert selbstlaufende Goal-Cycles auch dann, wenn SearXNG und manuelles Research aktiv sind.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/CONTROL-CENTER.md ./docs/CONTROL-CENTER.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/CONTROL-CENTER.md	2026-08-25 18:59:12.636471584 +0000
++++ ./docs/CONTROL-CENTER.md	2026-08-25 19:14:47.047919399 +0000
+@@ -18,3 +18,15 @@
+ ## Erweiterungsregel
+ 
+ Falls zentrale Aktionen später direkt im Control Center benötigt werden, sollten sie als einzelne delegierte Operationen mit eigenem Scope, Audit-Eintrag und expliziter Bestätigung implementiert werden. Die Admin-Credentials der Zielsysteme sollen nicht pauschal im Control Center hinterlegt werden.
++
++
++## v1.2.0: Controlled-Autonomy-Status
++
++Das Control Center zeigt zusätzlich die effektiven Stack-Schalter für:
++
++- Controlled Learning
++- Outcome Learning
++- Research/SearXNG
++- Autonomy
++
++Diese Anzeigen sind bewusst nur Beobachtung. Das Aktivieren von Research oder Autonomy erfolgt über Betreiberkonfiguration/Compose bzw. NeuroForge-Admin, nicht über einen globalen Super-Admin-Schalter im Control Center.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/CONTROL-MATRIX.md ./docs/CONTROL-MATRIX.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/CONTROL-MATRIX.md	2026-08-25 18:36:09.218643097 +0000
++++ ./docs/CONTROL-MATRIX.md	2026-08-25 19:14:47.047439932 +0000
+@@ -14,6 +14,10 @@
+ | NeuroForge Secrets lesen/rotieren | nein | nein | nein | ja | nein |
+ | Systemstatus lesen | eigene Readiness | eigene Health | Stats mit App Key | ja | aggregiert read-only |
+ | Obsidian-Export | Live-Sicht inkl. GLPI-Relations | kanonische KB | nein | nein | verlinkt Ziel-UI |
++| Human Outcome erfassen | ja, authentifizierter Techniker | nein | empfängt nur validated outcome | sichtbar/admin | Status read-only |
++| Trusted Outcome-Source setzen | nein | nein | **serverseitig fest** | ja | nein |
++| SearXNG Research | nein | nein | Research Engine via SearXNG | konfigurierbar | Status read-only |
++| Autonomy aktivieren | nein | nein | nein | Betreiber/Admin bzw. Env | Status read-only |
+ 
+ ## Credentials
+ 
+@@ -24,6 +28,7 @@
+ - `KB_INTEGRATION_TOKEN`: ausschließlich maschineller Staging-Ingress.
+ - `BASIC_AUTH_USER/PASSWORD`: Knowledgebase-Editor.
+ - `WEB_USERNAME/PASSWORD`: Agent-Webzugang.
++- `SEARXNG_SECRET`: nur optionaler SearXNG-Container/Betreiber.
+ - GLPI-Credentials: ausschließlich Agent.
+ 
+ ## Failure-Policy
+@@ -35,6 +40,15 @@
+ | `neuroforge` + fail-open | Fehler wird geloggt | lokale/lexikalische Evidenz soweit verfügbar |
+ | `neuroforge` + fail-closed | Fehler wird propagiert | semantischer Schritt blockiert kontrolliert |
+ 
++## Outcome-Learning Failure-Policy
++
++| Einstellung | NeuroForge-Sync nach Technikerentscheidung | Verhalten |
++|---|---|---|
++| `OUTCOME_LEARNING_ENABLED=false` | nicht ausgeführt | kein Outcome-Learning |
++| enabled + `FAIL_OPEN=false` | Fehler | lokaler Audit bleibt `failed`, UI meldet Fehler |
++| enabled + `FAIL_OPEN=true` | Fehler | lokaler Audit bleibt `failed`, Workflow darf fortfahren |
++| enabled + Sync OK | Erfolg | Audit `learned` + NeuroForge Memory-ID |
++
+ ## Nicht lernende Kontrollinformationen
+ 
+ Folgende Informationen bleiben absichtlich außerhalb des NeuroForge-Learnings:
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/CONTROLLED-AUTONOMY.md ./docs/CONTROLLED-AUTONOMY.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/CONTROLLED-AUTONOMY.md	1970-01-01 00:00:00.000000000 +0000
++++ ./docs/CONTROLLED-AUTONOMY.md	2026-08-25 19:19:15.237666158 +0000
+@@ -0,0 +1,123 @@
++# Kontrollierte Autonomie und Outcome-gated Learning
++
++Stand: v1.2.0
++
++## Ziel
++
++NeuroForge soll recherchieren und lernen können, ohne KI-Ausgaben automatisch mit bestätigtem Betriebswissen gleichzusetzen. Der Release trennt deshalb drei Vertrauensklassen:
++
++| Klasse | Beispiele | Standard-Trust | Freigabe |
++|---|---|---:|---|
++| Rohes Modell-/Chat-Signal | `chat.input`, `chat.response` | 0.25 / 0.20 im Controlled Mode | kein automatisches Langzeitlernen |
++| Quellengebundene Research-Evidence | `web.search`, `web.page` | 0.45 / 0.60 | Provenance + Dedup + unabhängige Corroboration |
++| Menschlich validiertes Helpdesk-Outcome | `glpi.outcome.accepted`, `glpi.outcome.corrected` | 1.00 | explizite Technikeraktion |
++
++Die Werte sind eine Ranking-/Learning-Policy, keine Behauptung absoluter Wahrheit. Auch menschlich bestätigtes Wissen bleibt mit Ticket, Run, Actor und Outcome-ID nachvollziehbar.
++
++## Helpdesk-Lernpfad
++
++```text
++GLPI Ticket
++   |
++   v
++Agent analysiert + erzeugt Antwortvorschlag
++   |
++   v
++Techniker prüft
++   |--------------------|
++   v                    v
++bestätigt            korrigiert
++   |                    |
++   +---------+----------+
++             v
++      lokales Outcome-Audit
++             |
++             v
++ POST /api/v1/integrations/outcomes
++             |
++             v
++ NeuroForge Semantic Memory
++```
++
++Vor dem Persistieren liest der Agent bei aktuellen Runs den Ticketzustand erneut aus GLPI und vergleicht ihn mit `SourceVersion`. Hat sich der entscheidungsrelevante Ticketzustand geändert, wird die Validierung blockiert und ein neuer Agent-Run verlangt.
++
++Nur `accepted` und `corrected` sind zulässig. Der Client kann die vertrauenswürdige Source nicht frei setzen; NeuroForge erzeugt serverseitig `glpi.outcome.accepted` bzw. `glpi.outcome.corrected`.
++
++### Audit und Revisionen
++
++`services/agent` speichert Entscheidungen in `DATA_DIR/ticket-outcomes.json`:
++
++- `pending`: lokal erfasst, Sync noch offen
++- `learned`: NeuroForge hat eine Memory-ID bestätigt
++- `failed`: Entscheidung bleibt erhalten, Remote-Sync ist fehlgeschlagen
++- `supersedes_id`: verweist bei einer späteren Korrektur/Neubewertung auf den vorigen Outcome
++
++Eine exakt wiederholte Entscheidung ist idempotent. Bereits erfolgreich gelernte Outcomes werden nicht ein zweites Mal an NeuroForge gesendet. Ein `failed`-Outcome kann dagegen bewusst erneut synchronisiert werden.
++
++`OUTCOME_LEARNING_FAIL_OPEN=false` ist der kontrollierte Standard: Ein Remote-Fehler wird dem Techniker sichtbar zurückgegeben. `true` ist nur sinnvoll, wenn lokale Audit-Erfassung wichtiger ist als sofortige zentrale Konsistenz.
++
++## Controlled Learning
++
++`NEUROFORGE_CONTROLLED_LEARNING=true` setzt beim Serverstart eine konservative Policy:
++
++- `learn_chat_inputs=false`
++- `learn_chat_responses=false`
++- `allow_explicit_learn=true`
++- `allow_imports=false`
++- `learn_goal_cycles=false`
++- höhere Mindestanforderungen für semantische Konsolidierung
++- niedriger Trust für Web-/Chat-Signale
++- maximaler Trust für explizite GLPI-Outcomes
++
++Damit ist „das Modell hat es gesagt“ kein Lernsignal. Lernen braucht entweder einen expliziten, kontrollierten API-Pfad oder quellengebundene Evidence.
++
++## Research und SearXNG
++
++SearXNG ist im Root-Compose als Profil `research` definiert und wird im normalen `docker compose up` nicht gestartet.
++
++### Research manuell freischalten
++
++1. In `.env` einen zufälligen `SEARXNG_SECRET` setzen. Für reproduzierbare Produktion `SEARXNG_IMAGE` auf einen freigegebenen Tag oder Digest pinnen.
++2. Research starten:
++
++```bash
++./scripts/research-up.sh
++```
++
++Das Script aktiviert für diesen Compose-Aufruf:
++
++```text
++NEUROFORGE_RESEARCH_ENABLED=true
++NEUROFORGE_SEARXNG_ENABLED=true
++```
++
++Es aktiviert **nicht** automatisch `NEUROFORGE_AUTONOMY_ENABLED`.
++
++### Autonomie bewusst separat aktivieren
++
++Für zeitgesteuerte, selbstinitiierte Goal-Cycles zusätzlich in `.env`:
++
++```text
++NEUROFORGE_AUTONOMY_ENABLED=true
++```
++
++Ein Goal muss zusätzlich `auto_run`/Research erlauben. Damit sind die infrastrukturelle Suchfähigkeit, manuelles Research und zyklische Autonomie getrennt kontrollierbar.
++
++## Research-Vertrauen
++
++Research-Inhalte werden als untrusted external data behandelt. NeuroForge hält Source-URI, Source-ID, Hash, Retrieval-Zeitpunkt und Evidence-Quellen fest. Ähnliche Evidence aus einer weiteren unabhängigen Source erhöht `EvidenceCount` und Confidence über die Corroboration-Logik, statt einen einzelnen Treffer sofort auf Trust 1.0 zu setzen.
++
++Research darf außerdem nicht direkt produktive Knowledge-Artikel veröffentlichen. Der vorhandene Maschinenpfad endet beim token-geschützten KB-Staging; `auto_reply=false` wird dort serverseitig erzwungen. Promotion bleibt eine menschliche Entscheidung.
++
++## Empfohlener Produktionsmodus
++
++```text
++NEUROFORGE_CONTROLLED_LEARNING=true
++OUTCOME_LEARNING_ENABLED=true
++OUTCOME_LEARNING_FAIL_OPEN=false
++NEUROFORGE_RESEARCH_ENABLED=false
++NEUROFORGE_SEARXNG_ENABLED=false
++NEUROFORGE_AUTONOMY_ENABLED=false
++```
++
++Research anschließend gezielt aktivieren, beobachten und erst danach – falls gewünscht – Autonomy einschalten.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/IMPLEMENTED.md ./docs/IMPLEMENTED.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/IMPLEMENTED.md	2026-08-25 16:07:19.000000000 +0000
++++ ./docs/IMPLEMENTED.md	2026-08-25 19:18:11.456671151 +0000
+@@ -20,6 +20,12 @@
+ - Research-Drafts können nicht produktiv schreiben und erzwingen `auto_reply=false`
+ - getrennte Secrets für Admin, App, Worker, Metrics und KB-Staging-Integration
+ - Tests für Namespace-Isolation, Lifecycle, Fail-open/fail-closed und Staging-Governance
++- optionaler SearXNG-Service als Compose-Profil `research`
++- Controlled-Learning-Bootstrap ohne automatisches Chat-Input/Assistant-Output-Lernen
++- Human-Outcome-Learning (`accepted`/`corrected`) über separaten App-Key-Endpunkt
++- lokales Outcome-Audit mit `pending|learned|failed`, Retry und unveränderlicher Revisionskette
++- Stale-Run-Schutz gegen Lernen aus überholten GLPI-Ticketzuständen
++- getrennte Schalter für Research/SearXNG und zeitgesteuerte Autonomie
+ 
+ ## Bewusst nicht automatisiert
+ 
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/MIGRATION-MANIFEST.md ./docs/MIGRATION-MANIFEST.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/MIGRATION-MANIFEST.md	2026-08-25 18:37:16.027064187 +0000
++++ ./docs/MIGRATION-MANIFEST.md	2026-08-25 19:19:43.741936055 +0000
+@@ -55,3 +55,31 @@
+ - Neuer CLI-Helfer: `scripts/export-obsidian.sh`.
+ - Control-Center-Sicherheitsgrenze und delegierte Interaktionswege sind in `docs/CONTROL-CENTER.md` dokumentiert.
+ - Repräsentativer Export-Snapshot liegt unter `exports/knowledge-obsidian-snapshot.zip`.
++
++## Version 1.2.0 – Controlled Autonomy
++
++### NeuroForge
++
++- `internal/httpapi/outcomes.go` – schmaler App-Key-Pfad für menschlich validierte Ticket-Outcomes
++- `internal/brain/brain.go` – interne, nicht vom JSON-Client spoofbare Trusted-Provenance-Felder
++- `cmd/server/main.go` – Controlled-Learning- und Research-Bootstrap per Environment
++- `deploy/learning-policy.example.json` – konservative Source-Trust-/Learning-Policy
++
++### GLPI AI Agent
++
++- `internal/learning/outcomes.go` – persistentes Outcome-Audit, Sync-Status, Revisionen und NeuroForge-Sink
++- `internal/agent/agent.go` – Stale-Run-Prüfung und Outcome-gated Learning
++- `internal/web/server.go` / Dashboard – Bestätigen/Korrigieren und Audit-Sicht
++- neue Outcome-Learning-Konfiguration mit explizitem fail-open/fail-closed
++
++### Mega Platform
++
++- `searxng` als optionaler Compose-Profilservice `research`
++- `deploy/searxng/settings.yml`
++- `scripts/research-up.sh`
++- separate Research-, SearXNG- und Autonomy-Schalter
++- Control Center zeigt diese Betriebsmodi read-only
++- `docs/CONTROLLED-AUTONOMY.md`
++- `docs/MIGRATION-v1.1.0-to-v1.2.0.md`
++- `RELEASE-NOTES-v1.2.0.md`
++- `patches/v1.1.0-to-v1.2.0.diff`
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/MIGRATION-v1.1.0-to-v1.2.0.md ./docs/MIGRATION-v1.1.0-to-v1.2.0.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/MIGRATION-v1.1.0-to-v1.2.0.md	1970-01-01 00:00:00.000000000 +0000
++++ ./docs/MIGRATION-v1.1.0-to-v1.2.0.md	2026-08-25 19:14:29.925280510 +0000
+@@ -0,0 +1,44 @@
++# Migration v1.1.0 → v1.2.0
++
++## 1. Neue Secrets übernehmen
++
++```bash
++./scripts/generate-secrets.sh
++```
++
++Zusätzlich wird `SEARXNG_SECRET` ausgegeben. SearXNG ist optional; der Secret wird erst für das `research`-Profil benötigt.
++
++## 2. Controlled Learning prüfen
++
++Empfohlen:
++
++```text
++NEUROFORGE_CONTROLLED_LEARNING=true
++OUTCOME_LEARNING_ENABLED=true
++OUTCOME_LEARNING_FAIL_OPEN=false
++```
++
++Bestehende NeuroForge-Daten werden nicht gelöscht. Der Modus ändert, welche neuen Signale automatisch gelernt werden.
++
++## 3. Human Outcome Flow verwenden
++
++Neue Agent-Runs speichern den für Learning benötigten Ticket-/Reply-Snapshot. Alte Runs aus v1.1.0 können deshalb bewusst nicht nachträglich als validiertes Outcome gelernt werden, wenn dieser Snapshot fehlt.
++
++Im Agent-Dashboard den Run öffnen und **KI-Antwort bestätigen** bzw. **KI-Antwort korrigieren** verwenden.
++
++## 4. Research optional starten
++
++```bash
++./scripts/research-up.sh
++```
++
++Das startet das Compose-Profil `research` und aktiviert SearXNG/Research für den NeuroForge-Start. Zyklische Autonomie bleibt separat deaktiviert, solange `NEUROFORGE_AUTONOMY_ENABLED=false` ist.
++
++## 5. Rollback
++
++- SearXNG stoppen: `docker compose --profile research stop searxng`
++- Research deaktivieren: `NEUROFORGE_RESEARCH_ENABLED=false`, `NEUROFORGE_SEARXNG_ENABLED=false`
++- Autonomy deaktivieren: `NEUROFORGE_AUTONOMY_ENABLED=false`
++- Outcome Learning deaktivieren: `OUTCOME_LEARNING_ENABLED=false`
++
++Das lokale Outcome-Audit und bereits gelernte Memories werden dadurch nicht gelöscht.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/OPERATIONS.md ./docs/OPERATIONS.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/OPERATIONS.md	2026-08-25 18:36:09.218732381 +0000
++++ ./docs/OPERATIONS.md	2026-08-25 19:18:11.456856250 +0000
+@@ -7,6 +7,8 @@
+ make vet
+ make build
+ make up
++# optional: Research/SearXNG ohne Autonomy
++make research-up
+ make ps
+ make status
+ make logs
+@@ -81,3 +83,20 @@
+ ## SQAR
+ 
+ SQAR ist ausschließlich im NeuroForge Vector Journal aktiviert. Nicht komprimiert werden operative Audit-/Policy-Dateien oder zufällig zugreifbare Memory-Segmente. Der Codec wählt nur dann die SQAR-Variante, wenn sie gegenüber der Roh-/DEFLATE-Darstellung tatsächlich kleiner ist.
++
++
++## Controlled Learning / Human Outcomes
++
++Im Standard ist `NEUROFORGE_CONTROLLED_LEARNING=true`. Rohe Chat-/Assistant-Inhalte werden damit nicht automatisch als Langzeitwissen gelernt. Ein Agent-Run kann im Dashboard explizit bestätigt oder korrigiert werden. Das Outcome wird unter `DATA_DIR/ticket-outcomes.json` auditiert und erst dann über den App-Key-Pfad an NeuroForge übertragen.
++
++Bei `OUTCOME_LEARNING_FAIL_OPEN=false` ist ein NeuroForge-Syncfehler für den Techniker sichtbar. Der lokale Outcome-Eintrag bleibt erhalten und kann durch Wiederholen derselben Entscheidung retryt werden. Änderungen am GLPI-Ticket seit dem analysierten Run blockieren die Validierung.
++
++## Optionales SearXNG / Research
++
++Der Basisstack startet SearXNG nicht. Für Research zuerst einen echten `SEARXNG_SECRET` in `.env` setzen und dann:
++
++```bash
++./scripts/research-up.sh
++```
++
++Das startet das Compose-Profil `research` und schaltet Research/SearXNG für NeuroForge ein. `NEUROFORGE_AUTONOMY_ENABLED` bleibt separat und standardmäßig `false`. Details: [`CONTROLLED-AUTONOMY.md`](CONTROLLED-AUTONOMY.md).
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/VALIDATION.md ./docs/VALIDATION.md
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/docs/VALIDATION.md	2026-08-25 18:59:12.676471669 +0000
++++ ./docs/VALIDATION.md	2026-08-25 19:17:56.193755539 +0000
+@@ -1,99 +1,113 @@
+ # Validierung
+ 
+-Stand: 25.08.2026
++Stand: 25.08.2026 — Release v1.2.0
+ 
+ ## Umfang
+ 
+ - 4 Go-Module im gemeinsamen `go.work`
+-- 43.890 Go-Codezeilen inklusive Tests
+-- 257 `Test...`-Testfunktionen
++- 150 Go-Dateien
++- 44.761 Go-Codezeilen inklusive Tests
++- 263 `Test...`-Testfunktionen
+ - 103 produktive Knowledge-JSON-Dateien im gemeinsamen `knowledge/`
++- 8 Compose-Services inklusive optionalem `searxng`-Profilservice
+ 
+-## Erfolgreich ausgeführt
++## Vollständige Modulprüfung
++
++`./scripts/validate.sh` wurde erfolgreich ausgeführt:
+ 
+ ```text
+-./scripts/validate.sh
+-  - go test ./...   platform/neuroforge   OK
+-  - go vet  ./...   platform/neuroforge   OK
+-  - go test ./...   services/agent        OK
+-  - go vet  ./...   services/agent        OK
+-  - go test ./...   services/knowledge    OK
+-  - go vet  ./...   services/knowledge    OK
+-  - go test ./...   services/control      OK
+-  - go vet  ./...   services/control      OK
++platform/neuroforge   go test ./...   OK
++platform/neuroforge   go vet  ./...   OK
++services/agent        go test ./...   OK
++services/agent        go vet  ./...   OK
++services/knowledge    go test ./...   OK
++services/knowledge    go vet  ./...   OK
++services/control      go test ./...   OK
++services/control      go vet  ./...   OK
++scripts/*.sh          sh -n           OK
+ ```
+ 
+-Race-Checks:
++Alle vier Module wurden danach zusätzlich mit `go build ./...` gebaut: **OK**.
++
++## Race-Checks
+ 
+ ```text
+ services/agent:
+-  go test -race ./internal/glpi ./internal/glpikb ./internal/knowledge ./internal/obsidian   OK
++  go test -race ./internal/learning ./internal/agent ./internal/web ./internal/knowledge   OK
+ 
+ platform/neuroforge:
+-  go test -race ./internal/httpapi ./internal/store          OK
++  go test -race ./internal/httpapi ./internal/store ./internal/brain                       OK
+ 
+ services/knowledge:
+-  go test -race ./cmd/server ./internal/obsidian ./internal/staging   OK
+-```
+-
+-Builds:
+-
+-```text
+-go build ./... platform/neuroforge   OK
+-go build ./... services/agent        OK
+-go build ./... services/knowledge    OK
+-go build ./... services/control      OK
++  go test -race ./cmd/server ./internal/staging ./internal/store ./internal/obsidian        OK
+ ```
+ 
+-Zusätzliche Prüfungen:
++## Controlled-Autonomy-spezifische Prüfungen
+ 
+-- Docker-Compose-YAML statisch geparst: **OK**
+-- gemeinsame Knowledgebase im echten KB-Server gestartet: **OK**
+-- 103 Knowledge-Dateien geladen: **OK**
+-- `/api/health`: **OK**
+-- Integration-Draft landet nur in Staging: **OK**
+-- Integration-Draft erzwingt `auto_reply=false`: **OK**
+-- Editor-Basic-Auth bleibt für normale Editor-APIs aktiv: **OK**
+-- Research-/Integration-Client benötigt keine Editor-Credentials: **OK**
+-- NeuroForge Integration API verlangt App-Key: **OK**
+-- Namespace-Isolation bei semantischer Suche: **OK**
+-- Knowledge Upsert/Update/Delete Lifecycle: **OK**
+-- Agent fail-open/fail-closed Verhalten: **OK**
+-- Obsidian-Export der realen 103 kanonischen Knowledge-Dateien: **OK**
+-- erzeugter Vault: **209 Dateien**, ZIP-Integrität **OK**
+-- Manifest: 103 Knowledge-Dokumente, 102 Kategorien, 102 explizite Kanten im kanonischen Snapshot
+-- GLPI `KnowbaseItem_Item` OpenAPI-Discovery/Parsing: **OK (Testfixture)**
+-- GLPI-KB-Sync übernimmt `linked_items`: **OK (Testfixture)**
+-- Agent-Live-Obsidian-Export mit GLPI-Entity-Wikilinks: **OK**
+-- Compose-YAML statisch geparst: **OK (7 Services)**
+-- Shell-Syntax aller `scripts/*.sh`: **OK**
++Automatisierte Tests und statische Prüfungen decken insbesondere ab:
+ 
+-## Nicht ausführbar in dieser Umgebung
++- App-Key-geschützter `POST /api/v1/integrations/outcomes`: **OK**
++- nur `accepted`/`corrected` als validierte Outcome-Entscheidung: **OK**
++- serverseitig gesetzte Provenance `glpi.outcome.accepted|corrected`: **OK**
++- Human Outcome wird lokal auditiert und mit NeuroForge Memory-ID synchronisiert: **OK**
++- Korrektur erzeugt neue unveränderliche Revision via `supersedes_id`: **OK**
++- exakt wiederholte, bereits gelernte Entscheidung ist idempotent: **OK**
++- fehlgeschlagene Sync-Entscheidung bleibt lokal als `failed` erhalten und ist retry-fähig: **OK**
++- veralteter Agent-Run wird bei verändertem GLPI-Ticketzustand nicht als Trusted Outcome gelernt: **OK**
++- Controlled Learning deaktiviert automatisches Chat-Input/Assistant-Output-Learning beim Mega-Stack-Bootstrap: Code/Vet **OK**
++- Web-Research und Human Outcomes besitzen getrennte Source-Provenance/Trust-Stufen: **OK**
++- SearXNG-Service liegt ausschließlich im Compose-Profil `research`: YAML-Prüfung **OK**
++- SearXNG-Settings aktivieren JSON-Suchergebnisse: YAML-Prüfung **OK**
++- `research-up.sh` startet exakt `--profile research ... searxng neuroforge neuroforge-worker`: Fake-Docker-Smoke-Test **OK**
++- `research-up.sh` aktiviert Research/SearXNG, nicht automatisch Autonomy: **OK**
++- Control-Center-JavaScript und Agent-Dashboard-JavaScript mit `node --check`: **OK**
++
++## Bereits erhaltene Plattform-Funktionen
++
++Die bestehenden Tests decken weiterhin unter anderem ab:
++
++- Namespace-Isolation der NeuroForge Knowledge API
++- Knowledge Upsert/Update/Delete und Vector-Journal-Lifecycle
++- Agent `local|dual|neuroforge` und fail-open/fail-closed
++- GLPI Polling/Webhook/Followup/Kategorie/Priorität/Eskalation
++- GLPI-KB-Sync und `KnowbaseItem_Item`-Parsing über Testfixtures
++- Obsidian-Export mit Frontmatter, Wikilinks und Graphdaten
++- KB-Staging-Ingress ohne produktive Schreibrechte und mit erzwungenem `auto_reply=false`
++
++## Statische Compose-Prüfung
++
++Da Docker in der Prüfungsumgebung nicht installiert ist, konnte kein `docker compose config` oder echter Containerstart ausgeführt werden. Die YAML-Dateien wurden stattdessen programmgesteuert geparst und strukturell geprüft:
++
++- Root-Compose parsebar: **OK**
++- 8 Services erkannt: **OK**
++- `searxng.profiles == ["research"]`: **OK**
++- `deploy/searxng/settings.yml` parsebar: **OK**
++- JSON-Format für SearXNG-Suche vorhanden: **OK**
++
++## Nicht als getestet behauptet
++
++In dieser Umgebung wurden **nicht** ausgeführt:
++
++- echter `docker compose up`
++- echter SearXNG-Container gegen das Internet
++- Live-Research gegen öffentliche Webseiten
++- Live-Zugriff auf die Betreiber-GLPI-Instanz
+ 
+-Docker ist in der bereitgestellten Prüfungsumgebung nicht installiert. Deshalb wurde **kein echter Container-Runtime-Test mit `docker compose up`** behauptet oder durchgeführt. Die Compose-Datei wurde statisch validiert; alle darin gebauten Go-Komponenten wurden separat erfolgreich gebaut und getestet.
++Das Projekt enthält bewusst keine produktiven GLPI-Credentials oder sonstigen Betreiber-Secrets.
+ 
+-Vor Produktion ist daher noch ein Host-/CI-Smoke-Test sinnvoll:
++## Empfohlener Host-/CI-Smoke-Test
+ 
+ ```bash
++cp .env.example .env
++# echte Secrets + GLPI-Credentials setzen
++
+ docker compose config
+ docker compose up -d --build
+ ./scripts/status.sh
+-```
+-
+-## Sicherheitsrelevante Testfälle
+ 
+-Neu hinzugefügte Tests prüfen insbesondere:
+-
+-- App-Key-Pflicht der NeuroForge Knowledge API
+-- keine Treffer über Namespace-Grenzen
+-- batchweisen Replace/Delete-Lifecycle
+-- Remote-Semantik als Evidenz statt Policy
+-- lokales Fallback nur entsprechend `NEUROFORGE_FAIL_OPEN`
+-- fail-closed propagiert Backend-Fehler
+-- Research-Ingress kann Produktions-KB nicht schreiben
+-- Research-Ingress kann `auto_reply` nicht aktivieren
+-- Basic-Auth-Bypass gilt nur für Health und den separat token-authentifizierten Staging-Ingress
+-
+-## Externe GLPI-Live-Prüfung
++# optional: Research-Infrastruktur
++./scripts/research-up.sh
++curl -fsS 'http://127.0.0.1:8888/search?q=neuroforge&format=json' >/dev/null
++```
+ 
+-Die GLPI-Integration ist im Code, in den vorhandenen Agent-Tests und in den neuen `KnowbaseItem_Item`-Testfixtures validiert. Ein Zugriff auf eine reale GLPI-Installation wurde nicht durchgeführt, da dem Projektarchiv bewusst keine produktiven GLPI-Credentials beiliegen. Der Live-Cutover muss deshalb mit den Betreiber-Credentials gegen die Zielinstanz geprüft werden.
++Autonomy anschließend nur bewusst und separat über `NEUROFORGE_AUTONOMY_ENABLED=true` einschalten.
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/mega-project.json ./mega-project.json
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/mega-project.json	2026-08-25 18:37:16.026596262 +0000
++++ ./mega-project.json	2026-08-25 19:18:37.193442216 +0000
+@@ -26,5 +26,28 @@
+     "schema": "Wiki/Schema.md",
+     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
+   },
+-  "version": "1.1.0"
++  "version": "1.2.0",
++  "controlled_learning": {
++    "raw_chat_auto_learning": false,
++    "validated_outcomes": [
++      "accepted",
++      "corrected"
++    ],
++    "outcome_endpoint": "/api/v1/integrations/outcomes",
++    "research_evidence_trust": {
++      "web.search": 0.45,
++      "web.page": 0.6
++    },
++    "human_outcome_trust": 1.0,
++    "stale_run_guard": true,
++    "immutable_outcome_revisions": true,
++    "failed_sync_retry": true
++  },
++  "optional_research": {
++    "compose_profile": "research",
++    "service": "searxng",
++    "autonomy_default": false,
++    "research_default": false,
++    "separate_autonomy_switch": true
++  }
+ }
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/cmd/server/main.go ./platform/neuroforge/cmd/server/main.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/cmd/server/main.go	2026-08-25 15:58:16.000000000 +0000
++++ ./platform/neuroforge/cmd/server/main.go	2026-08-25 19:00:19.000605695 +0000
+@@ -10,6 +10,8 @@
+ 	"os"
+ 	"os/signal"
+ 	"path/filepath"
++	"strconv"
++	"strings"
+ 	"syscall"
+ 	"time"
+ 
+@@ -21,6 +23,30 @@
+ 	"neuroforge/internal/store"
+ )
+ 
++func envBool(name string) (bool, bool) {
++	raw, ok := os.LookupEnv(name)
++	if !ok {
++		return false, false
++	}
++	v, err := strconv.ParseBool(strings.TrimSpace(raw))
++	if err != nil {
++		return false, false
++	}
++	return v, true
++}
++
++func envInt(name string) (int, bool) {
++	raw, ok := os.LookupEnv(name)
++	if !ok {
++		return 0, false
++	}
++	v, err := strconv.Atoi(strings.TrimSpace(raw))
++	if err != nil {
++		return 0, false
++	}
++	return v, true
++}
++
+ func main() {
+ 	if err := run(); err != nil {
+ 		log.Printf("fatal: %v", err)
+@@ -84,6 +110,71 @@
+ 		}
+ 	}
+ 
++	// Controlled-learning and research bootstrap for the mega-project. These
++	// values are only applied when the corresponding environment variable is
++	// explicitly present, preserving persisted admin settings otherwise.
++	if controlled, ok := envBool("NEUROFORGE_CONTROLLED_LEARNING"); ok && controlled {
++		cfg := s.Config()
++		cfg.Brain.AutoLearn = true
++		cfg.Brain.LearningPolicy.Enabled = true
++		cfg.Brain.LearningPolicy.LearnChatInputs = false
++		cfg.Brain.LearningPolicy.LearnChatResponses = false
++		cfg.Brain.LearningPolicy.AllowExplicitLearn = true
++		cfg.Brain.LearningPolicy.AllowImports = false
++		cfg.Brain.LearningPolicy.LearnGoalCycles = false
++		if cfg.Brain.LearningPolicy.MinConfidence < 0.35 {
++			cfg.Brain.LearningPolicy.MinConfidence = 0.35
++		}
++		if cfg.Brain.LearningPolicy.SemanticMinConfirmations < 3 {
++			cfg.Brain.LearningPolicy.SemanticMinConfirmations = 3
++		}
++		if cfg.Brain.LearningPolicy.SemanticMinConfidence < 0.65 {
++			cfg.Brain.LearningPolicy.SemanticMinConfidence = 0.65
++		}
++		if cfg.Brain.LearningPolicy.SourceTrust == nil {
++			cfg.Brain.LearningPolicy.SourceTrust = map[string]float64{}
++		}
++		cfg.Brain.LearningPolicy.SourceTrust["chat.input"] = 0.25
++		cfg.Brain.LearningPolicy.SourceTrust["chat.response"] = 0.20
++		cfg.Brain.LearningPolicy.SourceTrust["web.search"] = 0.45
++		cfg.Brain.LearningPolicy.SourceTrust["web.page"] = 0.60
++		cfg.Brain.LearningPolicy.SourceTrust["glpi.outcome.accepted"] = 1.0
++		cfg.Brain.LearningPolicy.SourceTrust["glpi.outcome.corrected"] = 1.0
++		if err := s.UpdateConfig(cfg); err != nil {
++			return fmt.Errorf("apply controlled learning bootstrap: %w", err)
++		}
++	}
++	if _, hasResearch := os.LookupEnv("NEUROFORGE_RESEARCH_ENABLED"); hasResearch {
++		cfg := s.Config()
++		if v, ok := envBool("NEUROFORGE_RESEARCH_ENABLED"); ok {
++			cfg.Research.Enabled = v
++		}
++		if v, ok := envBool("NEUROFORGE_SEARXNG_ENABLED"); ok {
++			cfg.Research.SearXNG.Enabled = v
++		}
++		if v := strings.TrimSpace(os.Getenv("NEUROFORGE_SEARXNG_URL")); v != "" {
++			cfg.Research.SearXNG.BaseURL = v
++		}
++		if v, ok := envBool("NEUROFORGE_AUTONOMY_ENABLED"); ok {
++			cfg.Autonomy.Enabled = v
++		}
++		if v, ok := envBool("NEUROFORGE_RESEARCH_GOAL_ENABLED"); ok {
++			cfg.Research.Goal.Enabled = v
++		}
++		if v, ok := envInt("NEUROFORGE_AUTONOMY_INTERVAL_MINUTES"); ok && v > 0 {
++			cfg.Autonomy.IntervalMinutes = v
++		}
++		if v, ok := envInt("NEUROFORGE_RESEARCH_MAX_QUERIES"); ok && v > 0 {
++			cfg.Research.Goal.MaxQueriesPerCycle = v
++		}
++		if v, ok := envInt("NEUROFORGE_RESEARCH_MAX_PAGES"); ok && v >= 0 {
++			cfg.Research.Goal.MaxPagesPerCycle = v
++		}
++		if err := s.UpdateConfig(cfg); err != nil {
++			return fmt.Errorf("apply research environment bootstrap: %w", err)
++		}
++	}
++
+ 	r := provider.NewRouter(s)
+ 	c := cost.New(s)
+ 	b := brain.New(s, r, c)
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/deploy/learning-policy.example.json ./platform/neuroforge/deploy/learning-policy.example.json
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/deploy/learning-policy.example.json	2026-08-17 19:56:33.000000000 +0000
++++ ./platform/neuroforge/deploy/learning-policy.example.json	2026-08-25 19:07:16.778776324 +0000
+@@ -2,10 +2,10 @@
+   "auto_learn": true,
+   "policy": {
+     "enabled": true,
+-    "learn_chat_inputs": true,
+-    "learn_chat_responses": true,
++    "learn_chat_inputs": false,
++    "learn_chat_responses": false,
+     "allow_explicit_learn": true,
+-    "allow_imports": true,
++    "allow_imports": false,
+     "learn_goal_cycles": false,
+     "min_confidence": 0.35,
+     "duplicate_similarity": 0.985,
+@@ -15,11 +15,15 @@
+     "negative_archive_threshold": -0.75,
+     "max_memory_text_chars": 50000,
+     "source_trust": {
+-      "chat.input": 1.0,
+-      "chat.response": 0.9,
+-      "api.learn": 1.0,
+-      "api.import": 0.7,
+-      "goal-cycle": 0.85,
++      "chat.input": 0.25,
++      "chat.response": 0.20,
++      "api.learn": 0.80,
++      "api.import": 0.50,
++      "web.search": 0.45,
++      "web.page": 0.60,
++      "goal-cycle": 0.50,
++      "glpi.outcome.accepted": 1.0,
++      "glpi.outcome.corrected": 1.0,
+       "consolidation": 1.0
+     }
+   }
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/brain/brain.go ./platform/neuroforge/internal/brain/brain.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/brain/brain.go	2026-08-17 21:07:54.000000000 +0000
++++ ./platform/neuroforge/internal/brain/brain.go	2026-08-25 18:59:34.202307901 +0000
+@@ -342,6 +342,15 @@
+ 	Confidence float64  `json:"confidence,omitempty"`
+ 	TruthKey   string   `json:"truth_key,omitempty"`
+ 	Version    int64    `json:"version,omitempty"`
++
++	// Internal provenance overrides. They are deliberately excluded from JSON so
++	// the generic /learn API cannot spoof a trusted source. Dedicated integration
++	// handlers may set them.
++	Source    string `json:"-"`
++	Actor     string `json:"-"`
++	SourceID  string `json:"-"`
++	SourceURI string `json:"-"`
++	Note      string `json:"-"`
+ }
+ 
+ func (e *Engine) Learn(ctx context.Context, r LearnRequest) (*core.Memory, error) {
+@@ -362,7 +371,15 @@
+ 	if r.Salience == 0 {
+ 		r.Salience = 1
+ 	}
+-	r.Confidence = policyConfidence(lp, "api.learn", r.Confidence)
++	source := strings.TrimSpace(r.Source)
++	if source == "" {
++		source = "api.learn"
++	}
++	actor := strings.TrimSpace(r.Actor)
++	if actor == "" {
++		actor = r.Kind
++	}
++	r.Confidence = policyConfidence(lp, source, r.Confidence)
+ 	if r.Confidence < lp.MinConfidence {
+ 		return nil, fmt.Errorf("confidence %.3f is below learning policy minimum %.3f", r.Confidence, lp.MinConfidence)
+ 	}
+@@ -377,14 +394,18 @@
+ 		return nil, err
+ 	}
+ 	if dup, sim := e.duplicateMemory(emb.Vector, r.MemoryType, r.Kind, lp.DuplicateSimilarity); dup != nil && r.TruthKey == "" {
+-		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "memory.duplicate_suppressed", MemoryID: dup.ID, Summary: "Explicit learn matched existing memory", Reason: fmt.Sprintf("similarity %.4f >= %.4f", sim, lp.DuplicateSimilarity), Actor: "learning-policy", Metadata: map[string]string{"source": "api.learn"}})
++		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "memory.duplicate_suppressed", MemoryID: dup.ID, Summary: "Explicit learn matched existing memory", Reason: fmt.Sprintf("similarity %.4f >= %.4f", sim, lp.DuplicateSimilarity), Actor: "learning-policy", Metadata: map[string]string{"source": source}})
+ 		return dup, nil
+ 	}
+-	m := &core.Memory{Kind: r.Kind, MemoryType: r.MemoryType, Text: r.Text, Vector: emb.Vector, SessionID: r.SessionID, Tags: r.Tags, Salience: r.Salience, Confidence: r.Confidence, TruthKey: r.TruthKey, Version: r.Version, Provenance: core.MemoryProvenance{Source: "api.learn", Actor: r.Kind, EmbeddingProvider: emb.Provider, EmbeddingModel: emb.Model, EmbeddingNodeID: emb.NodeID}}
++	m := &core.Memory{Kind: r.Kind, MemoryType: r.MemoryType, Text: r.Text, Vector: emb.Vector, SessionID: r.SessionID, Tags: r.Tags, Salience: r.Salience, Confidence: r.Confidence, TruthKey: r.TruthKey, Version: r.Version, Provenance: core.MemoryProvenance{Source: source, Actor: actor, SourceID: strings.TrimSpace(r.SourceID), SourceURI: strings.TrimSpace(r.SourceURI), Note: strings.TrimSpace(r.Note), EmbeddingProvider: emb.Provider, EmbeddingModel: emb.Model, EmbeddingNodeID: emb.NodeID}}
+ 	if err := e.addMemory(ctx, m); err != nil {
+ 		return nil, err
+ 	}
+-	_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "memory.learned", MemoryID: m.ID, Summary: "Knowledge explicitly learned through API", Reason: "POST /api/v1/learn permitted by learning policy", Actor: r.Kind, Metadata: map[string]string{"memory_type": r.MemoryType, "truth_key": r.TruthKey}})
++	reason := "POST /api/v1/learn permitted by learning policy"
++	if source != "api.learn" {
++		reason = "trusted integration outcome permitted by learning policy"
++	}
++	_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "memory.learned", MemoryID: m.ID, Summary: "Knowledge explicitly learned", Reason: reason, Actor: actor, Metadata: map[string]string{"memory_type": r.MemoryType, "truth_key": r.TruthKey, "source": source, "source_id": r.SourceID}})
+ 	if cfg.Brain.ExternalRelinkWorker {
+ 		_, _ = e.enqueueRelink(m)
+ 	} else {
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/httpapi/httpapi.go ./platform/neuroforge/internal/httpapi/httpapi.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/httpapi/httpapi.go	2026-08-25 15:50:39.000000000 +0000
++++ ./platform/neuroforge/internal/httpapi/httpapi.go	2026-08-25 19:00:00.204630097 +0000
+@@ -83,6 +83,7 @@
+ 	s.mux.Handle("DELETE /api/v1/integrations/knowledge/{namespace}/{document_id}", s.appAuth(http.HandlerFunc(s.integrationKnowledgeDelete)))
+ 	s.mux.Handle("POST /api/v1/integrations/knowledge/search", s.appAuth(http.HandlerFunc(s.integrationKnowledgeSearch)))
+ 	s.mux.Handle("POST /api/v1/integrations/events", s.appAuth(http.HandlerFunc(s.integrationEvent)))
++	s.mux.Handle("POST /api/v1/integrations/outcomes", s.appAuth(http.HandlerFunc(s.integrationValidatedOutcome)))
+ 
+ 	s.mux.Handle("POST /internal/v1/cluster/request-vote", s.clusterAuth(http.HandlerFunc(s.clusterRequestVote)))
+ 	s.mux.Handle("POST /internal/v1/cluster/heartbeat", s.clusterAuth(http.HandlerFunc(s.clusterHeartbeat)))
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/httpapi/outcomes.go ./platform/neuroforge/internal/httpapi/outcomes.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/httpapi/outcomes.go	1970-01-01 00:00:00.000000000 +0000
++++ ./platform/neuroforge/internal/httpapi/outcomes.go	2026-08-25 19:13:45.223089817 +0000
+@@ -0,0 +1,131 @@
++package httpapi
++
++import (
++	"errors"
++	"fmt"
++	"net/http"
++	"strconv"
++	"strings"
++
++	"neuroforge/internal/brain"
++	"neuroforge/internal/core"
++)
++
++type validatedOutcomeRequest struct {
++	OutcomeID      string `json:"outcome_id"`
++	RunID          string `json:"run_id"`
++	TicketID       int64  `json:"ticket_id"`
++	Decision       string `json:"decision"` // accepted | corrected
++	TicketInput    string `json:"ticket_input"`
++	ProposedReply  string `json:"proposed_reply,omitempty"`
++	ConfirmedReply string `json:"confirmed_reply"`
++	CategoryID     int64  `json:"category_id,omitempty"`
++	CategoryName   string `json:"category_name,omitempty"`
++	KnowledgeID    string `json:"knowledge_id,omitempty"`
++	SupersedesID   string `json:"supersedes_id,omitempty"`
++	Actor          string `json:"actor"`
++	Note           string `json:"note,omitempty"`
++}
++
++// integrationValidatedOutcome is deliberately narrower than /api/v1/learn.
++// Only a human-confirmed or human-corrected operational outcome can enter this
++// path, and trusted provenance is assigned server-side rather than accepted
++// from the caller.
++func (s *Server) integrationValidatedOutcome(w http.ResponseWriter, r *http.Request) {
++	var q validatedOutcomeRequest
++	if err := decode(r, &q); err != nil {
++		s.err(w, http.StatusBadRequest, err)
++		return
++	}
++	q.OutcomeID = strings.TrimSpace(q.OutcomeID)
++	q.RunID = strings.TrimSpace(q.RunID)
++	q.Decision = strings.ToLower(strings.TrimSpace(q.Decision))
++	q.TicketInput = strings.TrimSpace(q.TicketInput)
++	q.ProposedReply = strings.TrimSpace(q.ProposedReply)
++	q.ConfirmedReply = strings.TrimSpace(q.ConfirmedReply)
++	q.CategoryName = strings.TrimSpace(q.CategoryName)
++	q.KnowledgeID = strings.TrimSpace(q.KnowledgeID)
++	q.SupersedesID = strings.TrimSpace(q.SupersedesID)
++	q.Actor = strings.TrimSpace(q.Actor)
++	q.Note = strings.TrimSpace(q.Note)
++
++	if q.OutcomeID == "" || q.RunID == "" || q.TicketID <= 0 || q.TicketInput == "" || q.ConfirmedReply == "" || q.Actor == "" {
++		s.err(w, http.StatusBadRequest, errors.New("outcome_id, run_id, ticket_id, ticket_input, confirmed_reply and actor are required"))
++		return
++	}
++	if q.Decision != "accepted" && q.Decision != "corrected" {
++		s.err(w, http.StatusBadRequest, errors.New("decision must be accepted or corrected"))
++		return
++	}
++	if q.Decision == "accepted" && q.ProposedReply == "" {
++		s.err(w, http.StatusBadRequest, errors.New("accepted outcomes require proposed_reply"))
++		return
++	}
++	if len([]rune(q.TicketInput)) > 12000 || len([]rune(q.ConfirmedReply)) > 12000 || len([]rune(q.Note)) > 4000 {
++		s.err(w, http.StatusRequestEntityTooLarge, errors.New("validated outcome exceeds size limits"))
++		return
++	}
++
++	source := "glpi.outcome." + q.Decision
++	confidence := 0.99
++	if q.Decision == "corrected" {
++		confidence = 1.0
++	}
++	var text strings.Builder
++	text.WriteString("GLPI helpdesk outcome verified by a technician.\n\nProblem:\n")
++	text.WriteString(q.TicketInput)
++	text.WriteString("\n\nVerified solution:\n")
++	text.WriteString(q.ConfirmedReply)
++	if q.CategoryName != "" || q.CategoryID > 0 {
++		text.WriteString("\n\nCategory: ")
++		if q.CategoryName != "" {
++			text.WriteString(q.CategoryName)
++		}
++		if q.CategoryID > 0 {
++			text.WriteString(" (#")
++			text.WriteString(strconv.FormatInt(q.CategoryID, 10))
++			text.WriteString(")")
++		}
++	}
++	if q.Decision == "corrected" && q.ProposedReply != "" && q.ProposedReply != q.ConfirmedReply {
++		text.WriteString("\n\nSuperseded AI proposal (do not treat as verified):\n")
++		text.WriteString(q.ProposedReply)
++	}
++
++	tags := []string{"integration:glpi", "validated:human", "outcome:" + q.Decision, "ticket:" + strconv.FormatInt(q.TicketID, 10), "run:" + q.RunID}
++	if q.CategoryID > 0 {
++		tags = append(tags, "category:"+strconv.FormatInt(q.CategoryID, 10))
++	}
++	if q.KnowledgeID != "" {
++		tags = append(tags, "knowledge:"+q.KnowledgeID)
++	}
++	if q.SupersedesID != "" {
++		tags = append(tags, "supersedes-outcome:"+q.SupersedesID)
++	}
++
++	m, err := s.brain.Learn(r.Context(), brain.LearnRequest{
++		Text:       text.String(),
++		Kind:       "validated_outcome",
++		MemoryType: core.MemorySemantic,
++		Tags:       tags,
++		Salience:   1.2,
++		Confidence: confidence,
++		Source:     source,
++		Actor:      q.Actor,
++		SourceID:   q.OutcomeID,
++		SourceURI:  fmt.Sprintf("glpi://Ticket/%d#run=%s", q.TicketID, q.RunID),
++		Note:       q.Note,
++	})
++	if err != nil {
++		s.err(w, http.StatusBadGateway, err)
++		return
++	}
++	_ = s.store.AddKnowledgeEvent(core.KnowledgeEvent{
++		Type: "integration.outcome_validated", MemoryID: m.ID,
++		Summary:  "Human-confirmed GLPI ticket outcome learned",
++		Reason:   "technician explicitly accepted or corrected the AI proposal",
++		Actor:    q.Actor,
++		Metadata: map[string]string{"source": source, "outcome_id": q.OutcomeID, "run_id": q.RunID, "ticket_id": strconv.FormatInt(q.TicketID, 10), "decision": q.Decision, "knowledge_id": q.KnowledgeID, "supersedes_outcome_id": q.SupersedesID},
++	})
++	s.json(w, http.StatusCreated, map[string]any{"memory": m, "outcome_id": q.OutcomeID, "decision": q.Decision, "source": source})
++}
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/httpapi/outcomes_test.go ./platform/neuroforge/internal/httpapi/outcomes_test.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/platform/neuroforge/internal/httpapi/outcomes_test.go	1970-01-01 00:00:00.000000000 +0000
++++ ./platform/neuroforge/internal/httpapi/outcomes_test.go	2026-08-25 19:05:43.029092951 +0000
+@@ -0,0 +1,71 @@
++package httpapi
++
++import (
++	"encoding/json"
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"testing"
++)
++
++func TestValidatedOutcomeLearnsTrustedProvenance(t *testing.T) {
++	fake := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		if r.URL.Path == "/api/embed" {
++			_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float32{{1, 0, 0}}})
++			return
++		}
++		http.NotFound(w, r)
++	}))
++	defer fake.Close()
++
++	s, _ := newMetricsTestServer(t)
++	cfg := s.store.Config()
++	cfg.Ollama[0].BaseURL = fake.URL
++	cfg.Brain.ExternalRelinkWorker = false
++	cfg.Brain.LearningPolicy.SourceTrust["glpi.outcome.accepted"] = 1
++	cfg.Brain.LearningPolicy.SourceTrust["glpi.outcome.corrected"] = 1
++	cfg.Brain.LearningPolicy.LearnChatResponses = false
++	if err := s.store.UpdateConfig(cfg); err != nil {
++		t.Fatal(err)
++	}
++	sec := s.store.Secrets()
++
++	body := `{"outcome_id":"out-1","run_id":"run-1","ticket_id":42,"decision":"accepted","ticket_input":"VPN verbindet nicht","proposed_reply":"VPN Client neu starten","confirmed_reply":"VPN Client neu starten","category_id":5,"category_name":"VPN","knowledge_id":"kb-vpn","actor":"tech-a"}`
++	req := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/outcomes", strings.NewReader(body))
++	req.Header.Set("Authorization", "Bearer "+sec.AppAPIKey)
++	req.Header.Set("Content-Type", "application/json")
++	rr := httptest.NewRecorder()
++	s.Handler().ServeHTTP(rr, req)
++	if rr.Code != http.StatusCreated {
++		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
++	}
++	var out struct {
++		Memory struct {
++			ID         string `json:"id"`
++			Provenance struct {
++				Source   string `json:"source"`
++				Actor    string `json:"actor"`
++				SourceID string `json:"source_id"`
++			} `json:"provenance"`
++		} `json:"memory"`
++	}
++	if err := json.Unmarshal(rr.Body.Bytes(), &out); err != nil {
++		t.Fatal(err)
++	}
++	if out.Memory.ID == "" || out.Memory.Provenance.Source != "glpi.outcome.accepted" || out.Memory.Provenance.Actor != "tech-a" || out.Memory.Provenance.SourceID != "out-1" {
++		t.Fatalf("unexpected outcome memory: %#v body=%s", out, rr.Body.String())
++	}
++}
++
++func TestValidatedOutcomeRejectsUnconfirmedDecision(t *testing.T) {
++	s, _ := newMetricsTestServer(t)
++	sec := s.store.Secrets()
++	req := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/outcomes", strings.NewReader(`{"outcome_id":"o","run_id":"r","ticket_id":1,"decision":"rejected","ticket_input":"x","confirmed_reply":"y","actor":"tech"}`))
++	req.Header.Set("Authorization", "Bearer "+sec.AppAPIKey)
++	req.Header.Set("Content-Type", "application/json")
++	rr := httptest.NewRecorder()
++	s.Handler().ServeHTTP(rr, req)
++	if rr.Code != http.StatusBadRequest {
++		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
++	}
++}
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/scripts/generate-secrets.sh ./scripts/generate-secrets.sh
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/scripts/generate-secrets.sh	2026-08-25 16:06:06.000000000 +0000
++++ ./scripts/generate-secrets.sh	2026-08-25 19:13:14.014332798 +0000
+@@ -7,4 +7,5 @@
+ NEUROFORGE_WORKER_TOKEN=$(gen)
+ NEUROFORGE_METRICS_TOKEN=$(gen)
+ KB_INTEGRATION_TOKEN=$(gen)
++SEARXNG_SECRET=$(gen)
+ OUT
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/scripts/research-up.sh ./scripts/research-up.sh
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/scripts/research-up.sh	1970-01-01 00:00:00.000000000 +0000
++++ ./scripts/research-up.sh	2026-08-25 19:13:33.157101615 +0000
+@@ -0,0 +1,19 @@
++#!/usr/bin/env sh
++set -eu
++ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
++secret=${SEARXNG_SECRET:-}
++if [ -z "$secret" ] && [ -f "$ROOT/.env" ]; then
++  secret=$(awk -F= '$1=="SEARXNG_SECRET" {sub(/^[^=]*=/, ""); print; exit}' "$ROOT/.env")
++fi
++case "$secret" in
++  ""|CHANGE_ME*)
++    echo "Set a real SEARXNG_SECRET in $ROOT/.env (or export it) before enabling research." >&2
++    exit 1
++    ;;
++esac
++export SEARXNG_SECRET=$secret
++cd "$ROOT"
++NEUROFORGE_RESEARCH_ENABLED=true \
++NEUROFORGE_SEARXNG_ENABLED=true \
++docker compose --profile research up -d searxng neuroforge neuroforge-worker
++printf '%s\n' 'SearXNG + NeuroForge research are running. Autonomy remains controlled by NEUROFORGE_AUTONOMY_ENABLED.'
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/scripts/validate.sh ./scripts/validate.sh
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/scripts/validate.sh	2026-08-25 15:59:02.000000000 +0000
++++ ./scripts/validate.sh	2026-08-25 19:13:14.014069585 +0000
+@@ -7,8 +7,14 @@
+   echo "==> go vet $mod"
+   (cd "$ROOT/$mod" && go vet ./...)
+ done
++echo "==> shell syntax"
++for script in "$ROOT"/scripts/*.sh; do
++  sh -n "$script"
++done
+ if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+-  echo "==> docker compose config"
++  echo "==> docker compose config (base)"
+   (cd "$ROOT" && docker compose --env-file .env.example config >/dev/null)
++  echo "==> docker compose config (research profile)"
++  (cd "$ROOT" && docker compose --env-file .env.example --profile research config >/dev/null)
+ fi
+ echo "validation OK"
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/cmd/agent/main.go ./services/agent/cmd/agent/main.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/cmd/agent/main.go	2026-08-25 15:53:37.000000000 +0000
++++ ./services/agent/cmd/agent/main.go	2026-08-25 19:01:47.825565990 +0000
+@@ -130,6 +130,20 @@
+ 	}
+ 	contextCollector := contextdata.New(cfg, g, kuma)
+ 	svc := agent.New(cfg, g, o, k, l, st, q, m, contextCollector)
++	if cfg.OutcomeLearningEnabled {
++		outcomeStore, outcomeErr := learning.OpenOutcomes(cfg.DataDir, cfg.OutcomeLearningMaxOutcomes)
++		if outcomeErr != nil {
++			slog.Error("ticket outcome store initialization failed", "error", outcomeErr)
++			os.Exit(1)
++		}
++		outcomeSink, outcomeErr := learning.NewNeuroForgeOutcomeSink(cfg.NeuroForgeURL, cfg.NeuroForgeAPIKey, cfg.NeuroForgeTimeout)
++		if outcomeErr != nil {
++			slog.Error("NeuroForge outcome learning configuration failed", "error", outcomeErr)
++			os.Exit(1)
++		}
++		svc.SetOutcomeLearning(outcomeStore, outcomeSink)
++		slog.Info("outcome-gated learning enabled", "fail_open", cfg.OutcomeLearningFailOpen, "max_outcomes", cfg.OutcomeLearningMaxOutcomes)
++	}
+ 	web, err := webui.New(cfg, m, st, q, k, svc, o)
+ 	if err != nil {
+ 		slog.Error("web UI initialization failed", "error", err)
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/agent/agent.go ./services/agent/internal/agent/agent.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/agent/agent.go	2026-08-25 18:31:41.024092729 +0000
++++ ./services/agent/internal/agent/agent.go	2026-08-25 19:16:08.787533068 +0000
+@@ -48,6 +48,8 @@
+ 	ai          AI
+ 	knowledge   *knowledge.Store
+ 	learning    *learning.Store
++	outcomes    *learning.OutcomeStore
++	outcomeSink learning.OutcomeSink
+ 	state       *state.Store
+ 	q           *queue.Queue
+ 	metrics     *metrics.Metrics
+@@ -63,6 +65,11 @@
+ func New(cfg config.Config, g GLPI, ai AI, k *knowledge.Store, l *learning.Store, s *state.Store, q *queue.Queue, m *metrics.Metrics, contextCollector ContextCollector) *Service {
+ 	return &Service{cfg: cfg, glpi: g, ai: ai, knowledge: k, learning: l, state: s, q: q, metrics: m, context: contextCollector, policy: NewPolicy(cfg.AutoCategory, cfg.AutoReply, cfg.CategoryConfidence, cfg.ReplyConfidence, cfg.KnowledgeMinScore, cfg.KnowledgeRetrievalFloor, cfg.KnowledgeEvidenceRetrievalWeight, cfg.KnowledgeEvidenceAIWeight, cfg.KnowledgeEvidenceCategoryWeight, cfg.KnowledgeAllowedSources, cfg.KnowledgeAutoReplySources, cfg.CommunicationLanguage, cfg.CommunicationStyle, cfg.CommunicationSalutation, cfg.CommunicationClosing, cfg.CommunicationSignature, cfg.AIContentLabelEnabled, cfg.ContextBlockReplyOnError, cfg.ContextBlockReplyOnIncident, cfg.ContextRelevanceMinScore)}
+ }
++
++func (s *Service) SetOutcomeLearning(store *learning.OutcomeStore, sink learning.OutcomeSink) {
++	s.outcomes = store
++	s.outcomeSink = sink
++}
+ func (s *Service) Queue() *queue.Queue { return s.q }
+ func (s *Service) Start(ctx context.Context) {
+ 	go s.healthLoop(ctx)
+@@ -195,6 +202,9 @@
+ 	}
+ 	run.TicketName = t.Name
+ 	run.SourceVersion = sourceVersion(t)
++	if s.cfg.OutcomeLearningEnabled {
++		run.LearningTicketText = compactLearningText(stripHTML(t.Content), 4000)
++	}
+ 	run.CategoryBefore = t.CategoryID
+ 	run.ExecutionChecks = append(run.ExecutionChecks, model.RuleCheck{Code: "execution_ticket_loaded", Group: "eligibility", Label: "Ticket konnte geladen werden", Status: "pass", Actual: "ja", Expected: "ja"})
+ 	alreadySeen := s.state.Seen(t.ID, run.SourceVersion)
+@@ -575,6 +585,9 @@
+ 	run.AIKnowledgeID = result.ReplyKnowledgeID
+ 	run.ReplyDecision = result.ReplyDecision
+ 	run.ReplyProposed = result.Reply
++	if result.Reply {
++		run.ReplyProposedText = compactLearningText(stripHTML(result.ReplyText), 12000)
++	}
+ 	run.KnowledgeID = result.KnowledgeID
+ 	if result.KnowledgeThreshold > 0 {
+ 		run.KnowledgeThreshold = result.KnowledgeThreshold
+@@ -1255,6 +1268,96 @@
+ 	return s.learning.Count()
+ }
+ 
++func (s *Service) RecordTicketOutcome(ctx context.Context, runID, decision, correctedReply, note, actor string) (learning.TicketOutcome, error) {
++	if !s.cfg.OutcomeLearningEnabled || s.outcomes == nil || s.outcomeSink == nil {
++		return learning.TicketOutcome{}, fmt.Errorf("outcome learning is disabled")
++	}
++	run, ok := s.state.FindRun(strings.TrimSpace(runID))
++	if !ok {
++		return learning.TicketOutcome{}, fmt.Errorf("run not found")
++	}
++	// High-trust learning must refer to the same ticket state the AI actually
++	// evaluated. If GLPI changed after the run, require a fresh run before a
++	// technician can promote its answer into trusted knowledge.
++	if strings.TrimSpace(run.SourceVersion) != "" && s.glpi != nil {
++		fresh, err := s.glpi.GetTicket(ctx, run.TicketID)
++		if err != nil {
++			return learning.TicketOutcome{}, fmt.Errorf("verify current ticket before outcome learning: %w", err)
++		}
++		if sourceVersion(fresh) != run.SourceVersion {
++			return learning.TicketOutcome{}, fmt.Errorf("ticket changed since this run; process the current ticket state before validating the AI outcome")
++		}
++	}
++	if !run.ReplyProposed || strings.TrimSpace(run.ReplyProposedText) == "" {
++		return learning.TicketOutcome{}, fmt.Errorf("run has no reply proposal to validate")
++	}
++	decision = strings.ToLower(strings.TrimSpace(decision))
++	confirmed := strings.TrimSpace(correctedReply)
++	if decision == "accepted" {
++		confirmed = strings.TrimSpace(run.ReplyProposedText)
++	} else if decision == "corrected" {
++		if confirmed == "" {
++			return learning.TicketOutcome{}, fmt.Errorf("corrected outcome requires corrected_reply")
++		}
++	} else {
++		return learning.TicketOutcome{}, fmt.Errorf("decision must be accepted or corrected")
++	}
++	input := strings.TrimSpace(run.LearningTicketText)
++	if input == "" {
++		return learning.TicketOutcome{}, fmt.Errorf("run predates outcome-gated learning and has no learning input snapshot")
++	}
++	categoryID := run.ReplyBasisCategoryID
++	categoryName := strings.TrimSpace(run.ReplyBasisCategoryName)
++	if categoryID <= 0 {
++		categoryID = run.AIRecommendedCategoryID
++		categoryName = strings.TrimSpace(run.AIRecommendedCategoryName)
++	}
++	if categoryID <= 0 {
++		categoryID = run.CategoryBefore
++		categoryName = strings.TrimSpace(run.CategoryBeforeName)
++	}
++	knowledgeID := strings.TrimSpace(run.AIKnowledgeID)
++	if knowledgeID == "" {
++		knowledgeID = strings.TrimSpace(run.KnowledgeID)
++	}
++	x := learning.TicketOutcome{RunID: run.RunID, TicketID: run.TicketID, Decision: decision, TicketInput: input, ProposedReply: strings.TrimSpace(run.ReplyProposedText), ConfirmedReply: compactLearningText(stripHTML(confirmed), 12000), CategoryID: categoryID, CategoryName: categoryName, KnowledgeID: knowledgeID, Actor: strings.TrimSpace(actor), Note: compactLearningText(note, 4000), SyncStatus: "pending"}
++	if x.Actor == "" {
++		x.Actor = "technician"
++	}
++	stored, err := s.outcomes.Add(x)
++	if err != nil {
++		return learning.TicketOutcome{}, err
++	}
++	// Exact repeated confirmations are idempotent. If the same human
++	// decision has already been learned, return the existing audit record
++	// without sending a duplicate trusted memory to NeuroForge. Failed
++	// records intentionally continue below so they can be retried.
++	if stored.SyncStatus == "learned" && strings.TrimSpace(stored.NeuroForgeID) != "" {
++		return stored, nil
++	}
++	memoryID, syncErr := s.outcomeSink.LearnOutcome(ctx, stored)
++	if syncErr != nil {
++		failed, _ := s.outcomes.UpdateSync(stored.ID, "failed", "", syncErr.Error())
++		if s.cfg.OutcomeLearningFailOpen {
++			slog.Warn("validated ticket outcome persisted but NeuroForge learning failed", "run_id", run.RunID, "ticket_id", run.TicketID, "error", syncErr)
++			return failed, nil
++		}
++		return failed, fmt.Errorf("validated outcome persisted, but NeuroForge learning failed: %w", syncErr)
++	}
++	learned, err := s.outcomes.UpdateSync(stored.ID, "learned", memoryID, "")
++	if err != nil {
++		return stored, err
++	}
++	return learned, nil
++}
++
++func (s *Service) TicketOutcomes() []learning.TicketOutcome {
++	if s.outcomes == nil {
++		return nil
++	}
++	return s.outcomes.List()
++}
++
+ func appendUnique(in []string, v string) []string {
+ 	v = strings.TrimSpace(v)
+ 	if v == "" {
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/agent/outcome_learning_test.go ./services/agent/internal/agent/outcome_learning_test.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/agent/outcome_learning_test.go	1970-01-01 00:00:00.000000000 +0000
++++ ./services/agent/internal/agent/outcome_learning_test.go	2026-08-25 19:16:22.085568271 +0000
+@@ -0,0 +1,96 @@
++package agent
++
++import (
++	"context"
++	"testing"
++
++	"github.com/example/glpi-ai-agent/internal/config"
++	"github.com/example/glpi-ai-agent/internal/learning"
++	"github.com/example/glpi-ai-agent/internal/model"
++	"github.com/example/glpi-ai-agent/internal/state"
++)
++
++type fakeOutcomeSink struct {
++	got   learning.TicketOutcome
++	id    string
++	err   error
++	calls int
++}
++
++func (f *fakeOutcomeSink) LearnOutcome(_ context.Context, x learning.TicketOutcome) (string, error) {
++	f.got = x
++	f.calls++
++	return f.id, f.err
++}
++
++func TestRecordTicketOutcomeAcceptedAndCorrected(t *testing.T) {
++	st, err := state.Open(t.TempDir(), 20)
++	if err != nil {
++		t.Fatal(err)
++	}
++	run := model.RunRecord{RunID: "run-1", TicketID: 42, ReplyProposed: true, ReplyProposedText: "Bitte VPN neu starten.", LearningTicketText: "VPN verbindet nicht.", ReplyBasisCategoryID: 5, ReplyBasisCategoryName: "VPN", AIKnowledgeID: "kb-vpn"}
++	if err := st.Append(run); err != nil {
++		t.Fatal(err)
++	}
++	os, err := learning.OpenOutcomes(t.TempDir(), 20)
++	if err != nil {
++		t.Fatal(err)
++	}
++	sink := &fakeOutcomeSink{id: "mem-1"}
++	svc := &Service{cfg: config.Config{OutcomeLearningEnabled: true}, state: st, outcomes: os, outcomeSink: sink}
++
++	got, err := svc.RecordTicketOutcome(context.Background(), "run-1", "accepted", "", "checked", "tech")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got.SyncStatus != "learned" || got.NeuroForgeID != "mem-1" || got.ConfirmedReply != "Bitte VPN neu starten." || sink.got.KnowledgeID != "kb-vpn" {
++		t.Fatalf("unexpected accepted outcome %#v sink=%#v", got, sink.got)
++	}
++
++	sink.id = "mem-2"
++	got, err = svc.RecordTicketOutcome(context.Background(), "run-1", "corrected", "VPN-Profil neu importieren.", "technician correction", "tech")
++	if err != nil {
++		t.Fatal(err)
++	}
++	items := os.List()
++	if got.Decision != "corrected" || got.ConfirmedReply != "VPN-Profil neu importieren." || got.NeuroForgeID != "mem-2" || len(items) != 2 || got.SupersedesID == "" {
++		t.Fatalf("unexpected corrected outcome %#v list=%#v", got, items)
++	}
++	// Repeating the same correction must not create or learn a duplicate.
++	beforeCalls := sink.calls
++	retry, err := svc.RecordTicketOutcome(context.Background(), "run-1", "corrected", "VPN-Profil neu importieren.", "technician correction", "tech")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if retry.ID != got.ID || sink.calls != beforeCalls || len(os.List()) != 2 {
++		t.Fatalf("expected idempotent retry: retry=%#v calls=%d list=%#v", retry, sink.calls, os.List())
++	}
++}
++
++func TestRecordTicketOutcomeRejectsStaleTicketState(t *testing.T) {
++	st, err := state.Open(t.TempDir(), 20)
++	if err != nil {
++		t.Fatal(err)
++	}
++	original := model.Ticket{ID: 42, Name: "VPN", Content: "VPN verbindet nicht.", DateMod: "v1", StatusID: 1}
++	run := model.RunRecord{RunID: "run-stale", TicketID: 42, SourceVersion: sourceVersion(original), ReplyProposed: true, ReplyProposedText: "VPN neu starten.", LearningTicketText: "VPN verbindet nicht."}
++	if err := st.Append(run); err != nil {
++		t.Fatal(err)
++	}
++	os, err := learning.OpenOutcomes(t.TempDir(), 20)
++	if err != nil {
++		t.Fatal(err)
++	}
++	g := &fakeGLPI{ticket: original}
++	g.ticket.Content = "Ticket wurde zwischenzeitlich aktualisiert."
++	sink := &fakeOutcomeSink{id: "mem-stale"}
++	svc := &Service{cfg: config.Config{OutcomeLearningEnabled: true}, glpi: g, state: st, outcomes: os, outcomeSink: sink}
++
++	_, err = svc.RecordTicketOutcome(context.Background(), "run-stale", "accepted", "", "", "tech")
++	if err == nil {
++		t.Fatal("expected stale ticket state to block trusted outcome learning")
++	}
++	if sink.calls != 0 || len(os.List()) != 0 {
++		t.Fatalf("stale run must not be persisted or learned: calls=%d outcomes=%#v", sink.calls, os.List())
++	}
++}
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/config/config.go ./services/agent/internal/config/config.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/config/config.go	2026-08-25 16:02:10.000000000 +0000
++++ ./services/agent/internal/config/config.go	2026-08-25 19:01:08.060689991 +0000
+@@ -116,6 +116,9 @@
+ 	LearningEnabled             bool
+ 	LearningMaxExamples         int
+ 	LearningExamplesPerCategory int
++	OutcomeLearningEnabled      bool
++	OutcomeLearningFailOpen     bool
++	OutcomeLearningMaxOutcomes  int
+ 
+ 	CommunicationLanguage   string
+ 	CommunicationStyle      string
+@@ -304,6 +307,9 @@
+ 		LearningEnabled:                        envBool("LEARNING_ENABLED", true),
+ 		LearningMaxExamples:                    envInt("LEARNING_MAX_EXAMPLES", 500),
+ 		LearningExamplesPerCategory:            envInt("LEARNING_EXAMPLES_PER_CATEGORY", 5),
++		OutcomeLearningEnabled:                 envBool("OUTCOME_LEARNING_ENABLED", true),
++		OutcomeLearningFailOpen:                envBool("OUTCOME_LEARNING_FAIL_OPEN", false),
++		OutcomeLearningMaxOutcomes:             envInt("OUTCOME_LEARNING_MAX_OUTCOMES", 2000),
+ 		CommunicationLanguage:                  env("COMMUNICATION_LANGUAGE", "de-DE"),
+ 		CommunicationStyle:                     strings.ToLower(env("COMMUNICATION_STYLE", "formal")),
+ 		CommunicationSalutation:                env("COMMUNICATION_SALUTATION", "Guten Tag,"),
+@@ -647,6 +653,9 @@
+ 		if c.LearningExamplesPerCategory < 1 || c.LearningExamplesPerCategory > 20 {
+ 			return errors.New("LEARNING_EXAMPLES_PER_CATEGORY must be between 1 and 20")
+ 		}
++		if c.OutcomeLearningMaxOutcomes < 1 || c.OutcomeLearningMaxOutcomes > 50000 {
++			return errors.New("OUTCOME_LEARNING_MAX_OUTCOMES must be between 1 and 50000")
++		}
+ 	}
+ 	if len(c.GLPIAllowedStatusIDs) == 0 {
+ 		return errors.New("GLPI_ALLOWED_STATUS_IDS must contain at least one positive status id")
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/learning/outcomes.go ./services/agent/internal/learning/outcomes.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/learning/outcomes.go	1970-01-01 00:00:00.000000000 +0000
++++ ./services/agent/internal/learning/outcomes.go	2026-08-25 19:13:45.223377526 +0000
+@@ -0,0 +1,211 @@
++package learning
++
++import (
++	"bytes"
++	"context"
++	"crypto/rand"
++	"encoding/hex"
++	"encoding/json"
++	"fmt"
++	"io"
++	"net/http"
++	"net/url"
++	"os"
++	"path/filepath"
++	"sort"
++	"strings"
++	"sync"
++	"time"
++)
++
++type TicketOutcome struct {
++	ID             string    `json:"id"`
++	RunID          string    `json:"run_id"`
++	TicketID       int64     `json:"ticket_id"`
++	Decision       string    `json:"decision"` // accepted | corrected
++	TicketInput    string    `json:"ticket_input"`
++	ProposedReply  string    `json:"proposed_reply,omitempty"`
++	ConfirmedReply string    `json:"confirmed_reply"`
++	CategoryID     int64     `json:"category_id,omitempty"`
++	CategoryName   string    `json:"category_name,omitempty"`
++	KnowledgeID    string    `json:"knowledge_id,omitempty"`
++	Actor          string    `json:"actor"`
++	Note           string    `json:"note,omitempty"`
++	CreatedAt      time.Time `json:"created_at"`
++	NeuroForgeID   string    `json:"neuroforge_memory_id,omitempty"`
++	SyncStatus     string    `json:"sync_status"` // pending | learned | failed
++	SyncError      string    `json:"sync_error,omitempty"`
++	SupersedesID   string    `json:"supersedes_id,omitempty"`
++}
++
++type OutcomeStore struct {
++	mu    sync.RWMutex
++	path  string
++	max   int
++	items []TicketOutcome
++}
++
++func OpenOutcomes(dataDir string, max int) (*OutcomeStore, error) {
++	if max < 1 {
++		max = 2000
++	}
++	s := &OutcomeStore{path: filepath.Join(dataDir, "ticket-outcomes.json"), max: max}
++	if b, err := os.ReadFile(s.path); err == nil {
++		if err := json.Unmarshal(b, &s.items); err != nil {
++			return nil, fmt.Errorf("parse ticket outcomes: %w", err)
++		}
++	} else if !os.IsNotExist(err) {
++		return nil, err
++	}
++	if len(s.items) > s.max {
++		s.items = s.items[len(s.items)-s.max:]
++	}
++	return s, nil
++}
++
++func (s *OutcomeStore) Add(x TicketOutcome) (TicketOutcome, error) {
++	x.RunID = strings.TrimSpace(x.RunID)
++	x.Decision = strings.ToLower(strings.TrimSpace(x.Decision))
++	x.TicketInput = strings.TrimSpace(x.TicketInput)
++	x.ProposedReply = strings.TrimSpace(x.ProposedReply)
++	x.ConfirmedReply = strings.TrimSpace(x.ConfirmedReply)
++	x.CategoryName = strings.TrimSpace(x.CategoryName)
++	x.KnowledgeID = strings.TrimSpace(x.KnowledgeID)
++	x.Actor = strings.TrimSpace(x.Actor)
++	x.Note = strings.TrimSpace(x.Note)
++	if x.RunID == "" || x.TicketID <= 0 || x.TicketInput == "" || x.ConfirmedReply == "" || x.Actor == "" {
++		return x, fmt.Errorf("run, ticket, input, confirmed reply and actor are required")
++	}
++	if x.Decision != "accepted" && x.Decision != "corrected" {
++		return x, fmt.Errorf("decision must be accepted or corrected")
++	}
++	if x.Decision == "accepted" && x.ProposedReply == "" {
++		return x, fmt.Errorf("accepted outcome requires proposed reply")
++	}
++	if x.ID == "" {
++		x.ID = outcomeID()
++	}
++	if x.CreatedAt.IsZero() {
++		x.CreatedAt = time.Now().UTC()
++	}
++	if x.SyncStatus == "" {
++		x.SyncStatus = "pending"
++	}
++	s.mu.Lock()
++	defer s.mu.Unlock()
++	for i := len(s.items) - 1; i >= 0; i-- {
++		prev := s.items[i]
++		if prev.RunID != x.RunID {
++			continue
++		}
++		// Repeating the exact same human decision is idempotent. This also
++		// lets a previously failed NeuroForge sync be retried without
++		// manufacturing a second human decision.
++		if prev.Decision == x.Decision && strings.TrimSpace(prev.ConfirmedReply) == x.ConfirmedReply {
++			return prev, nil
++		}
++		// A later correction/confirmation is a new immutable audit record.
++		// Preserve the previous decision and make the revision chain explicit.
++		x.SupersedesID = prev.ID
++		break
++	}
++	s.items = append(s.items, x)
++	if len(s.items) > s.max {
++		s.items = s.items[len(s.items)-s.max:]
++	}
++	return x, s.saveLocked()
++}
++
++func (s *OutcomeStore) UpdateSync(id, status, memoryID, syncErr string) (TicketOutcome, error) {
++	s.mu.Lock()
++	defer s.mu.Unlock()
++	for i := range s.items {
++		if s.items[i].ID != id {
++			continue
++		}
++		s.items[i].SyncStatus = status
++		s.items[i].NeuroForgeID = memoryID
++		s.items[i].SyncError = syncErr
++		return s.items[i], s.saveLocked()
++	}
++	return TicketOutcome{}, os.ErrNotExist
++}
++
++func (s *OutcomeStore) List() []TicketOutcome {
++	if s == nil {
++		return nil
++	}
++	s.mu.RLock()
++	defer s.mu.RUnlock()
++	out := append([]TicketOutcome(nil), s.items...)
++	sort.SliceStable(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
++	return out
++}
++func (s *OutcomeStore) saveLocked() error {
++	b, err := json.MarshalIndent(s.items, "", "  ")
++	if err != nil {
++		return err
++	}
++	tmp := s.path + ".tmp"
++	if err := os.WriteFile(tmp, b, 0o640); err != nil {
++		return err
++	}
++	return os.Rename(tmp, s.path)
++}
++func outcomeID() string { b := make([]byte, 12); _, _ = rand.Read(b); return hex.EncodeToString(b) }
++
++type OutcomeSink interface {
++	LearnOutcome(context.Context, TicketOutcome) (string, error)
++}
++
++type NeuroForgeOutcomeSink struct {
++	baseURL, apiKey string
++	http            *http.Client
++}
++
++func NewNeuroForgeOutcomeSink(baseURL, apiKey string, timeout time.Duration) (*NeuroForgeOutcomeSink, error) {
++	raw := strings.TrimRight(strings.TrimSpace(baseURL), "/")
++	u, err := url.Parse(raw)
++	if err != nil || u.Scheme == "" || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
++		return nil, fmt.Errorf("invalid neuroforge URL %q", raw)
++	}
++	if timeout <= 0 {
++		timeout = 15 * time.Second
++	}
++	return &NeuroForgeOutcomeSink{baseURL: raw, apiKey: strings.TrimSpace(apiKey), http: &http.Client{Timeout: timeout}}, nil
++}
++func (c *NeuroForgeOutcomeSink) LearnOutcome(ctx context.Context, x TicketOutcome) (string, error) {
++	body, err := json.Marshal(map[string]any{"outcome_id": x.ID, "run_id": x.RunID, "ticket_id": x.TicketID, "decision": x.Decision, "ticket_input": x.TicketInput, "proposed_reply": x.ProposedReply, "confirmed_reply": x.ConfirmedReply, "category_id": x.CategoryID, "category_name": x.CategoryName, "knowledge_id": x.KnowledgeID, "supersedes_id": x.SupersedesID, "actor": x.Actor, "note": x.Note})
++	if err != nil {
++		return "", err
++	}
++	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+"/api/v1/integrations/outcomes", bytes.NewReader(body))
++	if err != nil {
++		return "", err
++	}
++	req.Header.Set("Content-Type", "application/json")
++	if c.apiKey != "" {
++		req.Header.Set("Authorization", "Bearer "+c.apiKey)
++	}
++	resp, err := c.http.Do(req)
++	if err != nil {
++		return "", err
++	}
++	defer resp.Body.Close()
++	if resp.StatusCode/100 != 2 {
++		b, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
++		return "", fmt.Errorf("neuroforge outcome learning failed: %s: %s", resp.Status, strings.TrimSpace(string(b)))
++	}
++	var out struct {
++		Memory struct {
++			ID string `json:"id"`
++		} `json:"memory"`
++	}
++	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
++		return "", err
++	}
++	if out.Memory.ID == "" {
++		return "", fmt.Errorf("neuroforge returned no memory id")
++	}
++	return out.Memory.ID, nil
++}
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/learning/outcomes_test.go ./services/agent/internal/learning/outcomes_test.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/learning/outcomes_test.go	1970-01-01 00:00:00.000000000 +0000
++++ ./services/agent/internal/learning/outcomes_test.go	2026-08-25 19:09:57.953094102 +0000
+@@ -0,0 +1,75 @@
++package learning
++
++import (
++	"context"
++	"encoding/json"
++	"net/http"
++	"net/http/httptest"
++	"testing"
++	"time"
++)
++
++func TestOutcomeStorePreservesRevisionHistoryAndPersistsSync(t *testing.T) {
++	s, err := OpenOutcomes(t.TempDir(), 10)
++	if err != nil {
++		t.Fatal(err)
++	}
++	a, err := s.Add(TicketOutcome{RunID: "r1", TicketID: 1, Decision: "accepted", TicketInput: "problem", ProposedReply: "fix", ConfirmedReply: "fix", Actor: "tech"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	b, err := s.Add(TicketOutcome{RunID: "r1", TicketID: 1, Decision: "corrected", TicketInput: "problem", ProposedReply: "fix", ConfirmedReply: "better", Actor: "tech"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(s.List()) != 2 || a.ID == b.ID || b.SupersedesID != a.ID {
++		t.Fatalf("expected immutable revision history: %#v", s.List())
++	}
++	retry, err := s.Add(TicketOutcome{RunID: "r1", TicketID: 1, Decision: "corrected", TicketInput: "problem", ProposedReply: "fix", ConfirmedReply: "better", Actor: "tech"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if retry.ID != b.ID || len(s.List()) != 2 {
++		t.Fatalf("exact repeated human decision must be idempotent: retry=%#v list=%#v", retry, s.List())
++	}
++	got, err := s.UpdateSync(b.ID, "learned", "mem-1", "")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if got.SyncStatus != "learned" || got.NeuroForgeID != "mem-1" {
++		t.Fatalf("unexpected sync: %#v", got)
++	}
++}
++
++func TestNeuroForgeOutcomeSink(t *testing.T) {
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		if r.URL.Path != "/api/v1/integrations/outcomes" {
++			http.NotFound(w, r)
++			return
++		}
++		if r.Header.Get("Authorization") != "Bearer secret" {
++			http.Error(w, "unauthorized", 401)
++			return
++		}
++		var v map[string]any
++		if err := json.NewDecoder(r.Body).Decode(&v); err != nil {
++			t.Fatal(err)
++		}
++		if v["decision"] != "accepted" {
++			t.Fatalf("unexpected payload %#v", v)
++		}
++		_ = json.NewEncoder(w).Encode(map[string]any{"memory": map[string]any{"id": "mem-7"}})
++	}))
++	defer srv.Close()
++	sink, err := NewNeuroForgeOutcomeSink(srv.URL, "secret", time.Second)
++	if err != nil {
++		t.Fatal(err)
++	}
++	id, err := sink.LearnOutcome(context.Background(), TicketOutcome{ID: "o", RunID: "r", TicketID: 1, Decision: "accepted", TicketInput: "p", ProposedReply: "a", ConfirmedReply: "a", Actor: "tech"})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if id != "mem-7" {
++		t.Fatalf("id=%q", id)
++	}
++}
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/model/model.go ./services/agent/internal/model/model.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/model/model.go	2026-08-25 18:19:03.554284889 +0000
++++ ./services/agent/internal/model/model.go	2026-08-25 19:01:07.791696816 +0000
+@@ -618,6 +618,8 @@
+ 	AIKnowledgeID                    string                    `json:"ai_knowledge_id,omitempty"`
+ 	ReplyDecision                    string                    `json:"reply_decision,omitempty"`
+ 	ReplyProposed                    bool                      `json:"reply_proposed"`
++	ReplyProposedText                string                    `json:"reply_proposed_text,omitempty"`
++	LearningTicketText               string                    `json:"learning_ticket_text,omitempty"`
+ 	ReplyWritten                     bool                      `json:"reply_written"`
+ 	KnowledgeID                      string                    `json:"knowledge_id,omitempty"`
+ 	KnowledgeTopID                   string                    `json:"knowledge_top_id,omitempty"`
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/web/server.go ./services/agent/internal/web/server.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/web/server.go	2026-08-25 18:20:01.518776121 +0000
++++ ./services/agent/internal/web/server.go	2026-08-25 19:06:33.970451716 +0000
+@@ -19,6 +19,7 @@
+ 
+ 	"github.com/example/glpi-ai-agent/internal/config"
+ 	knowledgepkg "github.com/example/glpi-ai-agent/internal/knowledge"
++	"github.com/example/glpi-ai-agent/internal/learning"
+ 	"github.com/example/glpi-ai-agent/internal/metrics"
+ 	"github.com/example/glpi-ai-agent/internal/model"
+ 	"github.com/example/glpi-ai-agent/internal/obsidian"
+@@ -49,6 +50,8 @@
+ 	LearningExamples() []model.LearningExample
+ 	DeleteLearning(string) error
+ 	LearningCount() int
++	RecordTicketOutcome(context.Context, string, string, string, string, string) (learning.TicketOutcome, error)
++	TicketOutcomes() []learning.TicketOutcome
+ }
+ 
+ type DiagnosticsManager interface {
+@@ -112,6 +115,8 @@
+ 	mux.Handle("GET /api/learning", s.auth(http.HandlerFunc(s.learningList)))
+ 	mux.Handle("POST /api/learning", s.auth(s.mutation(http.HandlerFunc(s.learningAdd))))
+ 	mux.Handle("DELETE /api/learning/{id}", s.auth(s.mutation(http.HandlerFunc(s.learningDelete))))
++	mux.Handle("GET /api/outcomes", s.auth(http.HandlerFunc(s.outcomeList)))
++	mux.Handle("POST /api/outcomes", s.auth(s.mutation(http.HandlerFunc(s.outcomeAdd))))
+ 	mux.Handle("POST /api/tickets/{id}/reprocess", s.auth(s.mutation(http.HandlerFunc(s.reprocessTicket))))
+ 	mux.HandleFunc("POST /webhook/glpi", s.webhook)
+ 	return securityHeaders(requestLog(mux))
+@@ -427,6 +432,7 @@
+ 		"context_enabled": s.cfg.ContextEnabled, "context_fetches": s.metrics.ContextFetches.Load(), "context_errors": s.metrics.ContextErrors.Load(),
+ 		"change_calendar_enabled": s.cfg.ChangeCalendarEnabled, "major_incidents_enabled": s.cfg.MajorIncidentsEnabled, "user_device_context_enabled": s.cfg.UserDeviceContextEnabled,
+ 		"knowledge_edit_enabled": s.cfg.KnowledgeWebEditEnabled, "learning_enabled": s.cfg.LearningEnabled, "learning_examples": s.feedback.LearningCount(),
++		"outcome_learning_enabled": s.cfg.OutcomeLearningEnabled, "outcome_learning_fail_open": s.cfg.OutcomeLearningFailOpen, "validated_outcomes": len(s.feedback.TicketOutcomes()),
+ 		"glpi_kb_enabled": s.cfg.GLPIKBEnabled, "glpi_kb_ok": kbOK, "glpi_kb_documents": kbDocs, "glpi_kb_last_sync": kbLastSync, "glpi_kb_last_error": kbLastErr, "glpi_kb_source": s.cfg.GLPIKBSource, "glpi_kb_sync_interval": s.cfg.GLPIKBSyncInterval.String(), "glpi_kb_auto_reply_approved": glpiKBAutoReplyApproved, "glpi_kb_auto_reply_blocked": glpiKBAutoReplyBlocked, "glpi_kb_auto_reply_decisions": glpiKBAutoReplyDecisions,
+ 		"uptime_kuma_enabled": s.cfg.UptimeKumaEnabled, "uptime_kuma_mode": s.cfg.UptimeKumaMode, "uptime_kuma_status_pages": s.cfg.UptimeKumaStatusPages, "context_fail_closed": s.cfg.ContextBlockReplyOnError, "context_incident_block": s.cfg.ContextBlockReplyOnIncident,
+ 		"context_status_reply_enabled": s.cfg.ContextStatusReplyEnabled, "context_status_reply_min_relevance": s.cfg.ContextStatusReplyMinRelevance, "context_status_reply_min_ai_confidence": s.cfg.ContextStatusReplyMinAIConfidence, "context_status_reply_min_final_score": s.cfg.ContextStatusReplyMinFinalScore, "context_incident_reply_text_configured": strings.TrimSpace(s.cfg.ContextIncidentReplyText) != "", "context_maintenance_reply_text_configured": strings.TrimSpace(s.cfg.ContextMaintenanceReplyText) != "",
+@@ -652,6 +658,36 @@
+ 	}
+ 	w.WriteHeader(http.StatusNoContent)
+ }
++func (s *Server) outcomeList(w http.ResponseWriter, r *http.Request) {
++	respondJSON(w, s.feedback.TicketOutcomes())
++}
++func (s *Server) outcomeAdd(w http.ResponseWriter, r *http.Request) {
++	if !s.cfg.OutcomeLearningEnabled {
++		http.Error(w, "outcome learning disabled", http.StatusForbidden)
++		return
++	}
++	var in struct {
++		RunID          string `json:"run_id"`
++		Decision       string `json:"decision"`
++		CorrectedReply string `json:"corrected_reply,omitempty"`
++		Note           string `json:"note,omitempty"`
++	}
++	if err := json.NewDecoder(io.LimitReader(r.Body, 64<<10)).Decode(&in); err != nil {
++		http.Error(w, "invalid outcome feedback", http.StatusBadRequest)
++		return
++	}
++	actor := strings.TrimSpace(s.cfg.WebUsername)
++	if actor == "" {
++		actor = "authenticated-technician"
++	}
++	x, err := s.feedback.RecordTicketOutcome(r.Context(), in.RunID, in.Decision, in.CorrectedReply, in.Note, actor)
++	if err != nil {
++		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
++		return
++	}
++	respondJSON(w, x)
++}
++
+ func (s *Server) mutation(next http.Handler) http.Handler {
+ 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ 		if r.Header.Get("X-Requested-With") != "GLPI-AI-Agent" {
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/web/server_test.go ./services/agent/internal/web/server_test.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/web/server_test.go	2026-08-05 17:17:23.000000000 +0000
++++ ./services/agent/internal/web/server_test.go	2026-08-25 19:03:01.329955146 +0000
+@@ -15,6 +15,7 @@
+ 
+ 	"github.com/example/glpi-ai-agent/internal/config"
+ 	"github.com/example/glpi-ai-agent/internal/knowledge"
++	"github.com/example/glpi-ai-agent/internal/learning"
+ 	"github.com/example/glpi-ai-agent/internal/metrics"
+ 	"github.com/example/glpi-ai-agent/internal/model"
+ 	"github.com/example/glpi-ai-agent/internal/queue"
+@@ -59,6 +60,10 @@
+ func (f fakeFeedback) LearningExamples() []model.LearningExample { return nil }
+ func (f fakeFeedback) DeleteLearning(string) error               { return os.ErrNotExist }
+ func (f fakeFeedback) LearningCount() int                        { return 0 }
++func (f fakeFeedback) RecordTicketOutcome(context.Context, string, string, string, string, string) (learning.TicketOutcome, error) {
++	return learning.TicketOutcome{}, nil
++}
++func (f fakeFeedback) TicketOutcomes() []learning.TicketOutcome { return nil }
+ 
+ func newKnowledgeTestServer(t *testing.T) (http.Handler, *knowledge.Store) {
+ 	t.Helper()
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/web/templates/dashboard.html ./services/agent/internal/web/templates/dashboard.html
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/agent/internal/web/templates/dashboard.html	2026-08-25 18:23:14.811739258 +0000
++++ ./services/agent/internal/web/templates/dashboard.html	2026-08-25 19:02:44.110896273 +0000
+@@ -107,7 +107,7 @@
+ const pct=v=>`${Math.round(Number(v||0)*100)} %`; const fmtNum=v=>new Intl.NumberFormat('de-DE').format(Number(v||0));
+ const fmtDate=v=>{if(!v)return '–';const d=new Date(v);return Number.isNaN(d.getTime())?'–':d.toLocaleString('de-DE')};
+ const clamp=v=>Math.max(0,Math.min(1,Number(v||0))); const scoreClass=v=>Number(v)>=.8?'good':Number(v)>=.6?'warn':'bad';
+-let statusData={},runsData=[],categories=[],kbDocs=[],learningRows=[],currentRun=null,currentKbId='',currentLearnRun='',kbCategorySelection=new Set();
++let statusData={},runsData=[],categories=[],kbDocs=[],learningRows=[],outcomeRows=[],currentRun=null,currentKbId='',currentLearnRun='',kbCategorySelection=new Set();
+ const viewMeta={overview:['Übersicht','Gesundheit, Verarbeitung und die wichtigsten Stellschrauben auf einen Blick.'],runs:['Verarbeitungen','Audit-Trail mit KI-, Policy-, RAG- und Kontextdetails.'],knowledge:['Knowledge Base','Interne und synchronisierte Wissensquellen verwalten und kontrollieren.'],learning:['Bestätigtes Lernen','Menschlich bestätigte Beispiele, die die Kategorisierung schrittweise verbessern.'],settings:['Effektive Konfiguration','Alle nicht-geheimen Laufzeitwerte zum Tuning und Troubleshooting.']};
+ function toast(text,kind='good'){const n=document.createElement('div');n.className=`toast ${kind}`;n.textContent=text;$('#toasts').appendChild(n);setTimeout(()=>n.remove(),5000)}
+ async function api(url,opt={}){const headers={...(opt.headers||{}),'X-Requested-With':'GLPI-AI-Agent'};if(opt.body)headers['Content-Type']='application/json';const r=await fetch(url,{...opt,headers});if(!r.ok){const t=(await r.text()).trim();throw new Error(t||`HTTP ${r.status}`)}if(r.status===204)return null;return r.json()}
+@@ -136,7 +136,7 @@
+  <div class="detail-box full"><div class="detail-heading">Top-Knowledge-Kandidat</div>${x.knowledge_top_id?`${progress('Retrieval / Ranking',x.knowledge_score)}${x.knowledge_evidence_score?progress('Finale Evidenz',x.knowledge_evidence_score):''}${progress('Semantik (raw)',x.knowledge_semantic_score)}${progress('Titel',x.knowledge_title_score)}${progress('Lexikalisch',x.knowledge_lexical_score)}${progress('Keywords',x.knowledge_keyword_score)}${progress('Kategorie/Lernen',x.knowledge_category_score)}<div class="muted small">${esc(x.knowledge_top_title)} · ${esc(x.knowledge_top_id)} · Retrieval-Floor ${esc(pct(x.knowledge_retrieval_floor||0))} · Evidenz erforderlich ${esc(pct(x.knowledge_threshold))}${x.knowledge_category_aligned?' · Kategorie exakt zugeordnet':''}</div>`:'<div class="muted">Kein Treffer.</div>'}</div>
+  <div class="detail-box full"><div class="detail-heading">KI-Begründung</div><div class="reason-text">${esc(x.ai_reason||x.reason||'–')}</div></div><div class="detail-box full"><div class="detail-heading">Policy</div><div class="reason-text">${esc(x.policy_reason||'–')}</div>${x.error?`<div class="reason-text" style="color:#ffb5b5;margin-top:9px"><strong>Fehler:</strong> ${esc(x.error)}</div>`:''}</div>
+  <div class="detail-box full"><div class="detail-heading">Knowledge-Ranking</div><div class="muted small" style="margin-bottom:10px">An KI gesendet: ${esc(x.knowledge_llm_candidates||0)} · Kandidaten-Cutoff ${esc(pct(x.knowledge_candidate_cutoff||0))} · Max. Abstand ${esc(pct(x.knowledge_candidate_max_gap||0))} · Audit Top K ${esc(x.knowledge_audit_top_k||0)}</div>${candidates}</div><div class="detail-box full"><div class="detail-heading">Kontextquellen</div>${contexts}${(x.context_warnings||[]).length?`<div class="notice warn" style="margin-top:10px">${x.context_warnings.map(esc).join('<br>')}</div>`:''}</div>
+- <div class="detail-box full"><div class="detail-heading">Lernen</div>${categories.length?`<button class="btn small primary" data-learn-run="${esc(x.run_id)}" data-learn-cat="${esc(x.ai_recommended_category_id||0)}">Kategorie bestätigen / korrigieren</button>`:'<span class="muted">Kategorien nicht geladen.</span>'}</div>
++ <div class="detail-box full"><div class="detail-heading">Bestätigtes Lernen</div>${categories.length?`<button class="btn small" data-learn-run="${esc(x.run_id)}" data-learn-cat="${esc(x.ai_recommended_category_id||0)}">Kategorie bestätigen / korrigieren</button>`:'<span class="muted">Kategorien nicht geladen.</span>'}${x.reply_proposed&&x.reply_proposed_text?` <button class="btn small primary" data-outcome-accept="${esc(x.run_id)}">KI-Antwort bestätigen</button> <button class="btn small" data-outcome-correct="${esc(x.run_id)}">KI-Antwort korrigieren</button>${(()=>{const o=outcomeRows.find(v=>v.run_id===x.run_id);return o?` <span class="badge ${o.sync_status==='learned'?'good':o.sync_status==='failed'?'bad':'warn'}">Outcome: ${esc(o.decision)} · ${esc(o.sync_status)}</span>`:''})()}`:' <span class="muted small">Keine lernfähige Antwort vorgeschlagen.</span>'}<div class="muted small" style="margin-top:8px">Erst die explizite Bestätigung oder Korrektur durch einen Techniker wird als verifiziertes NeuroForge-Wissen gespeichert.</div></div>
+  <div class="detail-box full"><details><summary class="small muted" style="cursor:pointer">Audit-JSON anzeigen</summary><pre class="raw">${esc(JSON.stringify(x,null,2))}</pre></details></div></div>`;openRunDrawer()}
+ function openRunDrawer(){ $('#runBackdrop').classList.add('show');$('#runDrawer').classList.add('show') } function closeRunDrawer(){ $('#runBackdrop').classList.remove('show');$('#runDrawer').classList.remove('show');currentRun=null }
+ function kbStatsData(){const managed=kbDocs.filter(x=>x.managed).length,glpi=kbDocs.filter(x=>x.source==='glpi-kb').length,auto=kbDocs.filter(x=>x.auto_reply).length;return [['Gesamt',kbDocs.length,'geladene Artikel'],['Web-verwaltet',managed,'editierbar'],['GLPI-KB',glpi,'read-only synchronisiert'],['Auto-Reply',auto,'grundsätzlich freigegeben']]}
+@@ -159,15 +159,17 @@
+ function closeLearn(){$('#learnBackdrop').classList.remove('show');currentLearnRun=''}
+ async function saveLearning(){const b=$('#saveLearnBtn');b.disabled=true;try{await api('/api/learning',{method:'POST',body:JSON.stringify({run_id:currentLearnRun,category_id:Number($('#learnCategory').value)})});toast('Kategorie als Lernbeispiel gespeichert.');closeLearn();await loadLearning();await loadRuns()}catch(e){toast(e.message,'error')}finally{b.disabled=false}}
+ async function deleteLearning(id){if(!confirm('Lernbeispiel wirklich löschen?'))return;try{await api(`/api/learning/${encodeURIComponent(id)}`,{method:'DELETE'});toast('Lernbeispiel gelöscht.');await loadLearning()}catch(e){toast(e.message,'error')}}
++async function recordOutcome(runID,decision){const r=runsData.find(x=>x.run_id===runID);if(!r)return;let corrected='';if(decision==='corrected'){corrected=prompt('Korrigierte, fachlich bestätigte Antwort:',r.reply_proposed_text||'')||'';if(!corrected.trim())return}const note=prompt('Optionaler Prüfvermerk / Grund (kann leer bleiben):','')||'';if(!confirm(decision==='accepted'?'Diese KI-Antwort als technisch bestätigt lernen?':'Diese korrigierte Antwort als technisch bestätigt lernen?'))return;try{await api('/api/outcomes',{method:'POST',body:JSON.stringify({run_id:runID,decision,corrected_reply:corrected,note})});toast('Bestätigtes Ticket-Outcome wurde an NeuroForge übergeben.');await loadOutcomes();await loadRuns();const fresh=runsData.find(x=>x.run_id===runID);if(fresh)renderRunDrawer(fresh)}catch(e){toast(e.message,'error')}}
+ async function reprocessTicket(){const id=Number($('#reprocessTicketID').value||0);if(!Number.isInteger(id)||id<=0){toast('Bitte eine gültige Ticket-ID eingeben.','error');return}const live=!statusData.dry_run;if(live&&!confirm(`Ticket #${id} im LIVE-Modus neu analysieren? Konfigurierte Auto-Aktionen können ausgeführt werden.`))return;const b=$('#reprocessTicketBtn');b.disabled=true;try{await api(`/api/tickets/${id}/reprocess`,{method:'POST',body:'{}'});toast(`Ticket #${id} wurde zur Neuanalyse eingereiht.`);setTimeout(()=>refreshAll(),800)}catch(e){toast(e.message,'error')}finally{b.disabled=false}}
+ async function loadStatus(){statusData=await api('/api/status');renderStatusChrome();renderOverview();renderConfig();renderSourceOptions()}
+ async function loadRuns(){const limit=Number($('#runLimit').value||50);runsData=await api(`/api/runs?limit=${limit}`);renderRuns();renderOverview()}
+ async function loadKnowledge(){kbDocs=await api('/api/knowledge');renderSourceOptions();renderKB();renderOverview()}
+ async function loadLearning(){learningRows=await api('/api/learning');renderLearning();renderOverview()}
++async function loadOutcomes(){outcomeRows=await api('/api/outcomes')}
+ async function loadCategories(){categories=await api('/api/categories');renderCategoryPicker($('#kbCategorySearch').value||'')}
+-async function refreshAll(showToast=false){$('#refreshBtn').disabled=true;try{await Promise.all([loadStatus(),loadRuns(),loadKnowledge(),loadLearning(),loadCategories()]);renderSourceOptions();renderOverview();renderRuns();renderKB();renderLearning();renderConfig();if(showToast)toast('Dashboard aktualisiert.')}catch(e){toast(e.message,'error')}finally{$('#refreshBtn').disabled=false;$('#lastRefresh').textContent=new Date().toLocaleTimeString('de-DE')}}
++async function refreshAll(showToast=false){$('#refreshBtn').disabled=true;try{await Promise.all([loadStatus(),loadRuns(),loadKnowledge(),loadLearning(),loadOutcomes(),loadCategories()]);renderSourceOptions();renderOverview();renderRuns();renderKB();renderLearning();renderConfig();if(showToast)toast('Dashboard aktualisiert.')}catch(e){toast(e.message,'error')}finally{$('#refreshBtn').disabled=false;$('#lastRefresh').textContent=new Date().toLocaleTimeString('de-DE')}}
+ 
+-$('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)setView(b.dataset.view)});document.addEventListener('click',e=>{const g=e.target.closest('[data-goto]');if(g)setView(g.dataset.goto);const row=e.target.closest('[data-run-id]');if(row){const x=runsData.find(r=>r.run_id===row.dataset.runId);if(x)renderRunDrawer(x)}const ed=e.target.closest('[data-kb-edit]');if(ed)editKB(ed.dataset.kbEdit);const del=e.target.closest('[data-kb-delete]');if(del)deleteKB(del.dataset.kbDelete);const ld=e.target.closest('[data-learning-delete]');if(ld)deleteLearning(ld.dataset.learningDelete);const lr=e.target.closest('[data-learn-run]');if(lr)openLearn(lr.dataset.learnRun,Number(lr.dataset.learnCat||0))});
++$('#nav').addEventListener('click',e=>{const b=e.target.closest('[data-view]');if(b)setView(b.dataset.view)});document.addEventListener('click',e=>{const g=e.target.closest('[data-goto]');if(g)setView(g.dataset.goto);const row=e.target.closest('[data-run-id]');if(row){const x=runsData.find(r=>r.run_id===row.dataset.runId);if(x)renderRunDrawer(x)}const ed=e.target.closest('[data-kb-edit]');if(ed)editKB(ed.dataset.kbEdit);const del=e.target.closest('[data-kb-delete]');if(del)deleteKB(del.dataset.kbDelete);const ld=e.target.closest('[data-learning-delete]');if(ld)deleteLearning(ld.dataset.learningDelete);const lr=e.target.closest('[data-learn-run]');if(lr)openLearn(lr.dataset.learnRun,Number(lr.dataset.learnCat||0));const oa=e.target.closest('[data-outcome-accept]');if(oa)recordOutcome(oa.dataset.outcomeAccept,'accepted');const oc=e.target.closest('[data-outcome-correct]');if(oc)recordOutcome(oc.dataset.outcomeCorrect,'corrected')});
+ $('#refreshBtn').addEventListener('click',()=>refreshAll(true));$('#reprocessTicketBtn').addEventListener('click',reprocessTicket);$('#reprocessTicketID').addEventListener('keydown',e=>{if(e.key==='Enter')reprocessTicket()});$('#runSearch').addEventListener('input',renderRuns);$('#runOutcome').addEventListener('change',renderRuns);$('#runLimit').addEventListener('change',loadRuns);$('#kbSearch').addEventListener('input',renderKB);$('#kbSourceFilter').addEventListener('change',renderKB);$('#kbManageFilter').addEventListener('change',renderKB);$('#learningSearch').addEventListener('input',renderLearning);$('#newKbBtn').addEventListener('click',()=>{clearKbForm();openKbModal()});$('#closeKbModal').addEventListener('click',closeKbModal);$('#cancelKbBtn').addEventListener('click',closeKbModal);$('#kbModalBackdrop').addEventListener('click',e=>{if(e.target===e.currentTarget)closeKbModal()});$('#kbForm').addEventListener('submit',saveKB);$('#kbCategorySearch').addEventListener('input',e=>renderCategoryPicker(e.target.value));$('#kbCategoryList').addEventListener('change',e=>{if(e.target.type==='checkbox'){const id=Number(e.target.value);e.target.checked?kbCategorySelection.add(id):kbCategorySelection.delete(id)}});$('#kbText').addEventListener('input',updateCounts);$('#kbAnswer').addEventListener('input',updateCounts);$('#runBackdrop').addEventListener('click',closeRunDrawer);$('#closeRunDrawer').addEventListener('click',closeRunDrawer);$('#closeLearnModal').addEventListener('click',closeLearn);$('#cancelLearnBtn').addEventListener('click',closeLearn);$('#saveLearnBtn').addEventListener('click',saveLearning);$('#learnBackdrop').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLearn()});document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeRunDrawer();closeKbModal();closeLearn()}});
+ setView(location.hash.replace('#','')||'overview');refreshAll();setInterval(async()=>{try{await Promise.all([loadStatus(),loadRuns()])}catch{}},10000);
+ </script>
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/control/index.html ./services/control/index.html
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/control/index.html	2026-08-25 15:57:41.000000000 +0000
++++ ./services/control/index.html	2026-08-25 19:06:48.463471065 +0000
+@@ -1,10 +1,10 @@
+ <!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GLPI NeuroForge Control Center</title><style>
+-:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#0c1118;color:#e8eef7}body{max-width:1180px;margin:0 auto;padding:32px 20px}h1{font-size:30px;margin:0 0 6px}p{color:#aab7c7}.bar,.grid{display:grid;gap:14px}.bar{grid-template-columns:repeat(4,minmax(0,1fr));margin:24px 0}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:#121a24;border:1px solid #263244;border-radius:14px;padding:18px}.label{font-size:12px;text-transform:uppercase;color:#8fa1b7;letter-spacing:.08em}.value{font-size:20px;font-weight:700;margin-top:7px}.ok{color:#8de5ac}.bad{color:#ff9f9f}.muted{color:#92a1b4}.service h2{margin:0 0 8px;font-size:18px}.service a{color:#8fc5ff}.detail{white-space:pre-wrap;font:12px ui-monospace,monospace;background:#0b1016;padding:10px;border-radius:9px;max-height:220px;overflow:auto}.footer{margin-top:24px;font-size:13px}@media(max-width:850px){.bar,.grid{grid-template-columns:1fr}}</style></head><body>
++:root{color-scheme:dark;font-family:Inter,system-ui,sans-serif;background:#0c1118;color:#e8eef7}body{max-width:1180px;margin:0 auto;padding:32px 20px}h1{font-size:30px;margin:0 0 6px}p{color:#aab7c7}.bar,.grid{display:grid;gap:14px}.bar{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin:24px 0}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.card{background:#121a24;border:1px solid #263244;border-radius:14px;padding:18px}.label{font-size:12px;text-transform:uppercase;color:#8fa1b7;letter-spacing:.08em}.value{font-size:20px;font-weight:700;margin-top:7px}.ok{color:#8de5ac}.bad{color:#ff9f9f}.muted{color:#92a1b4}.service h2{margin:0 0 8px;font-size:18px}.service a{color:#8fc5ff}.detail{white-space:pre-wrap;font:12px ui-monospace,monospace;background:#0b1016;padding:10px;border-radius:9px;max-height:220px;overflow:auto}.footer{margin-top:24px;font-size:13px}@media(max-width:850px){.bar,.grid{grid-template-columns:1fr}}</style></head><body>
+ <h1>GLPI × NeuroForge Control Center</h1><p>Read-only Betriebsübersicht. Entscheidungen und GLPI-Schreibregeln bleiben im Agenten; NeuroForge liefert Gedächtnis, Vektorindex und Audit-Events.</p>
+-<div class="bar"><div class="card"><div class="label">Vector Backend</div><div id="mode" class="value">…</div></div><div class="card"><div class="label">Search K</div><div id="searchk" class="value">…</div></div><div class="card"><div class="label">Fail Policy</div><div id="fail" class="value">…</div></div><div class="card"><div class="label">Control Plane</div><div class="value">Read-only</div></div></div>
++<div class="bar"><div class="card"><div class="label">Vector Backend</div><div id="mode" class="value">…</div></div><div class="card"><div class="label">Search K</div><div id="searchk" class="value">…</div></div><div class="card"><div class="label">Fail Policy</div><div id="fail" class="value">…</div></div><div class="card"><div class="label">Controlled Learning</div><div id="controlled" class="value">…</div></div><div class="card"><div class="label">Outcome Learning</div><div id="outcome" class="value">…</div></div><div class="card"><div class="label">Research / SearXNG</div><div id="research" class="value">…</div></div><div class="card"><div class="label">Autonomy</div><div id="autonomy" class="value">…</div></div><div class="card"><div class="label">Control Plane</div><div class="value">Read-only</div></div></div>
+ <div id="services" class="grid"></div><div class="footer muted">Status wird alle 10 Sekunden aktualisiert. Keine Secrets werden angezeigt.</div>
+ <script>
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+-async function load(){try{const [c,r]=await Promise.all([fetch('/api/config',{cache:'no-store'}).then(x=>x.json()),fetch('/api/status',{cache:'no-store'}).then(x=>x.json())]);mode.textContent=c.vector_backend;searchk.textContent=c.neuroforge_search_k;fail.textContent=c.neuroforge_fail_open==='true'?'fail-open':'fail-closed';services.innerHTML=(r.services||[]).map(s=>`<div class="card service"><h2>${esc(s.name)}</h2><div class="${s.ok?'ok':'bad'}"><b>${s.ok?'ONLINE':'PROBLEM'}</b> · HTTP ${s.status||'–'} · ${s.latency_ms} ms</div><p><a href="${esc(s.public_url)}" target="_blank" rel="noopener">Oberfläche öffnen</a></p><div class="detail">${esc(JSON.stringify(s.detail||s.error||{},null,2))}</div></div>`).join('')}catch(e){services.innerHTML=`<div class="card bad">Control-Status nicht verfügbar: ${esc(e.message)}</div>`}}
++async function load(){try{const [c,r]=await Promise.all([fetch('/api/config',{cache:'no-store'}).then(x=>x.json()),fetch('/api/status',{cache:'no-store'}).then(x=>x.json())]);mode.textContent=c.vector_backend;searchk.textContent=c.neuroforge_search_k;fail.textContent=c.neuroforge_fail_open==='true'?'fail-open':'fail-closed';controlled.textContent=c.controlled_learning==='true'?'ON':'OFF';outcome.textContent=c.outcome_learning==='true'?'ON':'OFF';research.textContent=(c.research_enabled==='true'?'ON':'OFF')+' / '+(c.searxng_enabled==='true'?'SearXNG':'kein SearXNG');autonomy.textContent=c.autonomy_enabled==='true'?'ON':'OFF';services.innerHTML=(r.services||[]).map(s=>`<div class="card service"><h2>${esc(s.name)}</h2><div class="${s.ok?'ok':'bad'}"><b>${s.ok?'ONLINE':'PROBLEM'}</b> · HTTP ${s.status||'–'} · ${s.latency_ms} ms</div><p><a href="${esc(s.public_url)}" target="_blank" rel="noopener">Oberfläche öffnen</a></p><div class="detail">${esc(JSON.stringify(s.detail||s.error||{},null,2))}</div></div>`).join('')}catch(e){services.innerHTML=`<div class="card bad">Control-Status nicht verfügbar: ${esc(e.message)}</div>`}}
+ load();setInterval(load,10000);
+ </script></body></html>
+diff -ruN '--exclude=MANIFEST.sha256' '--exclude=patches' '--exclude=*.zip' /mnt/data/glpi-neuroforge-mega-v1.1.0/services/control/main.go ./services/control/main.go
+--- /mnt/data/glpi-neuroforge-mega-v1.1.0/services/control/main.go	2026-08-25 15:57:42.000000000 +0000
++++ ./services/control/main.go	2026-08-25 19:06:34.198238052 +0000
+@@ -35,11 +35,16 @@
+ }
+ 
+ type server struct {
+-	http              *http.Client
+-	targets           []target
+-	vectorMode        string
+-	neuroforgeSearchK string
+-	failOpen          string
++	http               *http.Client
++	targets            []target
++	vectorMode         string
++	neuroforgeSearchK  string
++	failOpen           string
++	controlledLearning string
++	outcomeLearning    string
++	researchEnabled    string
++	searxngEnabled     string
++	autonomyEnabled    string
+ }
+ 
+ func env(k, d string) string {
+@@ -50,7 +55,7 @@
+ }
+ 
+ func main() {
+-	s := &server{http: &http.Client{Timeout: 4 * time.Second}, vectorMode: env("KNOWLEDGE_VECTOR_BACKEND", "dual"), neuroforgeSearchK: env("NEUROFORGE_SEARCH_K", "128"), failOpen: env("NEUROFORGE_FAIL_OPEN", "true")}
++	s := &server{http: &http.Client{Timeout: 4 * time.Second}, vectorMode: env("KNOWLEDGE_VECTOR_BACKEND", "dual"), neuroforgeSearchK: env("NEUROFORGE_SEARCH_K", "128"), failOpen: env("NEUROFORGE_FAIL_OPEN", "true"), controlledLearning: env("NEUROFORGE_CONTROLLED_LEARNING", "true"), outcomeLearning: env("OUTCOME_LEARNING_ENABLED", "true"), researchEnabled: env("NEUROFORGE_RESEARCH_ENABLED", "false"), searxngEnabled: env("NEUROFORGE_SEARXNG_ENABLED", "false"), autonomyEnabled: env("NEUROFORGE_AUTONOMY_ENABLED", "false")}
+ 	nfKey := strings.TrimSpace(os.Getenv("NEUROFORGE_API_KEY"))
+ 	if nfKey != "" {
+ 		nfKey = "Bearer " + nfKey
+@@ -91,7 +96,7 @@
+ }
+ 
+ func (s *server) handleConfig(w http.ResponseWriter, r *http.Request) {
+-	writeJSON(w, 200, map[string]any{"vector_backend": s.vectorMode, "neuroforge_search_k": s.neuroforgeSearchK, "neuroforge_fail_open": s.failOpen, "control_plane": "read-only", "policy_owner": "glpi-agent"})
++	writeJSON(w, 200, map[string]any{"vector_backend": s.vectorMode, "neuroforge_search_k": s.neuroforgeSearchK, "neuroforge_fail_open": s.failOpen, "controlled_learning": s.controlledLearning, "outcome_learning": s.outcomeLearning, "research_enabled": s.researchEnabled, "searxng_enabled": s.searxngEnabled, "autonomy_enabled": s.autonomyEnabled, "control_plane": "read-only", "policy_owner": "glpi-agent"})
+ }
+ 
+ func (s *server) handleStatus(w http.ResponseWriter, r *http.Request) {

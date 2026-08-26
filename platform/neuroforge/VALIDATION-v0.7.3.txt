@@ -1,0 +1,20 @@
+NeuroForge v0.7.3 validation
+
+PASS  go test ./...
+PASS  go vet ./...
+PASS  go test -race ./internal/provider ./internal/httpapi ./internal/brain
+PASS  provider regression: global http.Client timeout = 0
+PASS  provider regression: ResponseHeaderTimeout = 0 for long stream=false inference
+PASS  provider regression: explicit per-node request timeout still cancels
+PASS  Ollama body: num_ctx / num_predict / think / keep_alive sent correctly
+PASS  Dashboard JavaScript syntax
+PASS  OpenAPI 3.1 YAML parse; version 0.7.3; 60 paths
+PASS  App HTTP write_timeout_seconds=0 accepted/defaulted for new installs
+
+Operational note:
+- model inference is not force-terminated when request_timeout_seconds=0
+- caller disconnect/AbortController/server shutdown still cancel via context
+- TCP connect and provider health checks remain bounded
+PASS  clean source ZIP unpack + go test -p 1 ./... + go vet ./... + command builds
+PASS  Linux amd64 server/worker/bench are statically linked
+NOTE  one parallel clean-ZIP test run hit the pre-existing timing-sensitive automatic-election test; immediate serialized rerun passed. Provider/HTTP/runtime tests were unaffected.

@@ -1,0 +1,1848 @@
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/MIGRATION-SQAR-VECTOR-JOURNAL.md /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/MIGRATION-SQAR-VECTOR-JOURNAL.md
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/MIGRATION-SQAR-VECTOR-JOURNAL.md	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/MIGRATION-SQAR-VECTOR-JOURNAL.md	2026-08-25 15:46:00.000000000 +0000
+@@ -0,0 +1,75 @@
++# SQAR → NeuroForge: gezielte Vector-Journal-Migration
++
++## Entscheidung
++
++Der SQAR-PoC passt **nicht** sinnvoll als pauschale Kompressionsschicht über den gesamten NeuroForge-Storage.
++
++- `memory-segments/*.nfs` brauchen unabhängige Records, mmap und gezielten Random Access. Eine Archiv-/Chunk-Kompression über ganze Segmente würde diese Eigenschaften verschlechtern.
++- `state.json`, WAL und Cluster-Log sind Kontroll-/Durability-Pfade; zusätzliche adaptive Suche erhöht dort Latenz und Fehleroberfläche ohne klaren Nutzen.
++- `vector-journal.nfv` ist dagegen ein rebuildbarer, sequenziell gelesener Binär-Cache mit vielen gleichdimensionierten Float32-Vektoren. Genau dort kann die SQAR-Idee (2D-Anordnung, reversible Residuen, alternative Traversierung vor Entropie-Coding) Struktur sichtbar machen.
++
++Daher wurde nur der für diesen Datenpfad sinnvolle Teil migriert.
++
++## Was migriert wurde
++
++Neues Journalformat `NFVJ2`:
++
++1. Vektoren gleicher Dimension werden in Blöcke gruppiert.
++2. Ein Vektor entspricht einer Matrixzeile mit `dimension * 4` Bytes.
++3. Für ausreichend große Blöcke werden verglichen:
++   - roh,
++   - DEFLATE,
++   - SQAR-Spaltentraversierung + DEFLATE mit den Prädiktoren `none`, `top`, `xor2d`, `paeth`.
++4. Nur die kleinste Variante wird gespeichert.
++5. `min_savings_pct` verhindert Kompression, die den CPU-/Format-Aufwand nicht ausreichend verdient.
++6. Leser können Blöcke anderer Vektordimensionen überspringen, ohne sie zu dekomprimieren.
++
++Der vollständige SQAR-Detector/Recursive-Search wurde bewusst **nicht** übernommen. Für NeuroForge ist die Vektordimension bereits bekannt und liefert die relevante 2D-Geometrie ohne teure Width-/Boundary-Suche.
++
++## Rückwärtskompatibilität
++
++`NFVJ1` bleibt lesbar. Beim Öffnen wird ein V1-Journal best-effort in eine temporäre V2-Datei konvertiert und anschließend atomar ersetzt. Schlägt diese optionale Konvertierung fehl, bleibt V1 aktiv und unverändert.
++
++Das Vector Journal ist weiterhin kein Durability-Anker; die autoritativen Daten bleiben Memory-Segmente + WAL/Checkpoint.
++
++## Default-Konfiguration
++
++```json
++{
++  "storage": {
++    "vector_journal": {
++      "compression": "sqar-auto",
++      "block_vectors": 128,
++      "min_block_bytes": 65536,
++      "min_savings_pct": 0.01
++    }
++  }
++}
++```
++
++`compression` akzeptiert `sqar-auto` oder `off`.
++
++## Probe-Ergebnisse
++
++Vor der Integration wurden repräsentative NeuroForge-Memory-Records (JSON + Embeddings) mit dem SQAR-PoC getestet. Dort gewann die adaptive SQAR-Suche in den Proben **nicht** gegen normales DEFLATE; deshalb wurde dieser Pfad nicht migriert.
++
++Auf blockweise angeordneten 768-D-Float32-Vektoren zeigte die dimensionsbewusste Variante dagegen Potenzial. In synthetischen Proben lagen die zusätzlichen Einsparungen gegenüber DEFLATE je nach Struktur grob zwischen ~2 % und ~62 %. Der integrierte Round-trip-Test mit einem bewusst strukturierten 64×768-Vektorblock speichert 196,608 Byte Roh-Vektordaten als 69,337 Byte komprimierten Payload (~64.7 % Payload-Ersparnis gegenüber roh).
++
++Diese Zahlen sind **keine Aussage über reale Embedding-Modelle**. Die tatsächliche Wirkung hängt stark von deren Byte-/Dimensionskorrelation ab. Der Codec ist deshalb als Auswahlverfahren implementiert: ungeeignete Daten werden nicht zu einer größeren Darstellung gezwungen.
++
++## Validierung
++
++Ausgeführt auf dem migrierten Quellbaum:
++
++```text
++go test ./...                 PASS
++go vet ./...                  PASS
++go build ./cmd/server ./cmd/worker ./cmd/bench   PASS
++go test -race ./internal/store -run TestVectorJournal   PASS
++```
++
++Zusätzliche Tests decken ab:
++
++- bitgenauen NFVJ2/SQAR-Round-trip,
++- automatische NFVJ1 → NFVJ2-Migration,
++- Journal-Statistiken und Auswahl eines tatsächlich kleineren SQAR-Blocks.
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/README.md /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/README.md
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/README.md	2026-08-25 14:41:48.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/README.md	2026-08-25 15:46:04.000000000 +0000
+@@ -305,6 +305,25 @@
+ 
+ Die segmentierten Memory-Dateien sind Source of Truth für ausgelagerte Bodies/Vektoren. Disk-PQ ist ein abgeleiteter ANN-Index und kann neu gebaut werden, darf bei einer Disaster-Recovery-Sicherung aber gern mitgesichert werden, um Rebuild-Zeit zu sparen.
+ 
++`vector-journal.nfv` ist weiterhin ein rebuildbarer Beschleunigungs-Cache. Neue Journale verwenden `NFVJ2`: gleichdimensionale Vektoren werden blockweise gespeichert und ab 64 KiB automatisch mit einem SQAR-abgeleiteten 2D-Transform + DEFLATE verglichen. Nur eine tatsächlich kleinere Darstellung wird übernommen; kleine Blöcke bleiben roh. Bestehende `NFVJ1`-Dateien werden beim Öffnen atomar auf V2 migriert und bleiben bei einem fehlgeschlagenen Upgrade weiterhin lesbar.
++
++Relevante Storage-Konfiguration:
++
++```json
++{
++  "storage": {
++    "vector_journal": {
++      "compression": "sqar-auto",
++      "block_vectors": 128,
++      "min_block_bytes": 65536,
++      "min_savings_pct": 0.01
++    }
++  }
++}
++```
++
++Mit `compression: "off"` werden neue V2-Blöcke ohne Kompression geschrieben. Die Memory-Segmente selbst bleiben absichtlich unverändert, damit mmap und per-record Random Access nicht durch eine Ganzdatei-Kompression verschlechtert werden.
++
+ ## API-Auswahl
+ 
+ Application API (`Authorization: Bearer <APP_API_KEY>`):
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/cmd/server/main.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/cmd/server/main.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/cmd/server/main.go	2026-08-25 14:41:11.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/cmd/server/main.go	2026-08-25 15:58:16.000000000 +0000
+@@ -14,6 +14,7 @@
+ 	"time"
+ 
+ 	"neuroforge/internal/brain"
++	"neuroforge/internal/core"
+ 	"neuroforge/internal/cost"
+ 	"neuroforge/internal/httpapi"
+ 	"neuroforge/internal/provider"
+@@ -63,6 +64,26 @@
+ 		}
+ 	}
+ 
++	// Optional environment bootstrap for containerized mega-project deployments.
++	// Values are applied only when explicitly set, so admin-managed persisted
++	// routing remains authoritative otherwise.
++	if base := os.Getenv("NEUROFORGE_OLLAMA_URL"); base != "" {
++		cfg := s.Config()
++		if len(cfg.Ollama) == 0 {
++			cfg.Ollama = append(cfg.Ollama, core.OllamaServer{ID: "local", Name: "Shared Ollama", Enabled: true, Weight: 1})
++		}
++		cfg.Ollama[0].BaseURL = base
++		if model := os.Getenv("NEUROFORGE_OLLAMA_CHAT_MODEL"); model != "" {
++			cfg.Ollama[0].ChatModel = model
++		}
++		if model := os.Getenv("NEUROFORGE_OLLAMA_EMBEDDING_MODEL"); model != "" {
++			cfg.Ollama[0].EmbeddingModel = model
++		}
++		if err := s.UpdateConfig(cfg); err != nil {
++			return fmt.Errorf("apply NeuroForge Ollama environment bootstrap: %w", err)
++		}
++	}
++
+ 	r := provider.NewRouter(s)
+ 	c := cost.New(s)
+ 	b := brain.New(s, r, c)
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/core/types.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/core/types.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/core/types.go	2026-08-25 14:32:57.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/core/types.go	2026-08-25 15:06:39.000000000 +0000
+@@ -272,6 +272,13 @@
+ 			MaxBytes int64 `json:"max_bytes"`
+ 		} `json:"page_cache"`
+ 
++		VectorJournal struct {
++			Compression   string  `json:"compression"`
++			BlockVectors  int     `json:"block_vectors"`
++			MinBlockBytes int     `json:"min_block_bytes"`
++			MinSavingsPct float64 `json:"min_savings_pct"`
++		} `json:"vector_journal"`
++
+ 		Tiering struct {
+ 			Enabled         bool  `json:"enabled"`
+ 			HotMaxBytes     int64 `json:"hot_max_bytes"`
+@@ -756,6 +763,10 @@
+ 	c.Storage.IndexSegments.MergeAtDeltas = 8
+ 	c.Storage.PageCache.Enabled = true
+ 	c.Storage.PageCache.MaxBytes = 256 << 20
++	c.Storage.VectorJournal.Compression = "sqar-auto"
++	c.Storage.VectorJournal.BlockVectors = 128
++	c.Storage.VectorJournal.MinBlockBytes = 64 << 10
++	c.Storage.VectorJournal.MinSavingsPct = 0.01
+ 	c.Storage.Tiering.Enabled = true
+ 	c.Storage.Tiering.HotMaxBytes = 512 << 20
+ 	c.Storage.Tiering.HotAgeMinutes = 60
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/httpapi/httpapi.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/httpapi/httpapi.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/httpapi/httpapi.go	2026-08-25 14:35:55.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/httpapi/httpapi.go	2026-08-25 15:50:39.000000000 +0000
+@@ -79,6 +79,10 @@
+ 	s.mux.Handle("GET /api/v1/sources", s.appAuth(http.HandlerFunc(s.sourcesList)))
+ 	s.mux.Handle("GET /api/v1/sources/{id}", s.appAuth(http.HandlerFunc(s.sourceGet)))
+ 	s.mux.Handle("POST /api/v1/research", s.appAuth(http.HandlerFunc(s.researchSearch)))
++	s.mux.Handle("POST /api/v1/integrations/knowledge/upsert", s.appAuth(http.HandlerFunc(s.integrationKnowledgeUpsert)))
++	s.mux.Handle("DELETE /api/v1/integrations/knowledge/{namespace}/{document_id}", s.appAuth(http.HandlerFunc(s.integrationKnowledgeDelete)))
++	s.mux.Handle("POST /api/v1/integrations/knowledge/search", s.appAuth(http.HandlerFunc(s.integrationKnowledgeSearch)))
++	s.mux.Handle("POST /api/v1/integrations/events", s.appAuth(http.HandlerFunc(s.integrationEvent)))
+ 
+ 	s.mux.Handle("POST /internal/v1/cluster/request-vote", s.clusterAuth(http.HandlerFunc(s.clusterRequestVote)))
+ 	s.mux.Handle("POST /internal/v1/cluster/heartbeat", s.clusterAuth(http.HandlerFunc(s.clusterHeartbeat)))
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/httpapi/integration.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/httpapi/integration.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/httpapi/integration.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/httpapi/integration.go	2026-08-25 16:01:37.000000000 +0000
+@@ -0,0 +1,255 @@
++package httpapi
++
++import (
++	"crypto/sha256"
++	"encoding/hex"
++	"errors"
++	"fmt"
++	"net/http"
++	"sort"
++	"strings"
++
++	"neuroforge/internal/core"
++)
++
++type integrationKnowledgeChunk struct {
++	Index       int       `json:"index"`
++	Text        string    `json:"text"`
++	Vector      []float32 `json:"vector"`
++	ContentHash string    `json:"content_hash,omitempty"`
++}
++
++type integrationKnowledgeUpsert struct {
++	Namespace  string                      `json:"namespace"`
++	DocumentID string                      `json:"document_id"`
++	Title      string                      `json:"title,omitempty"`
++	SourceURI  string                      `json:"source_uri,omitempty"`
++	Tags       []string                    `json:"tags,omitempty"`
++	Confidence float64                     `json:"confidence,omitempty"`
++	Chunks     []integrationKnowledgeChunk `json:"chunks"`
++}
++
++type integrationKnowledgeSearch struct {
++	Namespace     string    `json:"namespace"`
++	Vector        []float32 `json:"vector"`
++	K             int       `json:"k"`
++	MinSimilarity *float64  `json:"min_similarity,omitempty"`
++}
++
++type integrationEventRequest struct {
++	Type    string `json:"type"`
++	Source  string `json:"source"`
++	Message string `json:"message,omitempty"`
++	Query   string `json:"query,omitempty"`
++	Hits    []struct {
++		ID    string  `json:"id"`
++		Score float64 `json:"score,omitempty"`
++	} `json:"hits,omitempty"`
++	Metadata map[string]any `json:"metadata,omitempty"`
++}
++
++func integrationSource(namespace string) string {
++	return "integration:" + strings.ToLower(strings.TrimSpace(namespace))
++}
++
++func integrationMemoryID(namespace, documentID string, chunk int) string {
++	sum := sha256.Sum256([]byte(strings.ToLower(strings.TrimSpace(namespace)) + "\x00" + strings.TrimSpace(documentID) + fmt.Sprintf("\x00chunk\x00%d", chunk)))
++	return "ik_" + hex.EncodeToString(sum[:16])
++}
++
++func validIntegrationName(v string) bool {
++	v = strings.TrimSpace(v)
++	if v == "" || len(v) > 128 {
++		return false
++	}
++	for _, r := range v {
++		if !(r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_' || r == '.' || r == ':') {
++			return false
++		}
++	}
++	return true
++}
++
++func (s *Server) integrationKnowledgeUpsert(w http.ResponseWriter, r *http.Request) {
++	var q integrationKnowledgeUpsert
++	if err := decode(r, &q); err != nil {
++		s.err(w, http.StatusBadRequest, err)
++		return
++	}
++	q.Namespace = strings.TrimSpace(q.Namespace)
++	q.DocumentID = strings.TrimSpace(q.DocumentID)
++	if !validIntegrationName(q.Namespace) || !validIntegrationName(q.DocumentID) {
++		s.err(w, http.StatusBadRequest, errors.New("namespace/document_id contains unsupported characters"))
++		return
++	}
++	if len(q.Chunks) == 0 || len(q.Chunks) > 512 {
++		s.err(w, http.StatusBadRequest, errors.New("chunks must contain 1..512 entries"))
++		return
++	}
++	source := integrationSource(q.Namespace)
++	confidence := q.Confidence
++	if confidence <= 0 {
++		confidence = 1
++	}
++	if confidence > 1 {
++		confidence = 1
++	}
++
++	// Snapshot once so document replacement is O(total memories + chunks), not
++	// O(chunks * total memories), and batch deletes rebuild ANN indexes once.
++	existing := make(map[string]core.Memory)
++	for _, m := range s.store.MemoriesSnapshot() {
++		if m.Provenance.Source == source && m.Provenance.SourceMemoryID == q.DocumentID && m.Kind == "knowledge.chunk" {
++			existing[m.ID] = m
++		}
++	}
++
++	desired := make(map[string]bool, len(q.Chunks))
++	createItems := make([]core.Memory, 0, len(q.Chunks))
++	deleteIDs := make([]string, 0, len(existing))
++	created, updated, unchanged := 0, 0, 0
++	seenIndexes := make(map[int]struct{}, len(q.Chunks))
++	sort.Slice(q.Chunks, func(i, j int) bool { return q.Chunks[i].Index < q.Chunks[j].Index })
++	for _, chunk := range q.Chunks {
++		if chunk.Index < 0 || strings.TrimSpace(chunk.Text) == "" || len(chunk.Vector) == 0 {
++			s.err(w, http.StatusBadRequest, errors.New("each chunk requires non-negative index, text and vector"))
++			return
++		}
++		if _, duplicate := seenIndexes[chunk.Index]; duplicate {
++			s.err(w, http.StatusBadRequest, fmt.Errorf("duplicate chunk index %d", chunk.Index))
++			return
++		}
++		seenIndexes[chunk.Index] = struct{}{}
++		id := integrationMemoryID(q.Namespace, q.DocumentID, chunk.Index)
++		desired[id] = true
++		current, exists := existing[id]
++		if exists && current.Provenance.ContentHash == chunk.ContentHash && current.Provenance.SourceMemoryID == q.DocumentID && len(current.Vector) == len(chunk.Vector) {
++			unchanged++
++			continue
++		}
++		if exists {
++			deleteIDs = append(deleteIDs, id)
++			updated++
++		} else {
++			created++
++		}
++		tags := append([]string(nil), q.Tags...)
++		tags = append(tags, "integration", "namespace:"+q.Namespace, "document:"+q.DocumentID, "record:chunk")
++		createItems = append(createItems, core.Memory{
++			ID: id, Kind: "knowledge.chunk", MemoryType: core.MemorySemantic,
++			Text: chunk.Text, Vector: append([]float32(nil), chunk.Vector...), Tags: tags,
++			Salience: 1, Confidence: confidence,
++			Provenance: core.MemoryProvenance{
++				Source: source, Actor: "knowledge-sync", SourceMemoryID: q.DocumentID,
++				SourceURI: strings.TrimSpace(q.SourceURI), SourceTitle: strings.TrimSpace(q.Title),
++				ChunkIndex: chunk.Index, ChunkCount: len(q.Chunks), ContentHash: chunk.ContentHash,
++			},
++		})
++	}
++	deleted := 0
++	for id := range existing {
++		if !desired[id] {
++			deleteIDs = append(deleteIDs, id)
++			deleted++
++		}
++	}
++	if err := s.store.DeleteMemoriesBatch(deleteIDs); err != nil {
++		s.err(w, http.StatusInternalServerError, err)
++		return
++	}
++	if err := s.store.AddMemoriesBatch(createItems); err != nil {
++		s.err(w, http.StatusInternalServerError, err)
++		return
++	}
++	_ = s.store.AddKnowledgeEvent(core.KnowledgeEvent{
++		Type: "integration.knowledge.synced", Summary: "External knowledge document synchronized", Actor: q.Namespace,
++		Metadata: map[string]string{"namespace": q.Namespace, "document_id": q.DocumentID, "created": fmt.Sprint(created), "updated": fmt.Sprint(updated), "deleted": fmt.Sprint(deleted), "unchanged": fmt.Sprint(unchanged)},
++	})
++	s.json(w, http.StatusOK, map[string]any{"ok": true, "document_id": q.DocumentID, "created": created, "updated": updated, "deleted": deleted, "unchanged": unchanged})
++}
++
++func (s *Server) integrationKnowledgeDelete(w http.ResponseWriter, r *http.Request) {
++	namespace := strings.TrimSpace(r.PathValue("namespace"))
++	documentID := strings.TrimSpace(r.PathValue("document_id"))
++	if !validIntegrationName(namespace) || !validIntegrationName(documentID) {
++		s.err(w, http.StatusBadRequest, errors.New("invalid namespace or document id"))
++		return
++	}
++	source := integrationSource(namespace)
++	ids := make([]string, 0)
++	for _, m := range s.store.MemoriesSnapshot() {
++		if m.Provenance.Source == source && m.Provenance.SourceMemoryID == documentID && m.Kind == "knowledge.chunk" {
++			ids = append(ids, m.ID)
++		}
++	}
++	if err := s.store.DeleteMemoriesBatch(ids); err != nil {
++		s.err(w, http.StatusInternalServerError, err)
++		return
++	}
++	deleted := len(ids)
++	_ = s.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "integration.knowledge.deleted", Summary: "External knowledge document removed", Actor: namespace, Metadata: map[string]string{"namespace": namespace, "document_id": documentID, "deleted": fmt.Sprint(deleted)}})
++	s.json(w, http.StatusOK, map[string]any{"ok": true, "deleted": deleted})
++}
++
++func (s *Server) integrationKnowledgeSearch(w http.ResponseWriter, r *http.Request) {
++	var q integrationKnowledgeSearch
++	if err := decode(r, &q); err != nil {
++		s.err(w, http.StatusBadRequest, err)
++		return
++	}
++	q.Namespace = strings.TrimSpace(q.Namespace)
++	if !validIntegrationName(q.Namespace) || len(q.Vector) == 0 {
++		s.err(w, http.StatusBadRequest, errors.New("namespace and vector are required"))
++		return
++	}
++	if q.K <= 0 {
++		q.K = 128
++	}
++	if q.K > 500 {
++		q.K = 500
++	}
++	min := -1.0
++	if q.MinSimilarity != nil {
++		min = *q.MinSimilarity
++	}
++	hits := s.store.SearchVectorByProvenanceSource(q.Vector, q.K, min, 0, integrationSource(q.Namespace))
++	s.json(w, http.StatusOK, hits)
++}
++
++func (s *Server) integrationEvent(w http.ResponseWriter, r *http.Request) {
++	var q integrationEventRequest
++	if err := decode(r, &q); err != nil {
++		s.err(w, http.StatusBadRequest, err)
++		return
++	}
++	q.Type = strings.TrimSpace(q.Type)
++	q.Source = strings.TrimSpace(q.Source)
++	if q.Type == "" || q.Source == "" {
++		s.err(w, http.StatusBadRequest, errors.New("type and source are required"))
++		return
++	}
++	meta := map[string]string{}
++	for k, v := range q.Metadata {
++		if strings.TrimSpace(k) != "" {
++			meta[k] = fmt.Sprint(v)
++		}
++	}
++	if strings.TrimSpace(q.Query) != "" {
++		meta["query"] = q.Query
++	}
++	if len(q.Hits) > 0 {
++		meta["hit_count"] = fmt.Sprint(len(q.Hits))
++		limit := len(q.Hits)
++		if limit > 8 {
++			limit = 8
++		}
++		for i := 0; i < limit; i++ {
++			meta[fmt.Sprintf("hit_%d", i+1)] = fmt.Sprintf("%s:%.4f", q.Hits[i].ID, q.Hits[i].Score)
++		}
++	}
++	if err := s.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: q.Type, Summary: strings.TrimSpace(q.Message), Actor: q.Source, Reason: "integration event", Metadata: meta}); err != nil {
++		s.err(w, http.StatusInternalServerError, err)
++		return
++	}
++	s.json(w, http.StatusAccepted, map[string]bool{"ok": true})
++}
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/httpapi/integration_api_test.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/httpapi/integration_api_test.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/httpapi/integration_api_test.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/httpapi/integration_api_test.go	2026-08-25 16:03:05.000000000 +0000
+@@ -0,0 +1,109 @@
++package httpapi
++
++import (
++	"encoding/json"
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"testing"
++)
++
++func integrationRequest(t *testing.T, s *Server, method, path, token, body string) *httptest.ResponseRecorder {
++	t.Helper()
++	req := httptest.NewRequest(method, path, strings.NewReader(body))
++	if body != "" {
++		req.Header.Set("Content-Type", "application/json")
++	}
++	if token != "" {
++		req.Header.Set("Authorization", "Bearer "+token)
++	}
++	rr := httptest.NewRecorder()
++	s.Handler().ServeHTTP(rr, req)
++	return rr
++}
++
++func TestIntegrationKnowledgeLifecycleAndNamespaceIsolation(t *testing.T) {
++	s, _ := newMetricsTestServer(t)
++	key := s.store.Secrets().AppAPIKey
++
++	unauth := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/upsert", "", `{"namespace":"agent","document_id":"KB-1","chunks":[{"index":0,"text":"vpn","vector":[1,0],"content_hash":"a"}]}`)
++	if unauth.Code != http.StatusUnauthorized {
++		t.Fatalf("unauth status=%d body=%s", unauth.Code, unauth.Body.String())
++	}
++
++	body := `{"namespace":"agent","document_id":"KB-1","title":"VPN","chunks":[{"index":0,"text":"vpn gateway","vector":[1,0],"content_hash":"a"},{"index":1,"text":"reset token","vector":[0,1],"content_hash":"b"}]}`
++	rr := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/upsert", key, body)
++	if rr.Code != http.StatusOK {
++		t.Fatalf("upsert status=%d body=%s", rr.Code, rr.Body.String())
++	}
++	var first map[string]any
++	if err := json.Unmarshal(rr.Body.Bytes(), &first); err != nil {
++		t.Fatal(err)
++	}
++	if first["created"] != float64(2) || first["updated"] != float64(0) {
++		t.Fatalf("unexpected first upsert: %#v", first)
++	}
++
++	// A second namespace with the same vector must never leak into agent search.
++	other := `{"namespace":"other","document_id":"KB-X","chunks":[{"index":0,"text":"other vpn","vector":[1,0],"content_hash":"x"}]}`
++	rr = integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/upsert", key, other)
++	if rr.Code != http.StatusOK {
++		t.Fatalf("other upsert status=%d body=%s", rr.Code, rr.Body.String())
++	}
++
++	search := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/search", key, `{"namespace":"agent","vector":[1,0],"k":10}`)
++	if search.Code != http.StatusOK {
++		t.Fatalf("search status=%d body=%s", search.Code, search.Body.String())
++	}
++	var hits []struct {
++		Memory struct {
++			Text       string `json:"text"`
++			Provenance struct {
++				Source         string `json:"source"`
++				SourceMemoryID string `json:"source_memory_id"`
++			} `json:"provenance"`
++		} `json:"memory"`
++	}
++	if err := json.Unmarshal(search.Body.Bytes(), &hits); err != nil {
++		t.Fatal(err)
++	}
++	if len(hits) == 0 || hits[0].Memory.Provenance.SourceMemoryID != "KB-1" {
++		t.Fatalf("unexpected scoped hits: %+v", hits)
++	}
++	for _, h := range hits {
++		if h.Memory.Provenance.Source != "integration:agent" || h.Memory.Provenance.SourceMemoryID == "KB-X" {
++			t.Fatalf("namespace leak: %+v", h)
++		}
++	}
++
++	// Replace both existing chunks in one request and remove chunk 1.
++	update := `{"namespace":"agent","document_id":"KB-1","title":"VPN updated","chunks":[{"index":0,"text":"vpn gateway updated","vector":[1,0],"content_hash":"a2"}]}`
++	rr = integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/upsert", key, update)
++	if rr.Code != http.StatusOK {
++		t.Fatalf("update status=%d body=%s", rr.Code, rr.Body.String())
++	}
++	var changed map[string]any
++	if err := json.Unmarshal(rr.Body.Bytes(), &changed); err != nil {
++		t.Fatal(err)
++	}
++	if changed["updated"] != float64(1) || changed["deleted"] != float64(1) {
++		t.Fatalf("unexpected replacement counts: %#v", changed)
++	}
++
++	event := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/events", key, `{"type":"knowledge.search","source":"agent","query":"vpn","message":"search completed","hits":[{"id":"KB-1","score":0.98}]}`)
++	if event.Code != http.StatusAccepted {
++		t.Fatalf("event status=%d body=%s", event.Code, event.Body.String())
++	}
++
++	deleted := integrationRequest(t, s, http.MethodDelete, "/api/v1/integrations/knowledge/agent/KB-1", key, "")
++	if deleted.Code != http.StatusOK || !strings.Contains(deleted.Body.String(), `"deleted":1`) {
++		t.Fatalf("delete status=%d body=%s", deleted.Code, deleted.Body.String())
++	}
++	search = integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/search", key, `{"namespace":"agent","vector":[1,0],"k":10}`)
++	if search.Code != http.StatusOK {
++		t.Fatalf("post-delete search status=%d body=%s", search.Code, search.Body.String())
++	}
++	if strings.Contains(search.Body.String(), "KB-1") {
++		t.Fatalf("deleted document still searchable: %s", search.Body.String())
++	}
++}
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/batch.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/batch.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/batch.go	2026-08-17 18:21:25.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/batch.go	2026-08-25 16:01:12.000000000 +0000
+@@ -91,3 +91,47 @@
+ 	}
+ 	return s.commitLocked("memory.upsert", affected)
+ }
++
++// DeleteMemoriesBatch removes a bounded set of memories as one store mutation
++// and rebuilds the in-memory ANN indexes only once. This is intentionally used
++// by integration sync paths where a document update can replace many chunks.
++func (s *Store) DeleteMemoriesBatch(ids []string) error {
++	if len(ids) == 0 {
++		return nil
++	}
++	if len(ids) > 4096 {
++		return fmt.Errorf("batch too large: %d > 4096", len(ids))
++	}
++	s.mu.Lock()
++	defer s.mu.Unlock()
++	seen := make(map[string]struct{}, len(ids))
++	removed := make([]string, 0, len(ids))
++	for _, id := range ids {
++		if id == "" {
++			continue
++		}
++		if _, duplicate := seen[id]; duplicate {
++			continue
++		}
++		seen[id] = struct{}{}
++		if _, exists := s.state.Memories[id]; !exists {
++			continue
++		}
++		delete(s.state.Memories, id)
++		s.untrackHotMemoryLocked(id)
++		if s.pageCache != nil {
++			s.pageCache.Delete(id)
++		}
++		for key, syn := range s.state.Synapses {
++			if syn.A == id || syn.B == id {
++				delete(s.state.Synapses, key)
++			}
++		}
++		removed = append(removed, id)
++	}
++	if len(removed) == 0 {
++		return nil
++	}
++	s.rebuildIndexesLocked()
++	return s.commitLocked("memory.delete", removed)
++}
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/sqar_vector.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/sqar_vector.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/sqar_vector.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/sqar_vector.go	2026-08-25 15:07:26.000000000 +0000
+@@ -0,0 +1,219 @@
++package store
++
++import (
++	"bytes"
++	"compress/flate"
++	"errors"
++	"fmt"
++	"io"
++)
++
++// The vector-journal codec is a focused migration of the useful part of the
++// SQAR PoC: expose 2D row/column structure to DEFLATE, but keep the search
++// bounded because this path sits on ingestion and index-rebuild hot paths.
++//
++// Vectors are laid out as rows of dim*4 bytes. We compare plain DEFLATE with a
++// column traversal of reversible residuals and keep only a net-positive result.
++type vectorCodecMethod uint8
++
++const (
++	vectorCodecRaw vectorCodecMethod = iota
++	vectorCodecDeflate
++	vectorCodecSQARColumn
++)
++
++type vectorPredictor uint8
++
++const (
++	vectorPredictorNone vectorPredictor = iota
++	vectorPredictorTop
++	vectorPredictorXOR2D
++	vectorPredictorPaeth
++)
++
++type encodedVectorPayload struct {
++	method    vectorCodecMethod
++	predictor vectorPredictor
++	data      []byte
++}
++
++func deflateVectorBytes(src []byte) ([]byte, error) {
++	var b bytes.Buffer
++	w, err := flate.NewWriter(&b, 6)
++	if err != nil {
++		return nil, err
++	}
++	if _, err := w.Write(src); err != nil {
++		_ = w.Close()
++		return nil, err
++	}
++	if err := w.Close(); err != nil {
++		return nil, err
++	}
++	return b.Bytes(), nil
++}
++
++func inflateVectorBytes(src []byte) ([]byte, error) {
++	r := flate.NewReader(bytes.NewReader(src))
++	defer r.Close()
++	return io.ReadAll(r)
++}
++
++func encodeVectorPayload(src []byte, width, rows int, enableSQAR bool, minSavingsPct float64) (encodedVectorPayload, error) {
++	if width <= 0 || rows <= 0 || len(src) != width*rows {
++		return encodedVectorPayload{}, errors.New("invalid vector block geometry")
++	}
++	best := encodedVectorPayload{method: vectorCodecRaw, data: append([]byte(nil), src...)}
++	z, err := deflateVectorBytes(src)
++	if err != nil {
++		return encodedVectorPayload{}, err
++	}
++	if len(z) < len(best.data) {
++		best = encodedVectorPayload{method: vectorCodecDeflate, data: z}
++	}
++	if enableSQAR {
++		for _, p := range []vectorPredictor{vectorPredictorNone, vectorPredictorTop, vectorPredictorXOR2D, vectorPredictorPaeth} {
++			residual := makeVectorResidual(src, width, rows, p)
++			column := serializeVectorColumns(residual, width, rows)
++			candidate, err := deflateVectorBytes(column)
++			if err != nil {
++				return encodedVectorPayload{}, err
++			}
++			if len(candidate) < len(best.data) {
++				best = encodedVectorPayload{method: vectorCodecSQARColumn, predictor: p, data: candidate}
++			}
++		}
++	}
++	// Compression is optional and must earn its CPU/format cost. Compare against
++	// the original vector payload, not just the DEFLATE baseline.
++	if best.method != vectorCodecRaw && minSavingsPct > 0 {
++		saved := float64(len(src)-len(best.data)) / float64(len(src))
++		if saved < minSavingsPct {
++			return encodedVectorPayload{method: vectorCodecRaw, data: append([]byte(nil), src...)}, nil
++		}
++	}
++	return best, nil
++}
++
++func decodeVectorPayload(enc encodedVectorPayload, width, rows int) ([]byte, error) {
++	want := width * rows
++	switch enc.method {
++	case vectorCodecRaw:
++		if len(enc.data) != want {
++			return nil, fmt.Errorf("raw vector block length=%d want=%d", len(enc.data), want)
++		}
++		return append([]byte(nil), enc.data...), nil
++	case vectorCodecDeflate:
++		out, err := inflateVectorBytes(enc.data)
++		if err != nil {
++			return nil, err
++		}
++		if len(out) != want {
++			return nil, fmt.Errorf("deflated vector block length=%d want=%d", len(out), want)
++		}
++		return out, nil
++	case vectorCodecSQARColumn:
++		column, err := inflateVectorBytes(enc.data)
++		if err != nil {
++			return nil, err
++		}
++		if len(column) != want {
++			return nil, fmt.Errorf("SQAR column length=%d want=%d", len(column), want)
++		}
++		residual := deserializeVectorColumns(column, width, rows)
++		return restoreVectorResidual(residual, width, rows, enc.predictor), nil
++	default:
++		return nil, fmt.Errorf("unknown vector codec method %d", enc.method)
++	}
++}
++
++func makeVectorResidual(src []byte, width, rows int, p vectorPredictor) []byte {
++	out := make([]byte, len(src))
++	for r := 0; r < rows; r++ {
++		for c := 0; c < width; c++ {
++			i := r*width + c
++			out[i] = src[i] ^ vectorPredictorValue(src, width, r, c, p)
++		}
++	}
++	return out
++}
++
++func restoreVectorResidual(res []byte, width, rows int, p vectorPredictor) []byte {
++	out := make([]byte, len(res))
++	for r := 0; r < rows; r++ {
++		for c := 0; c < width; c++ {
++			i := r*width + c
++			out[i] = res[i] ^ vectorPredictorValue(out, width, r, c, p)
++		}
++	}
++	return out
++}
++
++func vectorPredictorValue(buf []byte, width, r, c int, p vectorPredictor) byte {
++	var left, top, topLeft byte
++	if c > 0 {
++		left = buf[r*width+c-1]
++	}
++	if r > 0 {
++		top = buf[(r-1)*width+c]
++		if c > 0 {
++			topLeft = buf[(r-1)*width+c-1]
++		}
++	}
++	switch p {
++	case vectorPredictorNone:
++		return 0
++	case vectorPredictorTop:
++		return top
++	case vectorPredictorXOR2D:
++		return left ^ top ^ topLeft
++	case vectorPredictorPaeth:
++		return paethByte(left, top, topLeft)
++	default:
++		return 0
++	}
++}
++
++func paethByte(a, b, c byte) byte {
++	ai, bi, ci := int(a), int(b), int(c)
++	p := ai + bi - ci
++	pa, pb, pc := absIntStore(p-ai), absIntStore(p-bi), absIntStore(p-ci)
++	if pa <= pb && pa <= pc {
++		return a
++	}
++	if pb <= pc {
++		return b
++	}
++	return c
++}
++
++func absIntStore(v int) int {
++	if v < 0 {
++		return -v
++	}
++	return v
++}
++
++func serializeVectorColumns(src []byte, width, rows int) []byte {
++	out := make([]byte, len(src))
++	k := 0
++	for c := 0; c < width; c++ {
++		for r := 0; r < rows; r++ {
++			out[k] = src[r*width+c]
++			k++
++		}
++	}
++	return out
++}
++
++func deserializeVectorColumns(src []byte, width, rows int) []byte {
++	out := make([]byte, len(src))
++	k := 0
++	for c := 0; c < width; c++ {
++		for r := 0; r < rows; r++ {
++			out[r*width+c] = src[k]
++			k++
++		}
++	}
++	return out
++}
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/store.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/store.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/store.go	2026-08-25 14:39:11.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/store.go	2026-08-25 15:50:39.000000000 +0000
+@@ -82,10 +82,10 @@
+ 	// disk ANN builder. Corruption must never prevent the authoritative memory
+ 	// store from opening; move a bad cache aside and recreate it empty.
+ 	vjPath := filepath.Join(dir, "vector-journal.nfv")
+-	vj, vjErr := openVectorJournal(vjPath)
++	vj, vjErr := openVectorJournal(vjPath, vectorJournalOptionsFromConfig(s.state.Config))
+ 	if vjErr != nil {
+ 		_ = os.Rename(vjPath, vjPath+".corrupt-"+fmt.Sprint(time.Now().UnixNano()))
+-		vj, vjErr = openVectorJournal(vjPath)
++		vj, vjErr = openVectorJournal(vjPath, vectorJournalOptionsFromConfig(s.state.Config))
+ 	}
+ 	if vjErr == nil {
+ 		s.vectorJournal = vj
+@@ -345,6 +345,19 @@
+ 		if c.Storage.PageCache.MaxBytes == 0 {
+ 			c.Storage.PageCache = d.Storage.PageCache
+ 		}
++		if strings.TrimSpace(c.Storage.VectorJournal.Compression) == "" {
++			c.Storage.VectorJournal = d.Storage.VectorJournal
++		} else {
++			if c.Storage.VectorJournal.BlockVectors == 0 {
++				c.Storage.VectorJournal.BlockVectors = d.Storage.VectorJournal.BlockVectors
++			}
++			if c.Storage.VectorJournal.MinBlockBytes == 0 {
++				c.Storage.VectorJournal.MinBlockBytes = d.Storage.VectorJournal.MinBlockBytes
++			}
++			if c.Storage.VectorJournal.MinSavingsPct == 0 {
++				c.Storage.VectorJournal.MinSavingsPct = d.Storage.VectorJournal.MinSavingsPct
++			}
++		}
+ 		if c.Storage.Tiering.HotMaxBytes == 0 {
+ 			c.Storage.Tiering = d.Storage.Tiering
+ 		}
+@@ -620,6 +633,9 @@
+ 		s.clusterLogMu.Unlock()
+ 	}
+ 	s.state.Config = c
++	if s.vectorJournal != nil {
++		s.vectorJournal.Configure(vectorJournalOptionsFromConfig(c))
++	}
+ 	if indexMode(c) == "hnsw" {
+ 		s.closeDiskANNLocked()
+ 		s.diskANNRevision = 0
+@@ -1511,6 +1527,18 @@
+ 	if c.Storage.PageCache.Enabled && c.Storage.PageCache.MaxBytes < 1<<20 {
+ 		return errors.New("storage.page_cache.max_bytes must be at least 1 MiB")
+ 	}
++	if c.Storage.VectorJournal.Compression != "off" && c.Storage.VectorJournal.Compression != "sqar-auto" {
++		return errors.New("storage.vector_journal.compression must be off or sqar-auto")
++	}
++	if c.Storage.VectorJournal.BlockVectors < 1 || c.Storage.VectorJournal.BlockVectors > 4096 {
++		return errors.New("storage.vector_journal.block_vectors must be 1..4096")
++	}
++	if c.Storage.VectorJournal.MinBlockBytes < 0 || c.Storage.VectorJournal.MinBlockBytes > 128<<20 {
++		return errors.New("storage.vector_journal.min_block_bytes must be 0..128 MiB")
++	}
++	if c.Storage.VectorJournal.MinSavingsPct < 0 || c.Storage.VectorJournal.MinSavingsPct > 0.5 {
++		return errors.New("storage.vector_journal.min_savings_pct must be 0..0.5")
++	}
+ 	if c.Storage.Tiering.Enabled && (c.Storage.Tiering.HotMaxBytes < 1<<20 || c.Storage.Tiering.HotAgeMinutes < 1 || c.Storage.Tiering.IntervalMinutes < 1) {
+ 		return errors.New("invalid storage.tiering configuration")
+ 	}
+@@ -1689,3 +1717,68 @@
+ 	}
+ 	return nil
+ }
++
++// SearchVectorByProvenanceSource performs an ANN-first lookup constrained to one
++// provenance source. It oversamples the global ANN result and falls back to an
++// exact namespace scan only when ANN did not produce enough matching items.
++// This gives integrations deterministic namespace isolation without requiring
++// a separate index per consumer.
++func (s *Store) SearchVectorByProvenanceSource(q []float32, k int, min float64, graphBonus float64, source string) []SearchHit {
++	s.mu.RLock()
++	defer s.mu.RUnlock()
++	if k <= 0 || len(q) == 0 || strings.TrimSpace(source) == "" {
++		return nil
++	}
++	want := k * 32
++	if want < 256 {
++		want = 256
++	}
++	if want > 5000 {
++		want = 5000
++	}
++	candidates := s.searchVectorLocked(q, want, min, graphBonus)
++	out := make([]SearchHit, 0, k)
++	seen := map[string]bool{}
++	for _, h := range candidates {
++		if h.Memory.Provenance.Source != source {
++			continue
++		}
++		out = append(out, h)
++		seen[h.Memory.ID] = true
++		if len(out) >= k {
++			return out
++		}
++	}
++
++	cfg := s.state.Config
++	for id, meta := range s.state.Memories {
++		if seen[id] || meta == nil || meta.Provenance.Source != source || !memorySearchable(meta) {
++			continue
++		}
++		m, ok := s.fullMemoryForReadLocked(id)
++		if !ok || len(m.Vector) != len(q) {
++			continue
++		}
++		sim := vector.Cosine(q, m.Vector)
++		if sim < min {
++			continue
++		}
++		typeWeight := 1.0
++		if w, ok := cfg.Brain.TypeWeights[m.MemoryType]; ok && w > 0 {
++			typeWeight = w
++		}
++		confidence := m.Confidence
++		if confidence <= 0 {
++			confidence = 1
++		}
++		salienceFactor := 0.75 + 0.25*m.Salience
++		confidenceFactor := 0.85 + 0.15*confidence
++		baseScore := sim * salienceFactor * typeWeight * confidenceFactor
++		out = append(out, SearchHit{Memory: cloneMemory(m), Similarity: sim, BaseScore: baseScore, Score: baseScore, TypeWeight: typeWeight, SalienceFactor: salienceFactor, ConfidenceFactor: confidenceFactor, CandidateSource: "namespace-scan"})
++	}
++	sort.Slice(out, func(i, j int) bool { return out[i].Score > out[j].Score })
++	if len(out) > k {
++		out = out[:k]
++	}
++	return out
++}
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/vector_journal.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/vector_journal.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/vector_journal.go	2026-08-17 18:29:56.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/vector_journal.go	2026-08-25 15:09:02.000000000 +0000
+@@ -8,79 +8,263 @@
+ 	"io"
+ 	"math"
+ 	"os"
++	"path/filepath"
++	"sort"
+ 	"sync"
+ 
+ 	"neuroforge/internal/core"
+ )
+ 
+-const vectorJournalMagic = "NFVJ1\n"
++const (
++	vectorJournalMagicV1  = "NFVJ1\n"
++	vectorJournalMagicV2  = "NFVJ2\n"
++	vectorFrameTypeBlock  = 1
++	vectorFrameFixedBytes = 15 // type+dim+count+method+predictor+rawLen+metaLen
++)
++
++type vectorJournalOptions struct {
++	Compression   string
++	BlockVectors  int
++	MinBlockBytes int
++	MinSavingsPct float64
++}
++
++func vectorJournalOptionsFromConfig(c core.Config) vectorJournalOptions {
++	v := c.Storage.VectorJournal
++	return vectorJournalOptions{
++		Compression: v.Compression, BlockVectors: v.BlockVectors,
++		MinBlockBytes: v.MinBlockBytes, MinSavingsPct: v.MinSavingsPct,
++	}
++}
++
++func normalizeVectorJournalOptions(o vectorJournalOptions) vectorJournalOptions {
++	if o.Compression == "" {
++		o.Compression = "sqar-auto"
++	}
++	if o.BlockVectors <= 0 {
++		o.BlockVectors = 128
++	}
++	if o.MinBlockBytes < 0 {
++		o.MinBlockBytes = 0
++	}
++	if o.MinSavingsPct < 0 {
++		o.MinSavingsPct = 0
++	}
++	return o
++}
+ 
+ type VectorJournalStats struct {
+-	Records int   `json:"records"`
+-	Bytes   int64 `json:"bytes"`
++	Records               int     `json:"records"`
++	Bytes                 int64   `json:"bytes"`
++	Format                string  `json:"format"`
++	Blocks                int     `json:"blocks,omitempty"`
++	CompressedBlocks      int     `json:"compressed_blocks,omitempty"`
++	SQARBlocks            int     `json:"sqar_blocks,omitempty"`
++	VectorRawBytes        int64   `json:"vector_raw_bytes,omitempty"`
++	VectorStoredBytes     int64   `json:"vector_stored_bytes,omitempty"`
++	CompressionSavingsPct float64 `json:"compression_savings_pct,omitempty"`
+ }
+ 
+ // VectorJournal is a rebuildable binary sidecar containing the immutable
+ // vector payload of newly-created memories. The authoritative copy remains in
+ // memory-segments; this sidecar exists so large disk-ANN rebuilds do not need
+ // to parse gigabytes of JSON just to recover float arrays.
++//
++// NFVJ2 groups equal-dimension vectors into independently compressed blocks.
++// It preserves streaming iteration and lets a reader skip unrelated dimensions
++// without inflating them. Existing NFVJ1 journals are read and upgraded
++// atomically on open; if the optional upgrade fails, V1 remains usable.
+ type VectorJournal struct {
+-	mu      sync.Mutex
+-	path    string
+-	records int
+-	bytes   int64
++	mu                sync.Mutex
++	path              string
++	format            int
++	opts              vectorJournalOptions
++	records           int
++	bytes             int64
++	blocks            int
++	compressedBlocks  int
++	sqarBlocks        int
++	vectorRawBytes    int64
++	vectorStoredBytes int64
+ }
+ 
+-func openVectorJournal(path string) (*VectorJournal, error) {
+-	j := &VectorJournal{path: path}
++func openVectorJournal(path string, opts vectorJournalOptions) (*VectorJournal, error) {
++	opts = normalizeVectorJournalOptions(opts)
++	j := &VectorJournal{path: path, opts: opts}
+ 	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+ 	if err != nil {
+ 		return nil, err
+ 	}
+-	defer f.Close()
+ 	st, err := f.Stat()
+ 	if err != nil {
++		_ = f.Close()
+ 		return nil, err
+ 	}
+ 	if st.Size() == 0 {
+-		if _, err := f.WriteString(vectorJournalMagic); err != nil {
++		if _, err := f.WriteString(vectorJournalMagicV2); err != nil {
++			_ = f.Close()
+ 			return nil, err
+ 		}
+-		j.bytes = int64(len(vectorJournalMagic))
++		_ = f.Close()
++		j.format = 2
++		j.bytes = int64(len(vectorJournalMagicV2))
+ 		return j, nil
+ 	}
++	var head [len(vectorJournalMagicV2)]byte
++	if _, err := io.ReadFull(f, head[:]); err != nil {
++		_ = f.Close()
++		return nil, errors.New("invalid vector journal header")
++	}
++	magic := string(head[:])
+ 	if _, err := f.Seek(0, io.SeekStart); err != nil {
++		_ = f.Close()
+ 		return nil, err
+ 	}
+-	br := bufio.NewReaderSize(f, 1<<20)
+-	head := make([]byte, len(vectorJournalMagic))
+-	if _, err := io.ReadFull(br, head); err != nil || string(head) != vectorJournalMagic {
+-		return nil, errors.New("invalid vector journal header")
++	switch magic {
++	case vectorJournalMagicV1:
++		j.format = 1
++		err = j.scanV1(f)
++	case vectorJournalMagicV2:
++		j.format = 2
++		err = j.scanV2(f)
++	default:
++		err = errors.New("invalid vector journal header")
++	}
++	_ = f.Close()
++	if err != nil {
++		return nil, err
++	}
++	if j.format == 1 {
++		// V1 is already a rebuildable cache, so migration can be opportunistic.
++		// Atomic rename guarantees that a failed conversion leaves the old file.
++		if err := upgradeVectorJournalV1(path, opts); err == nil {
++			return openVectorJournal(path, opts)
++		}
++	}
++	return j, nil
++}
++
++func (j *VectorJournal) Configure(opts vectorJournalOptions) {
++	if j == nil {
++		return
++	}
++	j.mu.Lock()
++	j.opts = normalizeVectorJournalOptions(opts)
++	j.mu.Unlock()
++}
++
++func (j *VectorJournal) scanV1(f *os.File) error {
++	if _, err := f.Seek(int64(len(vectorJournalMagicV1)), io.SeekStart); err != nil {
++		return err
+ 	}
+-	pos := int64(len(vectorJournalMagic))
++	br := bufio.NewReaderSize(f, 1<<20)
++	pos := int64(len(vectorJournalMagicV1))
+ 	var hdr [4]byte
++	var prefix [12]byte
+ 	for {
+ 		if _, err := io.ReadFull(br, hdr[:]); err != nil {
+ 			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+ 				break
+ 			}
+-			return nil, err
++			return err
+ 		}
+ 		n := int64(binary.LittleEndian.Uint32(hdr[:]))
+ 		if n < 12 || n > maxSegmentRecordBytes {
+-			return nil, fmt.Errorf("invalid vector journal record length %d", n)
++			return fmt.Errorf("invalid vector journal record length %d", n)
+ 		}
+-		if _, err := io.CopyN(io.Discard, br, n); err != nil {
++		if _, err := io.ReadFull(br, prefix[:]); err != nil {
+ 			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+ 				break
+ 			}
+-			return nil, err
++			return err
++		}
++		idLen := int64(binary.LittleEndian.Uint16(prefix[8:10]))
++		dim := int64(binary.LittleEndian.Uint16(prefix[10:12]))
++		if idLen == 0 || 12+idLen+dim*4 != n {
++			return errors.New("invalid vector journal payload")
++		}
++		if _, err := io.CopyN(io.Discard, br, n-12); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				break
++			}
++			return err
+ 		}
+ 		j.records++
++		j.vectorRawBytes += dim * 4
++		j.vectorStoredBytes += dim * 4
+ 		pos += 4 + n
+ 	}
+ 	j.bytes = pos
+-	return j, nil
++	return nil
++}
++
++func (j *VectorJournal) scanV2(f *os.File) error {
++	if _, err := f.Seek(int64(len(vectorJournalMagicV2)), io.SeekStart); err != nil {
++		return err
++	}
++	br := bufio.NewReaderSize(f, 1<<20)
++	pos := int64(len(vectorJournalMagicV2))
++	var lenBuf [4]byte
++	var fixed [vectorFrameFixedBytes]byte
++	for {
++		if _, err := io.ReadFull(br, lenBuf[:]); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				break
++			}
++			return err
++		}
++		n := int64(binary.LittleEndian.Uint32(lenBuf[:]))
++		if n < vectorFrameFixedBytes || n > maxSegmentRecordBytes {
++			return fmt.Errorf("invalid vector journal frame length %d", n)
++		}
++		if _, err := io.ReadFull(br, fixed[:]); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				break
++			}
++			return err
++		}
++		if fixed[0] != vectorFrameTypeBlock {
++			return fmt.Errorf("unknown vector journal frame type %d", fixed[0])
++		}
++		dim := int64(binary.LittleEndian.Uint16(fixed[1:3]))
++		count := int64(binary.LittleEndian.Uint16(fixed[3:5]))
++		method := vectorCodecMethod(fixed[5])
++		rawLen := int64(binary.LittleEndian.Uint32(fixed[7:11]))
++		metaLen := int64(binary.LittleEndian.Uint32(fixed[11:15]))
++		if dim < 1 || count < 1 || rawLen != dim*count*4 || metaLen < count*10 || metaLen > n-vectorFrameFixedBytes {
++			return errors.New("invalid vector journal frame header")
++		}
++		payloadLen := n - vectorFrameFixedBytes - metaLen
++		if payloadLen <= 0 || (method == vectorCodecRaw && payloadLen != rawLen) || method > vectorCodecSQARColumn {
++			return errors.New("invalid vector journal frame payload")
++		}
++		if _, err := io.CopyN(io.Discard, br, n-vectorFrameFixedBytes); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				break
++			}
++			return err
++		}
++		j.records += int(count)
++		j.blocks++
++		j.vectorRawBytes += rawLen
++		j.vectorStoredBytes += payloadLen
++		if method != vectorCodecRaw {
++			j.compressedBlocks++
++		}
++		if method == vectorCodecSQARColumn {
++			j.sqarBlocks++
++		}
++		pos += 4 + n
++	}
++	j.bytes = pos
++	return nil
++}
++
++type journalVectorRaw struct {
++	revision uint64
++	id       string
++	dim      int
++	raw      []byte
+ }
+ 
+ func (j *VectorJournal) AppendNew(revision uint64, memories []core.Memory) error {
+@@ -89,13 +273,20 @@
+ 	}
+ 	j.mu.Lock()
+ 	defer j.mu.Unlock()
++	if j.format == 1 {
++		return j.appendV1Locked(revision, memories)
++	}
++	return j.appendV2Locked(revision, memories)
++}
++
++func (j *VectorJournal) appendV1Locked(revision uint64, memories []core.Memory) error {
+ 	f, err := os.OpenFile(j.path, os.O_WRONLY|os.O_APPEND, 0600)
+ 	if err != nil {
+ 		return err
+ 	}
+ 	bw := bufio.NewWriterSize(f, 1<<20)
+ 	added := 0
+-	var addedBytes int64
++	var addedBytes, rawBytes int64
+ 	var lenBuf [4]byte
+ 	var revBuf [8]byte
+ 	var short [2]byte
+@@ -143,35 +334,178 @@
+ 		}
+ 		added++
+ 		addedBytes += int64(4 + payload)
++		rawBytes += int64(len(m.Vector) * 4)
+ 	}
+ 	if err := bw.Flush(); err != nil {
+ 		_ = f.Close()
+ 		return err
+ 	}
+-	// This file is a rebuildable acceleration cache. The WAL + memory segments
+-	// are the durability boundary; forcing a second fsync for every ingest batch
+-	// would turn the cache into a write-amplification bottleneck. A truncated
+-	// tail is ignored on restart and can be regenerated from memory-segments.
+ 	if err := f.Close(); err != nil {
+ 		return err
+ 	}
+ 	j.records += added
+ 	j.bytes += addedBytes
++	j.vectorRawBytes += rawBytes
++	j.vectorStoredBytes += rawBytes
+ 	return nil
+ }
+ 
++func (j *VectorJournal) appendV2Locked(revision uint64, memories []core.Memory) error {
++	groups := map[int][]journalVectorRaw{}
++	for i := range memories {
++		m := &memories[i]
++		if m.ID == "" || len(m.Vector) == 0 {
++			continue
++		}
++		if len(m.ID) > math.MaxUint16 || len(m.Vector) > math.MaxUint16 {
++			return errors.New("memory id/vector dimension exceeds vector journal format")
++		}
++		raw := make([]byte, len(m.Vector)*4)
++		for k, x := range m.Vector {
++			binary.LittleEndian.PutUint32(raw[k*4:k*4+4], math.Float32bits(x))
++		}
++		dim := len(m.Vector)
++		groups[dim] = append(groups[dim], journalVectorRaw{revision: revision, id: m.ID, dim: dim, raw: raw})
++	}
++	if len(groups) == 0 {
++		return nil
++	}
++	f, err := os.OpenFile(j.path, os.O_WRONLY|os.O_APPEND, 0600)
++	if err != nil {
++		return err
++	}
++	bw := bufio.NewWriterSize(f, 1<<20)
++	dims := make([]int, 0, len(groups))
++	for dim := range groups {
++		dims = append(dims, dim)
++	}
++	sort.Ints(dims)
++	for _, dim := range dims {
++		entries := groups[dim]
++		for len(entries) > 0 {
++			n := j.opts.BlockVectors
++			if n > len(entries) {
++				n = len(entries)
++			}
++			if n > math.MaxUint16 {
++				n = math.MaxUint16
++			}
++			chunk := entries[:n]
++			frameBytes, st, err := buildVectorFrame(chunk, j.opts)
++			if err != nil {
++				_ = f.Close()
++				return err
++			}
++			if _, err := bw.Write(frameBytes); err != nil {
++				_ = f.Close()
++				return err
++			}
++			j.records += len(chunk)
++			j.blocks++
++			j.bytes += int64(len(frameBytes))
++			j.vectorRawBytes += int64(st.rawBytes)
++			j.vectorStoredBytes += int64(st.storedBytes)
++			if st.method != vectorCodecRaw {
++				j.compressedBlocks++
++			}
++			if st.method == vectorCodecSQARColumn {
++				j.sqarBlocks++
++			}
++			entries = entries[n:]
++		}
++	}
++	if err := bw.Flush(); err != nil {
++		_ = f.Close()
++		return err
++	}
++	// The vector journal is rebuildable acceleration data. The WAL + segments
++	// remain the durability boundary, so we intentionally avoid a second fsync.
++	return f.Close()
++}
++
++type vectorFrameStat struct {
++	method      vectorCodecMethod
++	rawBytes    int
++	storedBytes int
++}
++
++func buildVectorFrame(entries []journalVectorRaw, opts vectorJournalOptions) ([]byte, vectorFrameStat, error) {
++	if len(entries) == 0 || len(entries) > math.MaxUint16 {
++		return nil, vectorFrameStat{}, errors.New("invalid vector journal block size")
++	}
++	dim := entries[0].dim
++	if dim < 1 || dim > math.MaxUint16 {
++		return nil, vectorFrameStat{}, errors.New("invalid vector dimension")
++	}
++	metaLen, rawLen := 0, 0
++	for _, e := range entries {
++		if e.dim != dim || e.id == "" || len(e.id) > math.MaxUint16 || len(e.raw) != dim*4 {
++			return nil, vectorFrameStat{}, errors.New("invalid vector journal block entry")
++		}
++		metaLen += 8 + 2 + len(e.id)
++		rawLen += len(e.raw)
++	}
++	meta := make([]byte, 0, metaLen)
++	raw := make([]byte, 0, rawLen)
++	var b8 [8]byte
++	var b2 [2]byte
++	for _, e := range entries {
++		binary.LittleEndian.PutUint64(b8[:], e.revision)
++		meta = append(meta, b8[:]...)
++		binary.LittleEndian.PutUint16(b2[:], uint16(len(e.id)))
++		meta = append(meta, b2[:]...)
++		meta = append(meta, e.id...)
++		raw = append(raw, e.raw...)
++	}
++	enc := encodedVectorPayload{method: vectorCodecRaw, data: raw}
++	if opts.Compression == "sqar-auto" && rawLen >= opts.MinBlockBytes {
++		var err error
++		enc, err = encodeVectorPayload(raw, dim*4, len(entries), true, opts.MinSavingsPct)
++		if err != nil {
++			return nil, vectorFrameStat{}, err
++		}
++	}
++	frameLen := vectorFrameFixedBytes + len(meta) + len(enc.data)
++	if frameLen > maxSegmentRecordBytes || frameLen > math.MaxUint32 {
++		return nil, vectorFrameStat{}, fmt.Errorf("vector journal block exceeds %d bytes", maxSegmentRecordBytes)
++	}
++	out := make([]byte, 4+frameLen)
++	binary.LittleEndian.PutUint32(out[:4], uint32(frameLen))
++	fixed := out[4 : 4+vectorFrameFixedBytes]
++	fixed[0] = vectorFrameTypeBlock
++	binary.LittleEndian.PutUint16(fixed[1:3], uint16(dim))
++	binary.LittleEndian.PutUint16(fixed[3:5], uint16(len(entries)))
++	fixed[5] = byte(enc.method)
++	fixed[6] = byte(enc.predictor)
++	binary.LittleEndian.PutUint32(fixed[7:11], uint32(rawLen))
++	binary.LittleEndian.PutUint32(fixed[11:15], uint32(len(meta)))
++	copy(out[4+vectorFrameFixedBytes:], meta)
++	copy(out[4+vectorFrameFixedBytes+len(meta):], enc.data)
++	return out, vectorFrameStat{method: enc.method, rawBytes: rawLen, storedBytes: len(enc.data)}, nil
++}
++
+ func (j *VectorJournal) Iterate(dim int, fn func(id string, vector []float32) error) error {
+ 	if j == nil || fn == nil {
+ 		return errors.New("vector journal iterator unavailable")
+ 	}
+ 	j.mu.Lock()
+ 	defer j.mu.Unlock()
++	if dim < 1 || dim > math.MaxUint16 {
++		return errors.New("vector journal dimension out of range")
++	}
++	if j.format == 1 {
++		return j.iterateV1Locked(dim, fn)
++	}
++	return j.iterateV2Locked(dim, fn)
++}
++
++func (j *VectorJournal) iterateV1Locked(dim int, fn func(id string, vector []float32) error) error {
+ 	f, err := os.Open(j.path)
+ 	if err != nil {
+ 		return err
+ 	}
+ 	defer f.Close()
+-	if _, err := f.Seek(int64(len(vectorJournalMagic)), io.SeekStart); err != nil {
++	if _, err := f.Seek(int64(len(vectorJournalMagicV1)), io.SeekStart); err != nil {
+ 		return err
+ 	}
+ 	br := bufio.NewReaderSize(f, 1<<20)
+@@ -217,20 +551,246 @@
+ 		for i := range vec {
+ 			vec[i] = math.Float32frombits(binary.LittleEndian.Uint32(payload[base+i*4 : base+i*4+4]))
+ 		}
+-		// string conversion is the only per-record allocation left in this
+-		// iterator; vector/payload buffers are reused and the callback must not
+-		// retain vec after returning.
+ 		if err := fn(string(payload[12:12+idLen]), vec); err != nil {
+ 			return err
+ 		}
+ 	}
+ }
+ 
++func (j *VectorJournal) iterateV2Locked(dim int, fn func(id string, vector []float32) error) error {
++	f, err := os.Open(j.path)
++	if err != nil {
++		return err
++	}
++	defer f.Close()
++	if _, err := f.Seek(int64(len(vectorJournalMagicV2)), io.SeekStart); err != nil {
++		return err
++	}
++	br := bufio.NewReaderSize(f, 1<<20)
++	var lenBuf [4]byte
++	var fixed [vectorFrameFixedBytes]byte
++	var tail []byte
++	var vec []float32
++	for {
++		if _, err := io.ReadFull(br, lenBuf[:]); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				return nil
++			}
++			return err
++		}
++		n := int(binary.LittleEndian.Uint32(lenBuf[:]))
++		if n < vectorFrameFixedBytes || n > maxSegmentRecordBytes {
++			return fmt.Errorf("invalid vector journal frame length %d", n)
++		}
++		if _, err := io.ReadFull(br, fixed[:]); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				return nil
++			}
++			return err
++		}
++		if fixed[0] != vectorFrameTypeBlock {
++			return fmt.Errorf("unknown vector journal frame type %d", fixed[0])
++		}
++		vdim := int(binary.LittleEndian.Uint16(fixed[1:3]))
++		count := int(binary.LittleEndian.Uint16(fixed[3:5]))
++		method := vectorCodecMethod(fixed[5])
++		predictor := vectorPredictor(fixed[6])
++		rawLen := int(binary.LittleEndian.Uint32(fixed[7:11]))
++		metaLen := int(binary.LittleEndian.Uint32(fixed[11:15]))
++		remaining := n - vectorFrameFixedBytes
++		if vdim < 1 || count < 1 || rawLen != vdim*count*4 || metaLen < count*10 || metaLen > remaining || method > vectorCodecSQARColumn {
++			return errors.New("invalid vector journal frame header")
++		}
++		if vdim != dim {
++			if _, err := io.CopyN(io.Discard, br, int64(remaining)); err != nil {
++				if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++					return nil
++				}
++				return err
++			}
++			continue
++		}
++		if cap(tail) < remaining {
++			tail = make([]byte, remaining)
++		} else {
++			tail = tail[:remaining]
++		}
++		if _, err := io.ReadFull(br, tail); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				return nil
++			}
++			return err
++		}
++		meta, payload := tail[:metaLen], tail[metaLen:]
++		ids := make([]string, 0, count)
++		pos := 0
++		for i := 0; i < count; i++ {
++			if pos+10 > len(meta) {
++				return errors.New("truncated vector journal metadata")
++			}
++			idLen := int(binary.LittleEndian.Uint16(meta[pos+8 : pos+10]))
++			pos += 10
++			if idLen < 1 || pos+idLen > len(meta) {
++				return errors.New("invalid vector journal id")
++			}
++			ids = append(ids, string(meta[pos:pos+idLen]))
++			pos += idLen
++		}
++		if pos != len(meta) {
++			return errors.New("vector journal metadata trailing bytes")
++		}
++		raw, err := decodeVectorPayload(encodedVectorPayload{method: method, predictor: predictor, data: payload}, vdim*4, count)
++		if err != nil {
++			return fmt.Errorf("decode vector journal block: %w", err)
++		}
++		if cap(vec) < vdim {
++			vec = make([]float32, vdim)
++		} else {
++			vec = vec[:vdim]
++		}
++		for row, id := range ids {
++			base := row * vdim * 4
++			for i := range vec {
++				vec[i] = math.Float32frombits(binary.LittleEndian.Uint32(raw[base+i*4 : base+i*4+4]))
++			}
++			if err := fn(id, vec); err != nil {
++				return err
++			}
++		}
++	}
++}
++
++func upgradeVectorJournalV1(path string, opts vectorJournalOptions) error {
++	src, err := os.Open(path)
++	if err != nil {
++		return err
++	}
++	defer src.Close()
++	head := make([]byte, len(vectorJournalMagicV1))
++	if _, err := io.ReadFull(src, head); err != nil || string(head) != vectorJournalMagicV1 {
++		return errors.New("not an NFVJ1 journal")
++	}
++	tmp := path + ".v2tmp"
++	_ = os.Remove(tmp)
++	dst, err := os.OpenFile(tmp, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0600)
++	if err != nil {
++		return err
++	}
++	ok := false
++	defer func() {
++		_ = dst.Close()
++		if !ok {
++			_ = os.Remove(tmp)
++		}
++	}()
++	bw := bufio.NewWriterSize(dst, 1<<20)
++	if _, err := bw.WriteString(vectorJournalMagicV2); err != nil {
++		return err
++	}
++	pending := map[int][]journalVectorRaw{}
++	flushDim := func(dim int) error {
++		entries := pending[dim]
++		for len(entries) > 0 {
++			n := opts.BlockVectors
++			if n > len(entries) {
++				n = len(entries)
++			}
++			frame, _, err := buildVectorFrame(entries[:n], opts)
++			if err != nil {
++				return err
++			}
++			if _, err := bw.Write(frame); err != nil {
++				return err
++			}
++			entries = entries[n:]
++		}
++		pending[dim] = pending[dim][:0]
++		return nil
++	}
++	br := bufio.NewReaderSize(src, 1<<20)
++	var lenBuf [4]byte
++	for {
++		if _, err := io.ReadFull(br, lenBuf[:]); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				break
++			}
++			return err
++		}
++		n := int(binary.LittleEndian.Uint32(lenBuf[:]))
++		if n < 12 || n > maxSegmentRecordBytes {
++			return fmt.Errorf("invalid V1 record length %d", n)
++		}
++		payload := make([]byte, n)
++		if _, err := io.ReadFull(br, payload); err != nil {
++			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
++				break
++			}
++			return err
++		}
++		rev := binary.LittleEndian.Uint64(payload[:8])
++		idLen := int(binary.LittleEndian.Uint16(payload[8:10]))
++		dim := int(binary.LittleEndian.Uint16(payload[10:12]))
++		if idLen < 1 || 12+idLen+dim*4 != len(payload) {
++			return errors.New("invalid V1 vector payload")
++		}
++		id := string(payload[12 : 12+idLen])
++		raw := append([]byte(nil), payload[12+idLen:]...)
++		pending[dim] = append(pending[dim], journalVectorRaw{revision: rev, id: id, dim: dim, raw: raw})
++		if len(pending[dim]) >= opts.BlockVectors {
++			if err := flushDim(dim); err != nil {
++				return err
++			}
++		}
++	}
++	dims := make([]int, 0, len(pending))
++	for dim := range pending {
++		dims = append(dims, dim)
++	}
++	sort.Ints(dims)
++	for _, dim := range dims {
++		if err := flushDim(dim); err != nil {
++			return err
++		}
++	}
++	if err := bw.Flush(); err != nil {
++		return err
++	}
++	if err := dst.Sync(); err != nil {
++		return err
++	}
++	if err := dst.Close(); err != nil {
++		return err
++	}
++	if err := os.Rename(tmp, path); err != nil {
++		return err
++	}
++	// Best-effort directory sync makes the atomic replacement durable on Unix.
++	if dir, err := os.Open(filepath.Dir(path)); err == nil {
++		_ = dir.Sync()
++		_ = dir.Close()
++	}
++	ok = true
++	return nil
++}
++
+ func (j *VectorJournal) Stats() VectorJournalStats {
+ 	if j == nil {
+ 		return VectorJournalStats{}
+ 	}
+ 	j.mu.Lock()
+ 	defer j.mu.Unlock()
+-	return VectorJournalStats{Records: j.records, Bytes: j.bytes}
++	format := "NFVJ1"
++	if j.format == 2 {
++		format = "NFVJ2"
++	}
++	saved := 0.0
++	if j.vectorRawBytes > 0 && j.vectorStoredBytes < j.vectorRawBytes {
++		saved = float64(j.vectorRawBytes-j.vectorStoredBytes) / float64(j.vectorRawBytes) * 100
++	}
++	return VectorJournalStats{
++		Records: j.records, Bytes: j.bytes, Format: format, Blocks: j.blocks,
++		CompressedBlocks: j.compressedBlocks, SQARBlocks: j.sqarBlocks,
++		VectorRawBytes: j.vectorRawBytes, VectorStoredBytes: j.vectorStoredBytes,
++		CompressionSavingsPct: saved,
++	}
+ }
+diff -ruN '--exclude=.git' /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/vector_journal_test.go /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/vector_journal_test.go
+--- /mnt/data/mega_work/originals/neuroforge-v0.8.2/internal/store/vector_journal_test.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/platform/neuroforge/internal/store/vector_journal_test.go	2026-08-25 15:09:52.000000000 +0000
+@@ -0,0 +1,130 @@
++package store
++
++import (
++	"bufio"
++	"encoding/binary"
++	"math"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"neuroforge/internal/core"
++)
++
++func TestVectorJournalV2SQARRoundTrip(t *testing.T) {
++	path := filepath.Join(t.TempDir(), "vector-journal.nfv")
++	j, err := openVectorJournal(path, vectorJournalOptions{
++		Compression: "sqar-auto", BlockVectors: 128, MinBlockBytes: 1, MinSavingsPct: 0.01,
++	})
++	if err != nil {
++		t.Fatal(err)
++	}
++	mems := make([]core.Memory, 64)
++	for r := range mems {
++		v := make([]float32, 768)
++		for i := range v {
++			v[i] = float32(math.Sin(float64(i)/19+float64(r)/31) * 0.15)
++		}
++		mems[r] = core.Memory{ID: NewID("vec"), Vector: v, VectorDim: len(v)}
++	}
++	if err := j.AppendNew(7, mems); err != nil {
++		t.Fatal(err)
++	}
++	st := j.Stats()
++	if st.Format != "NFVJ2" || st.Records != len(mems) {
++		t.Fatalf("unexpected stats: %+v", st)
++	}
++	if st.SQARBlocks == 0 || st.VectorStoredBytes >= st.VectorRawBytes {
++		t.Fatalf("expected useful SQAR block compression: %+v", st)
++	}
++	t.Logf("SQAR vector block stats: %+v", st)
++	seen := 0
++	if err := j.Iterate(768, func(id string, v []float32) error {
++		want := mems[seen]
++		if id != want.ID || len(v) != len(want.Vector) {
++			t.Fatalf("record %d mismatch id/dim", seen)
++		}
++		for i := range v {
++			if math.Float32bits(v[i]) != math.Float32bits(want.Vector[i]) {
++				t.Fatalf("record %d vector[%d] mismatch", seen, i)
++			}
++		}
++		seen++
++		return nil
++	}); err != nil {
++		t.Fatal(err)
++	}
++	if seen != len(mems) {
++		t.Fatalf("iterated %d vectors, want %d", seen, len(mems))
++	}
++}
++
++func TestVectorJournalUpgradesV1(t *testing.T) {
++	path := filepath.Join(t.TempDir(), "vector-journal.nfv")
++	legacy := []core.Memory{
++		{ID: "legacy-a", Vector: []float32{1, 2, 3, 4}},
++		{ID: "legacy-b", Vector: []float32{5, 6, 7, 8}},
++	}
++	writeLegacyVectorJournal(t, path, 11, legacy)
++	j, err := openVectorJournal(path, vectorJournalOptions{Compression: "off", BlockVectors: 128})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if st := j.Stats(); st.Format != "NFVJ2" || st.Records != 2 {
++		t.Fatalf("V1 was not upgraded: %+v", st)
++	}
++	var got []string
++	if err := j.Iterate(4, func(id string, v []float32) error {
++		got = append(got, id)
++		return nil
++	}); err != nil {
++		t.Fatal(err)
++	}
++	if len(got) != 2 || got[0] != "legacy-a" || got[1] != "legacy-b" {
++		t.Fatalf("unexpected upgraded records: %v", got)
++	}
++	b, err := os.ReadFile(path)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(b) < len(vectorJournalMagicV2) || string(b[:len(vectorJournalMagicV2)]) != vectorJournalMagicV2 {
++		t.Fatal("upgraded journal does not have NFVJ2 header")
++	}
++}
++
++func writeLegacyVectorJournal(t *testing.T, path string, revision uint64, memories []core.Memory) {
++	t.Helper()
++	f, err := os.OpenFile(path, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
++	if err != nil {
++		t.Fatal(err)
++	}
++	bw := bufio.NewWriter(f)
++	if _, err := bw.WriteString(vectorJournalMagicV1); err != nil {
++		t.Fatal(err)
++	}
++	var b4 [4]byte
++	var b8 [8]byte
++	var b2 [2]byte
++	for _, m := range memories {
++		payload := 12 + len(m.ID) + len(m.Vector)*4
++		binary.LittleEndian.PutUint32(b4[:], uint32(payload))
++		_, _ = bw.Write(b4[:])
++		binary.LittleEndian.PutUint64(b8[:], revision)
++		_, _ = bw.Write(b8[:])
++		binary.LittleEndian.PutUint16(b2[:], uint16(len(m.ID)))
++		_, _ = bw.Write(b2[:])
++		binary.LittleEndian.PutUint16(b2[:], uint16(len(m.Vector)))
++		_, _ = bw.Write(b2[:])
++		_, _ = bw.WriteString(m.ID)
++		for _, x := range m.Vector {
++			binary.LittleEndian.PutUint32(b4[:], math.Float32bits(x))
++			_, _ = bw.Write(b4[:])
++		}
++	}
++	if err := bw.Flush(); err != nil {
++		t.Fatal(err)
++	}
++	if err := f.Close(); err != nil {
++		t.Fatal(err)
++	}
++}

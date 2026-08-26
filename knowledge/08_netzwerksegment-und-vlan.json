@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-NETZWERKSEGMENT-UND-VLAN-SELECT",
+    "title":  "Netzwerksegment und VLAN",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e Netzwerksegment und VLAN. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn VLANs, Netzsegmente, Subnetze, logische Trennungen oder Portzuordnungen neu eingerichtet, geändert oder analysiert werden sollen. Typische Ticketformulierungen sind: „Gerät in anderes VLAN verschieben“; „Neues Netzsegment anlegen“; „Port falschem VLAN zugeordnet“; „Subnetz für neues System“. Nicht auswählen, wenn nur eine einzelne Netzwerkdose ohne Verbindung ist oder eine Firewallregel zwischen bestehenden Segmenten fehlt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Sicherheitsrelevante Segmentierungsentscheidungen sind mit IT-Sicherheit und Leitung abzustimmen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e Netzwerksegment und VLAN“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e Netzwerksegment und VLAN"
+                   ],
+    "keywords":  [
+                     "VLAN",
+                     "Netzsegment",
+                     "Subnetz",
+                     "Segmentierung",
+                     "Switchport",
+                     "Portzuordnung",
+                     "Netztrennung",
+                     "IP-Netz",
+                     "Netzwerksegment und VLAN",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/netzwerksegment-und-vlan",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

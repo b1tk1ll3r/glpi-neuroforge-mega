@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-SICHERHEITSVORFALL-SELECT",
+    "title":  "Sicherheitsvorfall",
+    "text":  "Auswahlziel: IT-Sicherheit und Datensicherung \u003e Sicherheitsvorfall. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn ein tatsächlicher oder ernsthaft vermuteter unbefugter Zugriff, Datenabfluss, kompromittiertes Konto, Verlust sensibler Daten, aktive Attacke oder erhebliche Sicherheitsverletzung vorliegt. Typische Ticketformulierungen sind: „Konto möglicherweise übernommen“; „Unbefugter Zugriff festgestellt“; „Daten an falschen Empfänger“; „Aktiver Angriff“; „Dienstgerät mit sensiblen Daten verloren“. Nicht auswählen, wenn nur eine allgemeine Sicherheitsfrage, Schwachstellenmeldung ohne Ausnutzung oder verdächtige E-Mail ohne Interaktion vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Unmittelbar priorisieren und Leitung sowie erforderliche Datenschutz-/Informationssicherheitsstellen nach internen Meldewegen beteiligen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „IT-Sicherheit und Datensicherung \u003e Sicherheitsvorfall“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "IT-Sicherheit und Datensicherung \u003e Sicherheitsvorfall"
+                   ],
+    "keywords":  [
+                     "Sicherheitsvorfall",
+                     "Datenabfluss",
+                     "kompromittiert",
+                     "unbefugter Zugriff",
+                     "Account übernommen",
+                     "Cyberangriff",
+                     "Datenverlust",
+                     "Incident",
+                     "Security Breach",
+                     "IT-Sicherheit und Datensicherung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/it-sicherheit-und-datensicherung/sicherheitsvorfall",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

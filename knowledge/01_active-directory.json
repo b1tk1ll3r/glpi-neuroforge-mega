@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-ACTIVE-DIRECTORY-SELECT",
+    "title":  "Active Directory",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Active Directory. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn der zentrale Verzeichnisdienst, Domänencontroller, Replikation, Vertrauensstellung, LDAP-Funktion oder die Domäne als Plattform gestört oder zu ändern ist. Typische Ticketformulierungen sind: „AD-Replikation fehlerhaft“; „Domänencontroller nicht erreichbar“; „LDAP-Abfrage schlägt fehl“; „Domänendienst gestört“. Nicht auswählen, wenn nur ein Benutzerkonto angelegt, ein Kennwort zurückgesetzt oder eine einzelne Gruppenmitgliedschaft geändert werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Einzelne Benutzer- und Gruppenaufträge gehören in die entsprechenden Kategorien unter Benutzerkonten und Berechtigungen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Active Directory“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Active Directory"
+                   ],
+    "keywords":  [
+                     "Active Directory",
+                     "AD",
+                     "Domänencontroller",
+                     "Domain Controller",
+                     "LDAP",
+                     "Replikation",
+                     "Domäne",
+                     "Verzeichnisdienst",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/active-directory",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-ANGEBOT-UND-WIRTSCHAFTLICHKEITSPRUFUNG-SELECT",
+    "title":  "Angebot und Wirtschaftlichkeitsprüfung",
+    "text":  "Auswahlziel: Beschaffung, Verträge und Lizenzen \u003e Angebot und Wirtschaftlichkeitsprüfung. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn Angebote eingeholt, Preise verglichen, Wirtschaftlichkeit bewertet, Vergabevermerke vorbereitet oder Beschaffungsvarianten kaufmännisch geprüft werden sollen. Typische Ticketformulierungen sind: „Drei Angebote vergleichen“; „Wirtschaftlichkeitsbetrachtung erstellen“; „Vergabe vorbereiten“; „Kostenvarianten bewerten“. Nicht auswählen, wenn die technische Produktauswahl allein im Vordergrund steht oder bereits eine Rechnung zur Zahlung vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Technische Bewertung erfolgt durch das zuständige Fachteam; kaufmännische und vergaberechtliche Bewertung durch Beschaffung.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Beschaffung, Verträge und Lizenzen \u003e Angebot und Wirtschaftlichkeitsprüfung“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Beschaffung, Verträge und Lizenzen \u003e Angebot und Wirtschaftlichkeitsprüfung"
+                   ],
+    "keywords":  [
+                     "Angebot",
+                     "Preisvergleich",
+                     "Wirtschaftlichkeit",
+                     "Vergabe",
+                     "Vergabevermerk",
+                     "Kostenvergleich",
+                     "Markterkundung",
+                     "Angebot und Wirtschaftlichkeitsprüfung",
+                     "Beschaffung, Verträge und Lizenzen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/beschaffung-vertrage-und-lizenzen/angebot-und-wirtschaftlichkeitsprufung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

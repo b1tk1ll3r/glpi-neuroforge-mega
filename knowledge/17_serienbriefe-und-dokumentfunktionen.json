@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-SERIENBRIEFE-UND-DOKUMENTFUNKTIONEN-SELECT",
+    "title":  "Serienbriefe und Dokumentfunktionen",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Serienbriefe und Dokumentfunktionen. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Serienbriefe, Datenquellen, Feldfunktionen, Dokumentverknüpfungen, Etiketten oder automatisierte Dokumenterstellung in Office fehlerhaft sind oder eingerichtet werden sollen. Typische Ticketformulierungen sind: „Serienbrief verbindet Datenquelle nicht“; „Feldfunktion zeigt Fehler“; „Etikettendruck aus Word vorbereiten“; „Dokument automatisch befüllen“. Nicht auswählen, wenn ein allgemeines Word-Formatierungsproblem, ein Fachverfahrensbericht oder ein Druckerdefekt vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei Datenübergabe aus einer Fachanwendung ist gegebenenfalls zusätzlich die Schnittstellenkategorie relevant.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Serienbriefe und Dokumentfunktionen“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Serienbriefe und Dokumentfunktionen"
+                   ],
+    "keywords":  [
+                     "Serienbrief",
+                     "Datenquelle",
+                     "Feldfunktion",
+                     "Etiketten",
+                     "Dokumentfunktion",
+                     "Mail Merge",
+                     "Seriendruck",
+                     "Dokumentautomatisierung",
+                     "Serienbriefe und Dokumentfunktionen",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/serienbriefe-und-dokumentfunktionen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

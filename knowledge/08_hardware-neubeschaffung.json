@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-HARDWARE-NEUBESCHAFFUNG-SELECT",
+    "title":  "Hardware-Neubeschaffung",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e Hardware-Neubeschaffung. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn ein neuer oder zusätzlicher PC, ein Notebook, Monitor, Tablet, Zubehör oder sonstige Arbeitsplatzhardware bestellt werden soll und kein einfacher Austausch eines defekten Bestandsgeräts vorliegt. Typische Ticketformulierungen sind: „Neues Notebook für neue Stelle“; „Zusätzlichen Monitor bestellen“; „Arbeitsplatz vollständig ausstatten“; „Spezialhardware beschaffen“. Nicht auswählen, wenn ein vorhandenes Gerät nur repariert oder umgesetzt werden soll; wenn Telekommunikationshardware oder ein neues Drucksystem beschafft wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Das zuständige Fachteam prüft technische Anforderungen; Bestellung, Budget und Vergabe liegen bei Beschaffung.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e Hardware-Neubeschaffung“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e Hardware-Neubeschaffung"
+                   ],
+    "keywords":  [
+                     "Hardware beschaffen",
+                     "Neubeschaffung",
+                     "Bestellung",
+                     "neuer PC",
+                     "neues Notebook",
+                     "zusätzlicher Monitor",
+                     "Arbeitsplatzausstattung",
+                     "Kauf",
+                     "Hardware-Neubeschaffung",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/hardware-neubeschaffung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

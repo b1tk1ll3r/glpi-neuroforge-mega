@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-MONITORING-SELECT",
+    "title":  "Monitoring",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Monitoring. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn technische Überwachung, Checks, Alarmierung, Dashboards, Schwellwerte oder Benachrichtigungen für Infrastruktur und Plattformen eingerichtet oder fehlerhaft sind. Typische Ticketformulierungen sind: „Monitoring-Check hinzufügen“; „Alarm wird nicht ausgelöst“; „Schwellwert anpassen“; „Infrastruktur-Dashboard erstellen“. Nicht auswählen, wenn ein konkreter Dienst bereits ausgefallen ist und die Behebung im Vordergrund steht oder eine fachliche Statistik benötigt wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Ein Alarm ist ein Hinweis; die eigentliche Störung kann zusätzlich in ihrer fachlich passenden Kategorie erfasst werden.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Monitoring“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Monitoring"
+                   ],
+    "keywords":  [
+                     "Monitoring",
+                     "Überwachung",
+                     "Alarmierung",
+                     "Check",
+                     "Schwellwert",
+                     "Dashboard",
+                     "Alert",
+                     "Metrik",
+                     "Nagios",
+                     "Zabbix",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/monitoring",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

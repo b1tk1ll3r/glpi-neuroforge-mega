@@ -1,0 +1,20 @@
+{
+    "id":  "KB-EXAMPLE-VPN",
+    "title":  "Beispiel: VPN Gateway nicht erreichbar",
+    "text":  "Beispieldokument. Aktivieren oder ersetzen Sie diesen Eintrag erst nach fachlicher Prüfung. Typisches Symptom: VPN meldet, dass das Gateway nicht erreichbar ist.",
+    "answer":  "Bitte trennen Sie die bestehende VPN-Verbindung vollständig und starten Sie den VPN-Client anschließend neu. Sollte die Meldung weiterhin auftreten, antworten Sie bitte auf dieses Ticket mit dem genauen Fehlertext.",
+    "auto_reply":  false,
+    "min_score":  0.92,
+    "categories":  [
+
+                   ],
+    "keywords":  [
+                     "VPN",
+                     "Gateway",
+                     "nicht erreichbar"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://examples/vpn-gateway",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,9 @@
+.env
+*.log
+.DS_Store
+backups/*
+!backups/.gitkeep
+staging/*
+!staging/.gitkeep
+coverage.out
+bin/

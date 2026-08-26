@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-FACHANWENDUNG-BERICHT-UND-AUSWERTUNG-SELECT",
+    "title":  "Fachanwendung – Bericht und Auswertung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Bericht und Auswertung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn ein vorhandener Bericht, eine Liste, Statistik, Druckausgabe oder fachliche Auswertung fehlerhaft ist, angepasst oder bereitgestellt werden soll. Typische Ticketformulierungen sind: „Bericht zeigt falsche Spalten“; „Statistik fehlt“; „Auswertung anpassen“; „Druckausgabe aus Fachverfahren fehlerhaft“. Nicht auswählen, wenn eine allgemeine Excel-Auswertung ohne Fachanwendungsbezug gemeint ist, ein Drucker physisch nicht druckt oder eine komplett neue Fachfunktion benötigt wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Dateninhalt und Filterlogik gehören zu Fachanwendungen; physische Druckprobleme zum Support.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Bericht und Auswertung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Bericht und Auswertung"
+                   ],
+    "keywords":  [
+                     "Bericht",
+                     "Auswertung",
+                     "Statistik",
+                     "Liste",
+                     "Reporting",
+                     "Druckausgabe",
+                     "Abfrage",
+                     "Kennzahl",
+                     "Fachanwendung Bericht",
+                     "Fachanwendung – Bericht und Auswertung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-bericht-und-auswertung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

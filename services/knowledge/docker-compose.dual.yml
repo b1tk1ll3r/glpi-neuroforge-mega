@@ -1,0 +1,66 @@
+# Dasselbe Image gleichzeitig als Editor und Helpdesk-Suche.
+# Der optionale Ollama-Fallback läuft ausschließlich im Google-/Search-Container.
+# Start: docker compose -f docker-compose.dual.yml up --build -d
+services:
+  kb-editor:
+    build: .
+    image: kb-helpdesk:local
+    restart: unless-stopped
+    ports:
+      - "${KB_EDITOR_PORT:-8080}:8080"
+    environment:
+      APP_MODE: editor
+      APP_TITLE: "${EDITOR_TITLE:-KB Administration}"
+      APP_SUBTITLE: "${EDITOR_SUBTITLE:-Wissensbasis verwalten}"
+      DATA_DIR: /data/knowledge
+      BACKUP_DIR: /data/backups
+      STAGING_DIR: /data/staging
+      LISTEN_ADDR: :8080
+      BASIC_AUTH_USER: "${EDITOR_AUTH_USER:-}"
+      BASIC_AUTH_PASSWORD: "${EDITOR_AUTH_PASSWORD:-}"
+    volumes:
+      - "${KB_DATA_PATH:-./knowledge}:/data/knowledge:rw"
+      - "${KB_BACKUP_PATH:-./backups}:/data/backups:rw"
+      - "${KB_STAGING_PATH:-./staging}:/data/staging:rw"
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  kb-search:
+    image: kb-helpdesk:local
+    depends_on:
+      - kb-editor
+    restart: unless-stopped
+    ports:
+      - "${KB_SEARCH_PORT:-8081}:8080"
+    environment:
+      APP_MODE: google
+      APP_TITLE: "${SEARCH_TITLE:-IT Helpdesk Wissen}"
+      APP_SUBTITLE: "${SEARCH_SUBTITLE:-Interne Lösungsdatenbank}"
+      AUTO_RELOAD_INTERVAL: "${AUTO_RELOAD_INTERVAL:-60s}"
+      DATA_DIR: /data/knowledge
+      STAGING_DIR: /data/staging
+      LISTEN_ADDR: :8080
+      BASIC_AUTH_USER: "${SEARCH_AUTH_USER:-}"
+      BASIC_AUTH_PASSWORD: "${SEARCH_AUTH_PASSWORD:-}"
+      AI_FALLBACK_ENABLED: "${AI_FALLBACK_ENABLED:-false}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-}"
+      OLLAMA_TIMEOUT: "${OLLAMA_TIMEOUT:-10m}"
+      OLLAMA_MAX_CONCURRENT: "${OLLAMA_MAX_CONCURRENT:-1}"
+      OLLAMA_STAGING_AUTO_REPLY: "${OLLAMA_STAGING_AUTO_REPLY:-false}"
+      OLLAMA_STAGING_MIN_SCORE: "${OLLAMA_STAGING_MIN_SCORE:-0.78}"
+    volumes:
+      - "${KB_DATA_PATH:-./knowledge}:/data/knowledge:ro"
+      - "${KB_STAGING_PATH:-./staging}:/data/staging:rw"
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

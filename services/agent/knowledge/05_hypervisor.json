@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-HYPERVISOR-SELECT",
+    "title":  "Hypervisor",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Hypervisor. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn die Virtualisierungsplattform, Hosts, Cluster, Ressourcenverwaltung oder zentrale Hypervisor-Funktionen gestört, erweitert oder gewartet werden müssen. Typische Ticketformulierungen sind: „VMware-Host gestört“; „Hyper-V-Cluster meldet Fehler“; „Virtualisierungshost warten“; „Clusterressourcen knapp“. Nicht auswählen, wenn nur eine einzelne virtuelle Maschine betroffen ist oder ein Container- beziehungsweise Kubernetes-Problem vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Einzelne VMs werden unter Virtuelle Maschinen erfasst; die Trägerschicht unter Hypervisor.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Hypervisor“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Hypervisor"
+                   ],
+    "keywords":  [
+                     "Hypervisor",
+                     "VMware",
+                     "vSphere",
+                     "ESXi",
+                     "Hyper-V",
+                     "Virtualisierung",
+                     "Host",
+                     "Cluster",
+                     "Proxmox",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/hypervisor",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,2020 @@
+openapi: 3.1.0
+info:
+  title: NeuroForge API
+  version: 0.8.2
+  description: REST API for NeuroForge associative learning, explainable vector recall,
+    provenance, document/text ingestion, SearXNG-backed autonomous research, source-grounded
+    goal cycles, responsive knowledge graph, model routing, cost controls, Prometheus
+    observability, and durable storage/cluster operation.
+servers:
+- url: http://localhost:8080
+components:
+  securitySchemes:
+    AppKey:
+      type: http
+      scheme: bearer
+    WorkerKey:
+      type: http
+      scheme: bearer
+    AdminToken:
+      type: apiKey
+      in: header
+      name: X-Admin-Token
+    MetricsToken:
+      type: http
+      scheme: bearer
+      description: Dedicated Prometheus scrape token. The admin token is also accepted
+        as a bearer credential.
+    ClusterToken:
+      type: apiKey
+      in: header
+      name: X-Cluster-Token
+  schemas:
+    ModelRoute:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum:
+          - ''
+          - auto
+          - ollama
+          - openai
+          description: Empty/omitted inherits the legacy role provider.
+        model:
+          type: string
+        node_id:
+          type: string
+          description: Optional strict Ollama node pin.
+    RoutingConfig:
+      type: object
+      properties:
+        chat_provider:
+          type: string
+          enum:
+          - auto
+          - ollama
+          - openai
+        embedding_provider:
+          type: string
+          enum:
+          - auto
+          - ollama
+          - openai
+        chat_model:
+          type: string
+          description: Optional actor model override; empty uses the Ollama node default.
+        embedding_model:
+          type: string
+          description: Optional embedding model override; empty uses the Ollama node
+            default.
+        chat_node_id:
+          type: string
+          description: Optional strict actor Ollama node pin.
+        embedding_node_id:
+          type: string
+          description: Optional strict embedding Ollama node pin.
+        critic:
+          $ref: '#/components/schemas/ModelRoute'
+        consolidator:
+          $ref: '#/components/schemas/ModelRoute'
+        goal:
+          $ref: '#/components/schemas/ModelRoute'
+    OllamaServer:
+      type: object
+      required:
+      - id
+      - base_url
+      - weight
+      - enabled
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        base_url:
+          type: string
+        chat_model:
+          type: string
+        embedding_model:
+          type: string
+        weight:
+          type: integer
+          minimum: 0
+        enabled:
+          type: boolean
+        request_timeout_seconds:
+          type: integer
+          minimum: 0
+          maximum: 86400
+          description: Per-node inference timeout in seconds. 0 disables the model-inference
+            deadline.
+        num_ctx:
+          type: integer
+          minimum: 0
+          description: Ollama num_ctx runtime option. 0 uses the model/Ollama default.
+        num_predict:
+          type: integer
+          minimum: 0
+          description: Ollama num_predict runtime option. 0 inherits NeuroForge's
+            caller/global output limit.
+        think:
+          type: string
+          enum:
+          - false
+          - true
+          - low
+          - medium
+          - high
+          - max
+          description: Ollama thinking mode.
+        chat_keep_alive:
+          type: string
+          description: Ollama keep_alive for chat requests, e.g. 30m or 0.
+        embedding_keep_alive:
+          type: string
+          description: Ollama keep_alive for embedding requests, e.g. 5m or 0.
+    ModelRoutingLearning:
+      type: object
+      required:
+      - auto_reward_enabled
+      - auto_reward_mode
+      - consolidation_enabled
+      - consolidation_use_llm
+      - autonomy_enabled
+      - autonomy_use_llm
+      properties:
+        auto_reward_enabled:
+          type: boolean
+        auto_reward_mode:
+          type: string
+          enum:
+          - vector
+          - llm
+        consolidation_enabled:
+          type: boolean
+        consolidation_use_llm:
+          type: boolean
+        autonomy_enabled:
+          type: boolean
+        autonomy_use_llm:
+          type: boolean
+    ModelRoutingSettings:
+      type: object
+      required:
+      - routing
+      - ollama
+      - learning
+      properties:
+        routing:
+          $ref: '#/components/schemas/RoutingConfig'
+        ollama:
+          type: array
+          items:
+            $ref: '#/components/schemas/OllamaServer'
+        learning:
+          $ref: '#/components/schemas/ModelRoutingLearning'
+    ModelRoutingUpdate:
+      type: object
+      description: Partial update. Omitted sections are preserved.
+      properties:
+        routing:
+          $ref: '#/components/schemas/RoutingConfig'
+        ollama:
+          type: array
+          items:
+            $ref: '#/components/schemas/OllamaServer'
+        learning:
+          $ref: '#/components/schemas/ModelRoutingLearning'
+    Memory:
+      type: object
+      required:
+      - id
+      - kind
+      - memory_type
+      - text
+      properties:
+        id:
+          type: string
+        kind:
+          type: string
+        memory_type:
+          type: string
+          enum:
+          - episodic
+          - semantic
+          - procedural
+          - working
+        text:
+          type: string
+        vector:
+          type: array
+          items:
+            type: number
+            format: float
+        vector_dim:
+          type: integer
+          minimum: 0
+        tags:
+          type: array
+          items:
+            type: string
+        session_id:
+          type: string
+        parent_id:
+          type: string
+        shard_id:
+          type: string
+        origin_shard_id:
+          type: string
+        home_shard_id:
+          type: string
+        salience:
+          type: number
+        confidence:
+          type: number
+        reward:
+          type: number
+          minimum: -1
+          maximum: 1
+        created_at:
+          type: string
+          format: date-time
+        accessed_at:
+          type: string
+          format: date-time
+        access_count:
+          type: integer
+          format: int64
+        consolidated_from:
+          type: array
+          items:
+            type: string
+        consolidated_into:
+          type: string
+        consolidation_count:
+          type: integer
+        truth_key:
+          type: string
+        version:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+          - active
+          - superseded
+          - conflicted
+          - archived
+        conflict_group:
+          type: string
+        supersedes:
+          type: array
+          items:
+            type: string
+        compressed:
+          type: boolean
+        provenance:
+          $ref: '#/components/schemas/MemoryProvenance'
+        evidence_source_ids:
+          type: array
+          items:
+            type: string
+        evidence_count:
+          type: integer
+          minimum: 0
+    SearchHit:
+      type: object
+      properties:
+        memory:
+          $ref: '#/components/schemas/Memory'
+        similarity:
+          type: number
+        score:
+          type: number
+        base_score:
+          type: number
+        graph_boost:
+          type: number
+        type_weight:
+          type: number
+        salience_factor:
+          type: number
+        confidence_factor:
+          type: number
+        candidate_source:
+          type: string
+          enum:
+          - hnsw
+          - disk-pq
+          - scan
+          - synapse
+    LearnRequest:
+      type: object
+      required:
+      - text
+      properties:
+        text:
+          type: string
+        kind:
+          type: string
+        memory_type:
+          type: string
+          enum:
+          - episodic
+          - semantic
+          - procedural
+          - working
+        session_id:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        salience:
+          type: number
+        confidence:
+          type: number
+        truth_key:
+          type: string
+        version:
+          type: integer
+          format: int64
+          minimum: 1
+    ChatRequest:
+      type: object
+      required:
+      - input
+      properties:
+        session_id:
+          type: string
+        input:
+          type: string
+        provider:
+          type: string
+          enum:
+          - auto
+          - ollama
+          - openai
+        model:
+          type: string
+    VectorSearchRequest:
+      type: object
+      required:
+      - vector
+      properties:
+        vector:
+          type: array
+          minItems: 1
+          items:
+            type: number
+            format: float
+        k:
+          type: integer
+          minimum: 1
+        min_similarity:
+          type: number
+          minimum: -1
+          maximum: 1
+        graph_bonus:
+          type: number
+    FeedbackRequest:
+      type: object
+      required:
+      - response_memory_id
+      - source_memory_ids
+      - rating
+      properties:
+        response_memory_id:
+          type: string
+        source_memory_ids:
+          type: array
+          items:
+            type: string
+        rating:
+          type: number
+          minimum: -1
+          maximum: 1
+    Goal:
+      type: object
+      required:
+      - title
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum:
+          - active
+          - paused
+          - completed
+          - failed
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 100
+        progress:
+          type: number
+          minimum: 0
+          maximum: 1
+        target:
+          type: string
+        prediction:
+          type: string
+        next_action:
+          type: string
+        last_evaluation:
+          type: number
+          minimum: -1
+          maximum: 1
+        memory_ids:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_cycle_at:
+          type: string
+          format: date-time
+        auto_run:
+          type: boolean
+        interval_minutes:
+          type: integer
+          minimum: 1
+        next_cycle_at:
+          type: string
+          format: date-time
+        research_enabled:
+          type: boolean
+        consecutive_errors:
+          type: integer
+          minimum: 0
+        last_error:
+          type: string
+    LearningCycle:
+      type: object
+      properties:
+        id:
+          type: string
+        goal_id:
+          type: string
+        observation:
+          type: string
+        prediction:
+          type: string
+        evaluation:
+          type: number
+          minimum: -1
+          maximum: 1
+        learning:
+          type: string
+        memory_id:
+          type: string
+        cost_usd:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        research_run_id:
+          type: string
+          description: Persisted live/audit research run associated with this goal cycle.
+        research_queries:
+          type: array
+          items:
+            type: string
+        sources_found:
+          type: integer
+        sources_ingested:
+          type: integer
+        research_errors:
+          type: array
+          items:
+            type: string
+    ClusterEntry:
+      type: object
+      required:
+      - id
+      - term
+      - index
+      - leader_id
+      - type
+      - payload
+      properties:
+        id:
+          type: string
+        term:
+          type: integer
+          format: int64
+          minimum: 1
+        index:
+          type: integer
+          format: int64
+          minimum: 1
+        leader_id:
+          type: string
+        type:
+          type: string
+          enum:
+          - memory.upsert
+        payload:
+          description: JSON-encoded operation payload.
+        created_at:
+          type: string
+          format: date-time
+    ClusterDecision:
+      type: object
+      properties:
+        entry_id:
+          type: string
+        term:
+          type: integer
+          format: int64
+        index:
+          type: integer
+          format: int64
+        decision:
+          type: string
+          enum:
+          - commit
+          - abort
+        created_at:
+          type: string
+          format: date-time
+    ClusterVoteRequest:
+      type: object
+      required:
+      - term
+      - candidate_id
+      - last_log_index
+      properties:
+        term:
+          type: integer
+          format: int64
+          minimum: 1
+        candidate_id:
+          type: string
+        last_log_index:
+          type: integer
+          format: int64
+          minimum: 0
+    ClusterVoteResponse:
+      type: object
+      properties:
+        term:
+          type: integer
+          format: int64
+        vote_granted:
+          type: boolean
+        voter_id:
+          type: string
+    ClusterHeartbeat:
+      type: object
+      required:
+      - term
+      - leader_id
+      properties:
+        term:
+          type: integer
+          format: int64
+          minimum: 1
+        leader_id:
+          type: string
+        commit_index:
+          type: integer
+          format: int64
+          minimum: 0
+        last_index:
+          type: integer
+          format: int64
+          minimum: 0
+    ClusterHeartbeatResponse:
+      type: object
+      properties:
+        term:
+          type: integer
+          format: int64
+        accepted:
+          type: boolean
+        node_id:
+          type: string
+        last_index:
+          type: integer
+          format: int64
+        commit_index:
+          type: integer
+          format: int64
+    MemoryProvenance:
+      type: object
+      properties:
+        source:
+          type: string
+        actor:
+          type: string
+        embedding_provider:
+          type: string
+        embedding_model:
+          type: string
+        embedding_node_id:
+          type: string
+        generation_provider:
+          type: string
+        generation_model:
+          type: string
+        generation_node_id:
+          type: string
+        goal_id:
+          type: string
+        source_memory_id:
+          type: string
+        note:
+          type: string
+        source_id:
+          type: string
+        source_uri:
+          type: string
+          format: uri
+        source_title:
+          type: string
+        chunk_index:
+          type: integer
+          minimum: 0
+        chunk_count:
+          type: integer
+          minimum: 0
+        content_hash:
+          type: string
+        retrieved_at:
+          type: string
+          format: date-time
+    LearningPolicy:
+      type: object
+      required:
+      - enabled
+      - learn_chat_inputs
+      - learn_chat_responses
+      - allow_explicit_learn
+      - allow_imports
+      - learn_goal_cycles
+      - min_confidence
+      - duplicate_similarity
+      - semantic_min_confirmations
+      - semantic_min_confidence
+      - archive_negative_responses
+      - negative_archive_threshold
+      - max_memory_text_chars
+      - source_trust
+      properties:
+        enabled:
+          type: boolean
+        learn_chat_inputs:
+          type: boolean
+        learn_chat_responses:
+          type: boolean
+        allow_explicit_learn:
+          type: boolean
+        allow_imports:
+          type: boolean
+        learn_goal_cycles:
+          type: boolean
+        min_confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        duplicate_similarity:
+          type: number
+          minimum: -1
+          maximum: 1
+        semantic_min_confirmations:
+          type: integer
+          minimum: 2
+          maximum: 100
+        semantic_min_confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        archive_negative_responses:
+          type: boolean
+        negative_archive_threshold:
+          type: number
+          minimum: -1
+          maximum: 0
+        max_memory_text_chars:
+          type: integer
+          minimum: 256
+        source_trust:
+          type: object
+          additionalProperties:
+            type: number
+            minimum: 0
+            maximum: 1
+    LearningPolicySettings:
+      type: object
+      required:
+      - auto_learn
+      - policy
+      properties:
+        auto_learn:
+          type: boolean
+        policy:
+          $ref: '#/components/schemas/LearningPolicy'
+    KnowledgeEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        memory_id:
+          type: string
+        related_ids:
+          type: array
+          items:
+            type: string
+        summary:
+          type: string
+        reason:
+          type: string
+        actor:
+          type: string
+        model:
+          type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+    ResearchRunStats:
+      type: object
+      properties:
+        queries: {type: integer}
+        results: {type: integer}
+        downloads_started: {type: integer}
+        downloads_completed: {type: integer}
+        pages: {type: integer}
+        documents: {type: integer}
+        claims: {type: integer, description: Transparent claim/evidence candidates extracted from source chunks.}
+        new_evidence: {type: integer}
+        duplicates: {type: integer}
+        corroborations: {type: integer}
+        rejected_sources: {type: integer}
+        skipped_evidence: {type: integer}
+        errors: {type: integer}
+    ResearchEvent:
+      type: object
+      properties:
+        seq: {type: integer, format: int64}
+        id: {type: string}
+        run_id: {type: string}
+        goal_id: {type: string}
+        type: {type: string}
+        phase: {type: string}
+        status: {type: string}
+        query: {type: string}
+        url: {type: string}
+        title: {type: string}
+        source_id: {type: string}
+        memory_id: {type: string}
+        message: {type: string}
+        preview: {type: string}
+        score: {type: number}
+        similarity: {type: number}
+        confidence: {type: number}
+        metadata:
+          type: object
+          additionalProperties: {type: string}
+        created_at: {type: string, format: date-time}
+    ResearchRun:
+      type: object
+      properties:
+        id: {type: string}
+        goal_id: {type: string}
+        goal_title: {type: string}
+        status:
+          type: string
+          enum: [running, completed, completed_with_errors, failed, cancelled, interrupted]
+        started_at: {type: string, format: date-time}
+        updated_at: {type: string, format: date-time}
+        completed_at: {type: string, format: date-time}
+        queries:
+          type: array
+          items: {type: string}
+        stats: {$ref: '#/components/schemas/ResearchRunStats'}
+        last_seq: {type: integer, format: int64}
+        last_error: {type: string}
+        events:
+          type: array
+          items: {$ref: '#/components/schemas/ResearchEvent'}
+    KnowledgeSource:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        title:
+          type: string
+        uri:
+          type: string
+        file_name:
+          type: string
+        mime:
+          type: string
+        sha256:
+          type: string
+        trust:
+          type: number
+          minimum: 0
+          maximum: 1
+        status:
+          type: string
+        chunk_count:
+          type: integer
+        memory_ids:
+          type: array
+          items:
+            type: string
+        bytes:
+          type: integer
+          format: int64
+        error:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    IngestTextRequest:
+      type: object
+      required:
+      - text
+      properties:
+        title:
+          type: string
+        text:
+          type: string
+        source_uri:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        trust:
+          type: number
+          minimum: 0
+          maximum: 1
+        memory_type:
+          type: string
+          enum:
+          - episodic
+          - semantic
+          - procedural
+          - working
+        source_type:
+          type: string
+    IngestResult:
+      type: object
+      properties:
+        source:
+          $ref: '#/components/schemas/KnowledgeSource'
+        memory_ids:
+          type: array
+          items:
+            type: string
+        chunks:
+          type: integer
+        duplicates:
+          type: integer
+        skipped:
+          type: integer
+        cost_usd:
+          type: number
+        warnings:
+          type: array
+          items:
+            type: string
+    ResearchRequest:
+      type: object
+      required:
+      - query
+      properties:
+        query:
+          type: string
+        learn:
+          type: boolean
+        fetch_pages:
+          type: boolean
+        max_results:
+          type: integer
+          minimum: 1
+        max_pages:
+          type: integer
+          minimum: 0
+    ResearchResult:
+      type: object
+      properties:
+        query:
+          type: string
+        results:
+          type: array
+          items:
+            type: object
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/KnowledgeSource'
+        ingested:
+          type: integer
+        documents_ingested:
+          type: integer
+          description: Number of fetched SearXNG file results routed through document ingestion.
+        errors:
+          type: array
+          items:
+            type: string
+        cost_usd:
+          type: number
+paths:
+  /metrics:
+    get:
+      summary: Prometheus metrics in the classic text exposition format
+      security:
+      - MetricsToken: []
+      responses:
+        '200':
+          description: Prometheus text metrics
+          content:
+            text/plain; version=0.0.4:
+              schema:
+                type: string
+        '401':
+          description: Invalid metrics bearer token
+  /healthz:
+    get:
+      summary: Compatibility alias for /livez
+      responses:
+        '200':
+          description: Process is alive
+  /api/v1/chat:
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Chat answer with recalled memories and cost metadata
+  /api/v1/learn:
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearnRequest'
+      responses:
+        '201':
+          description: Stored memory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Memory'
+  /api/v1/search:
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Embed once, search local HNSW plus configured remote shards, then
+        merge.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - text
+              properties:
+                text:
+                  type: string
+                k:
+                  type: integer
+                  minimum: 1
+      responses:
+        '200':
+          description: Ranked semantic hits
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SearchHit'
+  /api/v1/search/vector:
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Local-only vector search used by one-hop shard federation.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorSearchRequest'
+      responses:
+        '200':
+          description: Local vector hits
+  /api/v1/memory/import:
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Idempotent import path for shard replication. This is separate
+        from quorum cluster writes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Memory'
+      responses:
+        '201':
+          description: Imported memory
+  /api/v1/feedback:
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '200':
+          description: Reward and synapse changes applied
+  /api/v1/stats:
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      responses:
+        '200':
+          description: Memory
+          HNSW: null
+          shard: null
+          cluster: null
+          maintenance and cost counters: null
+  /api/v1/goals:
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      responses:
+        '200':
+          description: Goals
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Goal'
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Goal'
+      responses:
+        '201':
+          description: Goal created
+  /api/v1/goals/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      responses:
+        '200':
+          description: Goal
+        '404':
+          description: Goal not found
+    put:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Goal'
+      responses:
+        '200':
+          description: Goal updated
+    delete:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      responses:
+        '200':
+          description: Goal deleted
+  /api/v1/goals/{id}/pause:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Pause an active goal. The scheduler deadline is cleared and autonomy skips it.
+      responses:
+        '200':
+          description: Paused goal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+        '400':
+          description: Goal cannot be paused
+  /api/v1/goals/{id}/resume:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Resume a paused goal. Auto-run goals are scheduled immediately when autonomy is enabled.
+      responses:
+        '200':
+          description: Active goal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+        '400':
+          description: Goal cannot be resumed
+  /api/v1/goals/{id}/cycle:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    post:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Run one Observe -> Predict -> Evaluate -> Learn cycle.
+      responses:
+        '200':
+          description: Completed learning cycle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningCycle'
+  /api/v1/goals/{id}/research/live:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema: {type: string}
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Return metadata for the latest research run and only events newer than `after`. Designed for authenticated low-overhead live polling from the admin UI.
+      parameters:
+      - name: run_id
+        in: query
+        schema: {type: string}
+        description: Client's currently displayed run. A different latest run returns reset=true.
+      - name: after
+        in: query
+        schema: {type: integer, format: int64, minimum: 0}
+        description: Last event sequence already received.
+      responses:
+        '200':
+          description: Latest research run delta.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  run:
+                    oneOf:
+                    - {$ref: '#/components/schemas/ResearchRun'}
+                    - {type: 'null'}
+                  events:
+                    type: array
+                    items: {$ref: '#/components/schemas/ResearchEvent'}
+                  reset: {type: boolean}
+  /api/v1/goals/{id}/research/history:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema: {type: string}
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      description: Return bounded recent research-run summaries for a goal. Event arrays are omitted from history cards.
+      parameters:
+      - name: limit
+        in: query
+        schema: {type: integer, minimum: 1, maximum: 50, default: 10}
+      responses:
+        '200':
+          description: Research run history.
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/ResearchRun'}
+  /api/v1/learning-cycles:
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+      responses:
+        '200':
+          description: Recent learning cycles
+  /api/v1/conflicts:
+    get:
+      security:
+      - AppKey: []
+      - AdminToken: []
+      responses:
+        '200':
+          description: Open truth-key conflicts
+  /api/v1/worker/claim:
+    post:
+      security:
+      - WorkerKey: []
+      responses:
+        '200':
+          description: Claimed CPU job
+        '204':
+          description: No job available
+  /api/v1/worker/complete:
+    post:
+      security:
+      - WorkerKey: []
+      responses:
+        '200':
+          description: Job completion accepted
+  /internal/v1/cluster/request-vote:
+    post:
+      security:
+      - ClusterToken: []
+      description: Raft-style term/vote exchange used for automatic leader election.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterVoteRequest'
+      responses:
+        '200':
+          description: Vote result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterVoteResponse'
+  /internal/v1/cluster/heartbeat:
+    post:
+      security:
+      - ClusterToken: []
+      description: Leader heartbeat; higher terms force stale leaders/candidates to
+        step down.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterHeartbeat'
+      responses:
+        '200':
+          description: Heartbeat acceptance and follower term/index state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterHeartbeatResponse'
+  /internal/v1/cluster/prepare:
+    post:
+      security:
+      - ClusterToken: []
+      description: Persist a prepared quorum entry on this node.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterEntry'
+      responses:
+        '200':
+          description: Prepared durably
+        '409':
+          description: Rejected due to term/index/configuration conflict
+  /internal/v1/cluster/commit:
+    post:
+      security:
+      - ClusterToken: []
+      description: Apply a previously prepared entry after a durable leader decision.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClusterEntry'
+      responses:
+        '200':
+          description: Commit applied
+        '409':
+          description: Commit rejected
+  /internal/v1/cluster/abort:
+    post:
+      security:
+      - ClusterToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - id
+              properties:
+                id:
+                  type: string
+      responses:
+        '200':
+          description: Prepared entry removed
+  /internal/v1/cluster/propose/memory:
+    post:
+      security:
+      - ClusterToken: []
+      description: Forward a memory proposal to the current leader (elected or statically
+        configured).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Memory'
+      responses:
+        '201':
+          description: Memory committed by quorum
+        '503':
+          description: Quorum unavailable or leader write failed
+  /internal/v1/cluster/decision/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    get:
+      security:
+      - ClusterToken: []
+      responses:
+        '200':
+          description: Durable leader decision
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClusterDecision'
+        '404':
+          description: No decision found
+  /internal/v1/cluster/status:
+    get:
+      security:
+      - ClusterToken: []
+      responses:
+        '200':
+          description: Cluster role
+          elected leader: null
+          term: null
+          vote: null
+          commit index: null
+          quorum: null
+          pending entries and replicated-log status: null
+  /admin/api/status:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Dashboard status including storage and cluster
+  /admin/api/config:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Non-secret configuration
+    put:
+      security:
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '200':
+          description: Updated configuration
+  /admin/api/model-routing:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Ollama nodes, provider routing and learning-model role settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelRoutingSettings'
+    put:
+      security:
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModelRoutingUpdate'
+      responses:
+        '200':
+          description: Updated model routing settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelRoutingSettings'
+        '400':
+          description: Invalid provider
+          duplicate Ollama ID or unknown pinned node: null
+  /admin/api/secrets/status:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Secret configuration status
+  /admin/api/secrets:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Admin-visible secret configuration; OpenAI API key is never
+            returned
+    put:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Secrets updated
+  /admin/api/provider-health:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Provider health results
+  /admin/api/memories:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Memory list
+  /admin/api/memories/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+    delete:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Memory deleted
+  /admin/api/synapses:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Synapse list
+  /admin/api/usage:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Provider usage and cost data
+  /admin/api/export:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Exported state
+  /admin/api/consolidate:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Consolidation cycle completed
+  /admin/api/retention:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Retention/compression cycle completed
+  /admin/api/autonomy:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: One autonomous goal cycle run completed
+  /admin/api/rebalance:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Shard rebalance or dry-run result
+  /admin/api/checkpoint:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: State and HNSW checkpoint written
+  /admin/api/wal:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: WAL and revision status
+  /admin/api/storage:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: WAL
+          memory-segment: null
+          hot/cold tier: null
+          page-cache: null
+          replicated-log and incremental index status: null
+  /admin/api/storage/compact:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Memory segment compaction completed and checkpoint written
+  /admin/api/storage/tier:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Hot bodies cooled into segment-backed storage according to
+            configured limits
+  /admin/api/index/merge:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Current HNSW base snapshot rewritten and accumulated snapshot
+            deltas removed
+  /admin/api/index/disk:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Disk-backed IVF-PQ index status
+          dimensions: null
+          bytes and build revision: null
+  /admin/api/index/disk/rebuild:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Rebuilds IVF-PQ partitions beside the active index and atomically
+            swaps them in
+        '500':
+          description: Disk ANN build failed or another build is already running
+  /admin/api/cluster:
+    get:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Cluster status
+  /admin/api/cluster/repair:
+    post:
+      security:
+      - AdminToken: []
+      responses:
+        '200':
+          description: Pending cluster entries reconciled with leader decisions
+  /admin/api/conflicts/resolve:
+    post:
+      security:
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - truth_key
+              - winner_id
+              properties:
+                truth_key:
+                  type: string
+                winner_id:
+                  type: string
+      responses:
+        '200':
+          description: Conflict resolved
+  /livez:
+    get:
+      summary: Process liveness probe
+      responses:
+        '200':
+          description: Process is alive
+  /readyz:
+    get:
+      summary: Configuration/cluster readiness probe; does not perform live model-provider
+        network calls
+      responses:
+        '200':
+          description: Ready
+        '503':
+          description: Not ready
+  /version:
+    get:
+      summary: Build/API version
+      responses:
+        '200':
+          description: Version response
+  /admin/api/learning-policy:
+    get:
+      summary: Read effective learning policy
+      security: &id001
+      - AdminToken: []
+      responses:
+        '200':
+          description: Learning policy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningPolicySettings'
+    put:
+      summary: Replace learning policy and global auto-learn switch
+      security: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LearningPolicySettings'
+      responses:
+        '200':
+          description: Updated learning policy
+        '400':
+          description: Invalid policy
+  /admin/api/knowledge/summary:
+    get:
+      summary: Aggregated explainability summary without hydrating every cold memory
+        body
+      security: *id001
+      responses:
+        '200':
+          description: Knowledge summary
+  /admin/api/knowledge/memories:
+    get:
+      summary: Cursor-bounded memory previews for Knowledge Explorer
+      security: *id001
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          maximum: 200
+      - name: before
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: memory_type
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+      - name: source
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Memory preview page
+  /admin/api/knowledge/memory/{id}:
+    get:
+      summary: Full memory explainability detail, provenance, relations and events
+      security: *id001
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Memory detail
+        '404':
+          description: Memory not found
+  /admin/api/knowledge/graph:
+    get:
+      summary: Bounded synapse/memory graph for browser visualization
+      security: *id001
+      parameters:
+      - name: center
+        in: query
+        schema:
+          type: string
+      - name: depth
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 4
+      - name: max_nodes
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 250
+      responses:
+        '200':
+          description: Knowledge graph
+  /admin/api/knowledge/events:
+    get:
+      summary: Persistent bounded learning timeline
+      security: *id001
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          maximum: 500
+      responses:
+        '200':
+          description: Knowledge events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KnowledgeEvent'
+  /admin/api/knowledge/search:
+    post:
+      summary: Explainable semantic recall with score decomposition
+      security: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - text
+              properties:
+                text:
+                  type: string
+                k:
+                  type: integer
+                  minimum: 1
+                  maximum: 50
+      responses:
+        '200':
+          description: Explainable recall hits
+  /api/v1/ingest/text:
+    post:
+      summary: Ingest plain text as source-grounded evidence
+      security: &id002
+      - AppKey: []
+      - AdminToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IngestTextRequest'
+      responses:
+        '201':
+          description: Text chunked, embedded and learned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+  /api/v1/ingest/document:
+    post:
+      summary: Upload and ingest a document
+      description: Supports text/Markdown/HTML/JSON/CSV/TSV/DOCX; PDF requires pdftotext
+        (poppler-utils) on the server.
+      security: *id002
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                tags:
+                  type: string
+                  description: Comma-separated tags
+                trust:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+      responses:
+        '201':
+          description: Document extracted, chunked, embedded and learned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IngestResult'
+        '413':
+          description: Document too large
+  /api/v1/sources:
+    get:
+      summary: List ingested knowledge sources
+      security: *id002
+      parameters:
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 1000
+      responses:
+        '200':
+          description: Sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/KnowledgeSource'
+  /api/v1/sources/{id}:
+    get:
+      summary: Get one knowledge source
+      security: *id002
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Source
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeSource'
+        '404':
+          description: Source not found
+  /api/v1/research:
+    post:
+      summary: Search via SearXNG and optionally ingest result evidence
+      security: *id002
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResearchRequest'
+      responses:
+        '200':
+          description: Research results and optional ingestion
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResearchResult'
+        '502':
+          description: SearXNG or page fetch failed
+  /admin/api/research:
+    get:
+      summary: Get research and ingestion settings
+      security: &id003
+      - AdminToken: []
+      responses:
+        '200':
+          description: Research settings
+    put:
+      summary: Update research/ingestion/autonomy settings
+      security: *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated settings
+        '400':
+          description: Invalid configuration
+  /admin/api/research/test:
+    post:
+      summary: Test configured SearXNG search without learning
+      security: *id003
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+      responses:
+        '200':
+          description: Search test result
+        '502':
+          description: Search failed

@@ -1,0 +1,23 @@
+{
+    "id":  "KAT-SCHULVERWALTUNGSNETZ-SELECT",
+    "title":  "Schulverwaltungsnetz",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Schulverwaltungsnetz. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn das getrennte Verwaltungsnetz einer Schule, Arbeitsplätze der Schulverwaltung oder schulverwaltungsspezifische Netzzugänge betroffen sind. Typische Ticketformulierungen sind: „Sekretariat ohne Verwaltungsnetz“; „Schulleitungs-PC erreicht Verwaltungsdienste nicht“; „Verwaltungs-WLAN gestört“. Nicht auswählen, wenn das pädagogische Schülernetz, eine konkrete Schulverwaltungsanwendung oder die gesamte Standortanbindung ausfällt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Zentrale Netzwerkkomponenten werden durch Team Schulen qualifiziert und an Infrastruktur und Backend weitergegeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Schulverwaltungsnetz“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Schulverwaltungsnetz"
+                   ],
+    "keywords":  [
+                     "Schulverwaltungsnetz",
+                     "Verwaltungsnetz Schule",
+                     "Sekretariat Netzwerk",
+                     "Schulleitung Netzwerk",
+                     "Schulverwaltung",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/schulverwaltungsnetz",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

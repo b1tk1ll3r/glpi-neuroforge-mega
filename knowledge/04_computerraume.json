@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-COMPUTERRAUME-SELECT",
+    "title":  "Computerräume",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Computerräume. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn mehrere PCs, Peripheriegeräte, Anmeldungen oder die technische Ausstattung eines Computerraums betroffen sind oder der Raum neu eingerichtet werden soll. Typische Ticketformulierungen sind: „Mehrere PCs im Computerraum starten nicht“; „Computerraum neu ausstatten“; „Schüler können sich im Raum nicht anmelden“; „Raumsoftware verteilen“. Nicht auswählen, wenn nur ein einzelner Lehrerarbeitsplatz oder eine allgemeine Standortstörung vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Mehrgeräteprobleme sprechen oft für zentrale Richtlinien, Images oder Netzwerkursachen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Computerräume“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Computerräume"
+                   ],
+    "keywords":  [
+                     "Computerraum",
+                     "PC-Raum",
+                     "Informatikraum",
+                     "Schüler-PC",
+                     "Raumausstattung",
+                     "mehrere Rechner",
+                     "Unterrichtsraum",
+                     "Computerräume",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/computerraume",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

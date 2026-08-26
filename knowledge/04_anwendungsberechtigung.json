@@ -1,0 +1,30 @@
+{
+    "id":  "KAT-ANWENDUNGSBERECHTIGUNG-SELECT",
+    "title":  "Anwendungsberechtigung",
+    "text":  "Auswahlziel: Benutzerkonten und Berechtigungen \u003e Anwendungsberechtigung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn ein Benutzer Zugriff, eine Rolle, ein Funktionsrecht oder eine organisatorische Zuordnung innerhalb einer konkreten Fachanwendung benötigt oder wenn eine vorhandene Berechtigung dort nicht korrekt wirkt. Typische Ticketformulierungen sind: „Rolle Sachbearbeitung fehlt“; „Kein Zugriff auf Modul Kasse“; „Berechtigung in Fachverfahren beantragen“; „Benutzer sieht falsche Organisationseinheit“. Nicht auswählen, wenn das zentrale Benutzerkonto selbst fehlt oder gesperrt ist; wenn eine AD-Gruppe oder GPO geändert werden soll; wenn der Zugriff technisch wegen Netzwerk, VPN oder Serverausfall scheitert. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Die betroffene Anwendung und die gewünschte Rolle sollten genannt werden. Technische Konten bleiben bei Infrastruktur und Backend.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Benutzerkonten und Berechtigungen \u003e Anwendungsberechtigung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Benutzerkonten und Berechtigungen \u003e Anwendungsberechtigung"
+                   ],
+    "keywords":  [
+                     "Berechtigung",
+                     "Rolle",
+                     "Zugriff",
+                     "Freischaltung",
+                     "Fachanwendung",
+                     "Fachverfahren",
+                     "Modul",
+                     "Rechte",
+                     "Benutzerrolle",
+                     "Mandant",
+                     "Organisationseinheit",
+                     "Anwendungsberechtigung",
+                     "Benutzerkonten und Berechtigungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/benutzerkonten-und-berechtigungen/anwendungsberechtigung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

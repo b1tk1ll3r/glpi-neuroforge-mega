@@ -1,0 +1,27 @@
+[Unit]
+Description=NeuroForge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=neuroforge
+Group=neuroforge
+EnvironmentFile=/etc/neuroforge/neuroforge.env
+ExecStart=/usr/local/bin/neuroforge -data /var/lib/neuroforge -listen 127.0.0.1:8080
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=45
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/neuroforge
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+
+[Install]
+WantedBy=multi-user.target

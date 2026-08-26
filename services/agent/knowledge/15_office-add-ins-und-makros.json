@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-OFFICE-ADD-INS-UND-MAKROS-SELECT",
+    "title":  "Office-Add-ins und Makros",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Office-Add-ins und Makros. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn ein Office-Add-in, COM-Add-in, VBA-Makro oder automatisierter Office-Ablauf installiert, freigegeben, repariert oder angepasst werden soll. Typische Ticketformulierungen sind: „Excel-Makro läuft nicht“; „Outlook-Add-in fehlt“; „VBA-Fehler“; „COM-Add-in deaktiviert“. Nicht auswählen, wenn die Basisanwendung Word, Excel, PowerPoint oder Outlook ohne Add-in-Bezug fehlerhaft ist oder neue allgemeine Software beschafft werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Sicherheitsbewertung und Signierung können Infrastruktur und Backend beziehungsweise IT-Sicherheit einbeziehen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Office-Add-ins und Makros“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Office-Add-ins und Makros"
+                   ],
+    "keywords":  [
+                     "Add-in",
+                     "Plugin",
+                     "Makro",
+                     "VBA",
+                     "COM-Add-in",
+                     "Office-Erweiterung",
+                     "Automatisierung",
+                     "Makrofehler",
+                     "Office-Add-ins und Makros",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/office-add-ins-und-makros",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

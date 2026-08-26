@@ -1,0 +1,25 @@
+{
+    "id":  "KAT-DRUCKERTREIBER-SELECT",
+    "title":  "Druckertreiber",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Druckertreiber. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Druckertreiber fehlt, fehlerhaft ist, aktualisiert werden muss oder falsche Papierfächer, Formate und Gerätefunktionen bereitstellt. Typische Ticketformulierungen sind: „Treiber lässt sich nicht installieren“; „Falsches Papierformat“; „Duplexoption fehlt“; „Druckertreiber aktualisieren“. Nicht auswählen, wenn der Drucker physisch defekt, das Netzwerk ausgefallen oder eine zentrale Druckserverplattform gestört ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Zentrale Treiberpakete können eine Abstimmung mit Infrastruktur und Backend erfordern.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Druckertreiber“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Druckertreiber"
+                   ],
+    "keywords":  [
+                     "Druckertreiber",
+                     "Treiber",
+                     "Printer Driver",
+                     "Duplex",
+                     "Papierfach",
+                     "Druckerinstallation",
+                     "Treiberfehler",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/druckertreiber",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

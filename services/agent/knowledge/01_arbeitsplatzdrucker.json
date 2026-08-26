@@ -1,0 +1,25 @@
+{
+    "id":  "KAT-ARBEITSPLATZDRUCKER-SELECT",
+    "title":  "Arbeitsplatzdrucker",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Arbeitsplatzdrucker. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein direkt einem Arbeitsplatz zugeordneter Drucker nicht druckt, Papierstau, schlechte Druckqualität, lokale Verbindung oder einen Gerätefehler zeigt. Typische Ticketformulierungen sind: „Lokaler Drucker druckt nicht“; „Papierstau am Arbeitsplatzdrucker“; „Druck blass“; „USB-Drucker wird nicht erkannt“. Nicht auswählen, wenn ein zentraler Netzwerkdrucker, Multifunktionsgerät oder Druckserver betroffen ist oder ein neues Gerät beschafft werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Verbrauchsmaterial und Beschaffung werden bei Bedarf separat zugeordnet.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Arbeitsplatzdrucker“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Arbeitsplatzdrucker"
+                   ],
+    "keywords":  [
+                     "Arbeitsplatzdrucker",
+                     "lokaler Drucker",
+                     "Papierstau",
+                     "Druckqualität",
+                     "USB-Drucker",
+                     "druckt nicht",
+                     "Toner",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/arbeitsplatzdrucker",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

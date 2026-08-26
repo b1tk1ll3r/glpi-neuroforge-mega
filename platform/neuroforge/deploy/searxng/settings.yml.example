@@ -1,0 +1,13 @@
+# Minimal NeuroForge-compatible SearXNG override.
+# Merge with SearXNG defaults and set a strong secret in your deployment.
+use_default_settings: true
+
+search:
+  safe_search: 1
+  formats:
+    - html
+    - json
+
+server:
+  secret_key: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET"
+  limiter: false

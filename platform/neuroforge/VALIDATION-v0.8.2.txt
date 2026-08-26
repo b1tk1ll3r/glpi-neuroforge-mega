@@ -1,0 +1,37 @@
+NeuroForge v0.8.2 validation
+Date: 2026-08-25
+
+PASS  go test ./...
+PASS  go vet ./...
+PASS  go test -race ./internal/store ./internal/brain ./internal/httpapi ./internal/research
+PASS  Admin dashboard JavaScript syntax (node --check)
+PASS  OpenAPI YAML parses; info.version=0.8.2; 71 paths
+PASS  OpenAPI live research endpoints present:
+      GET /api/v1/goals/{id}/research/live
+      GET /api/v1/goals/{id}/research/history
+PASS  static linux/amd64 builds: server, worker, benchmark
+PASS  server smoke: /livez, /readyz, /version=0.8.2
+PASS  authenticated empty live-research endpoint response
+PASS  graceful SIGTERM shutdown
+
+New v0.8.2 regression coverage:
+PASS  per-goal research run receives a persistent run_id
+PASS  research planning emits query.planned events
+PASS  SearXNG result discovery emits search.result events
+PASS  ingestion emits claim.extracted and evidence.learned events
+PASS  research run aggregates result/claim/evidence counters
+PASS  completed research run is linked from LearningCycle.research_run_id
+PASS  live endpoint returns only events newer than the requested sequence number
+PASS  live endpoint can reset when the latest run changes
+PASS  bounded ResearchRun/ResearchEvent storage prevents unbounded trace growth
+PASS  unfinished in-memory run is marked interrupted after restart
+PASS  source/memory durability remains on existing authoritative WAL/segment paths
+
+Operational design notes:
+- The dashboard uses authenticated incremental polling (~1.2 s), not SSE/WebSocket.
+- Polling requests only the event delta after the last sequence number; it does not rescan all memories.
+- Research trace UI events are accumulated in memory during a run and the bounded run is persisted at run completion. This deliberately avoids one fsync/WAL write per URL/chunk/UI event.
+- Authoritative sources and learned memories continue to use the normal durable source/memory persistence paths.
+- Claim entries shown live are transparent source-derived claim candidates/excerpts. They are not automatically labeled as verified truth.
+- Download/source, duplicate/corroboration, rejection, and error lanes are represented separately in the UI.
+PASS  clean source ZIP rebuild: go test ./..., go vet ./..., server/worker/bench build

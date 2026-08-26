@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-VIRENSCHUTZ-SELECT",
+    "title":  "Virenschutz",
+    "text":  "Auswahlziel: IT-Sicherheit und Datensicherung \u003e Virenschutz. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Virenscanner oder EDR-Agent nicht läuft, Signaturen veraltet sind, Richtlinien nicht greifen, ein Agent fehlt oder Quarantäne- und Ausnahmeregeln administriert werden müssen. Typische Ticketformulierungen sind: „Virenscanner nicht aktiv“; „Signaturen veraltet“; „EDR-Agent offline“; „Ausnahme prüfen“; „Quarantäne verwalten“. Nicht auswählen, wenn bereits Malware gefunden wurde oder ein allgemeines Betriebssystemupdate betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Ein konkreter Schadsoftwarefund wird unter Schadsoftware und Virenfund klassifiziert.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „IT-Sicherheit und Datensicherung \u003e Virenschutz“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "IT-Sicherheit und Datensicherung \u003e Virenschutz"
+                   ],
+    "keywords":  [
+                     "Virenscanner",
+                     "Antivirus",
+                     "EDR",
+                     "Signatur",
+                     "Agent",
+                     "Quarantäne",
+                     "Ausnahme",
+                     "Schutzstatus",
+                     "Defender",
+                     "Virenschutz",
+                     "IT-Sicherheit und Datensicherung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/it-sicherheit-und-datensicherung/virenschutz",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,25 @@
+{
+    "id":  "KAT-NETZWERKDRUCKER-SELECT",
+    "title":  "Netzwerkdrucker",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Netzwerkdrucker. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein gemeinsam genutzter Netzwerkdrucker nicht erreichbar ist, Druckaufträge hängen, eine Warteschlange fehlerhaft ist oder mehrere Benutzer auf dasselbe Gerät nicht drucken können. Typische Ticketformulierungen sind: „Netzwerkdrucker offline“; „Druckwarteschlange hängt“; „Mehrere Nutzer können nicht drucken“; „Drucker nicht verbunden“. Nicht auswählen, wenn ein lokaler USB-Drucker, Kopierer oder rein zentraler Druckserverdienst ohne konkretes Gerät betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei zentralem Druckserver- oder Netzwerkproblem wird an Infrastruktur und Backend übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Netzwerkdrucker“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Netzwerkdrucker"
+                   ],
+    "keywords":  [
+                     "Netzwerkdrucker",
+                     "Druckwarteschlange",
+                     "Print Queue",
+                     "offline",
+                     "gemeinsamer Drucker",
+                     "Druckauftrag hängt",
+                     "IP-Drucker",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/netzwerkdrucker",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

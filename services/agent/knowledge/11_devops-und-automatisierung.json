@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-DEVOPS-UND-AUTOMATISIERUNG-SELECT",
+    "title":  "DevOps und Automatisierung",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e DevOps und Automatisierung. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn CI/CD-Pipelines, automatisierte Deployments, Infrastrukturcode, Konfigurationsmanagement, Build-Prozesse oder technische Automatisierungen erstellt oder gestört sind. Typische Ticketformulierungen sind: „Pipeline schlägt fehl“; „Deployment automatisieren“; „Ansible-Playbook anpassen“; „Infrastructure as Code bereitstellen“. Nicht auswählen, wenn nur ein Kubernetes-Pod ausfällt, eine normale Softwareinstallation am Arbeitsplatz benötigt wird oder ein fachlicher Workflow innerhalb einer Anwendung gemeint ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Fachanwendungsbezogene Releaseentscheidungen liegen bei Fachanwendungen; technische Delivery-Plattform bei Infrastruktur.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e DevOps und Automatisierung“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e DevOps und Automatisierung"
+                   ],
+    "keywords":  [
+                     "DevOps",
+                     "CI/CD",
+                     "Pipeline",
+                     "Deployment",
+                     "Ansible",
+                     "Terraform",
+                     "Infrastructure as Code",
+                     "Automation",
+                     "Build",
+                     "DevOps und Automatisierung",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/devops-und-automatisierung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-MICROSOFT-POWERPOINT-SELECT",
+    "title":  "Microsoft PowerPoint",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Microsoft PowerPoint. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Microsoft PowerPoint bei Präsentationen, Folienlayouts, Medien, Referentenansicht oder programmspezifischen Funktionen nicht korrekt arbeitet oder Unterstützung benötigt wird. Typische Ticketformulierungen sind: „Präsentation lässt sich nicht starten“; „Video in Folie spielt nicht“; „Folienlayout fehlerhaft“; „PowerPoint stürzt ab“. Nicht auswählen, wenn Beamer, Monitor oder Videokonferenztechnik physisch nicht funktioniert oder eine zentrale Office-Installation fehlt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Physische Anzeige- und Konferenzprobleme bleiben beim Support.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Microsoft PowerPoint“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Microsoft PowerPoint"
+                   ],
+    "keywords":  [
+                     "PowerPoint",
+                     "Microsoft PowerPoint",
+                     "PPTX",
+                     "Präsentation",
+                     "Folie",
+                     "Referentenansicht",
+                     "Layout",
+                     "Bildschirmpräsentation",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/microsoft-powerpoint",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

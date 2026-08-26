@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-MOBILE-SCHULGERATE-SELECT",
+    "title":  "Mobile Schulgeräte",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Mobile Schulgeräte. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn schulische Tablets, Notebooks, Leihgeräte oder Gerätekoffer eingerichtet, ausgegeben, zurückgenommen, repariert oder im Unterricht unterstützt werden müssen. Typische Ticketformulierungen sind: „Schüler-iPad defekt“; „Tablet-Koffer einrichten“; „Leihgerät zurücknehmen“; „Schulnotebook startet nicht“. Nicht auswählen, wenn ausschließlich das zentrale MDM, ein privates Gerät oder ein allgemeines Verwaltungs-Smartphone betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: MDM-Profil- und Plattformprobleme werden in Mobile-Device-Management für Schulen erfasst.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Mobile Schulgeräte“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Mobile Schulgeräte"
+                   ],
+    "keywords":  [
+                     "Schultablet",
+                     "Schul-iPad",
+                     "Leihgerät",
+                     "Tablet-Koffer",
+                     "Schulnotebook",
+                     "mobiles Schulgerät",
+                     "Schülergerät",
+                     "Mobile Schulgeräte",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/mobile-schulgerate",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

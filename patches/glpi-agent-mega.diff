@@ -1,0 +1,1784 @@
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/dist/README.md /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/dist/README.md
+--- /mnt/data/mega_work/originals/glpi-ai-agent/dist/README.md	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/dist/README.md	1970-01-01 00:00:00.000000000 +0000
+@@ -1,7 +0,0 @@
+-# Vorgebaute Programme
+-
+-- `glpi-ai-agent-linux-amd64`: Linux amd64, statisch gebaut (`CGO_ENABLED=0`)
+-- `glpi-ai-agent-windows-amd64.exe`: Windows amd64, statisch gebaut (`CGO_ENABLED=0`)
+-- `SHA256SUMS.txt`: SHA-256-Prüfsummen der beiden Programme
+-
+-Die Programme wurden aus dem gemeinsam ausgelieferten Quellstand mit `make dist` erstellt. Für andere Architekturen kann das Go-Projekt direkt neu gebaut werden.
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/dist/SHA256SUMS.txt /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/dist/SHA256SUMS.txt
+--- /mnt/data/mega_work/originals/glpi-ai-agent/dist/SHA256SUMS.txt	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/dist/SHA256SUMS.txt	1970-01-01 00:00:00.000000000 +0000
+@@ -1,2 +0,0 @@
+-4b9859394e592706bc73da7754c8e7a3cf71459e8517c8d75bed0da2331fa98a  dist/glpi-ai-agent-linux-amd64
+-62c2f41fd05171a0d5750c97881f4c80196664016a5800ee69d7806ca059a698  dist/glpi-ai-agent-windows-amd64.exe
+Binary files /mnt/data/mega_work/originals/glpi-ai-agent/dist/glpi-ai-agent-linux-amd64 and /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/dist/glpi-ai-agent-linux-amd64 differ
+Binary files /mnt/data/mega_work/originals/glpi-ai-agent/dist/glpi-ai-agent-windows-amd64.exe and /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/dist/glpi-ai-agent-windows-amd64.exe differ
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/go.mod /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/go.mod
+--- /mnt/data/mega_work/originals/glpi-ai-agent/go.mod	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/go.mod	2026-08-25 15:35:04.000000000 +0000
+@@ -1,3 +1,3 @@
+ module github.com/example/glpi-ai-agent
+ 
+-go 1.26
++go 1.23
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/config/config.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/config/config.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/config/config.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/config/config.go	2026-08-25 16:02:10.000000000 +0000
+@@ -85,6 +85,13 @@
+ 	KnowledgeIndexMode         string
+ 	KnowledgeEmbedBatchSize    int
+ 	KnowledgeIndexScanInterval time.Duration
++	KnowledgeVectorBackend     string
++	NeuroForgeURL              string
++	NeuroForgeAPIKey           string
++	NeuroForgeNamespace        string
++	NeuroForgeTimeout          time.Duration
++	NeuroForgeSearchK          int
++	NeuroForgeFailOpen         bool
+ 	GLPIKBEnabled              bool
+ 	GLPIKBPath                 string
+ 	GLPIKBFilter               string
+@@ -276,6 +283,13 @@
+ 		KnowledgeIndexMode:                     envNormalizedLower("KNOWLEDGE_INDEX_MODE", "incremental"),
+ 		KnowledgeEmbedBatchSize:                envInt("KNOWLEDGE_EMBED_BATCH_SIZE", 64),
+ 		KnowledgeIndexScanInterval:             envDuration("KNOWLEDGE_INDEX_SCAN_INTERVAL", 5*time.Minute),
++		KnowledgeVectorBackend:                 envNormalizedLower("KNOWLEDGE_VECTOR_BACKEND", "local"),
++		NeuroForgeURL:                          strings.TrimRight(env("NEUROFORGE_URL", "http://127.0.0.1:8090"), "/"),
++		NeuroForgeAPIKey:                       strings.TrimSpace(os.Getenv("NEUROFORGE_API_KEY")),
++		NeuroForgeNamespace:                    env("NEUROFORGE_NAMESPACE", "glpi-agent"),
++		NeuroForgeTimeout:                      envDuration("NEUROFORGE_TIMEOUT", 15*time.Second),
++		NeuroForgeSearchK:                      envInt("NEUROFORGE_SEARCH_K", 128),
++		NeuroForgeFailOpen:                     envBool("NEUROFORGE_FAIL_OPEN", true),
+ 		GLPIKBEnabled:                          envBool("GLPI_KB_ENABLED", false),
+ 		GLPIKBPath:                             env("GLPI_KB_PATH", "auto"),
+ 		GLPIKBFilter:                           strings.TrimSpace(os.Getenv("GLPI_KB_FILTER")),
+@@ -609,6 +623,23 @@
+ 	if c.KnowledgeIndexScanInterval < 0 {
+ 		return errors.New("KNOWLEDGE_INDEX_SCAN_INTERVAL must be >= 0")
+ 	}
++	switch c.KnowledgeVectorBackend {
++	case "", "local", "dual", "neuroforge":
++	default:
++		return fmt.Errorf("KNOWLEDGE_VECTOR_BACKEND must be one of: local, dual, neuroforge (got %q)", c.KnowledgeVectorBackend)
++	}
++	if c.KnowledgeVectorBackend == "dual" || c.KnowledgeVectorBackend == "neuroforge" {
++		u, err := url.Parse(c.NeuroForgeURL)
++		if err != nil || u.Scheme == "" || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
++			return errors.New("NEUROFORGE_URL must be an absolute http(s) URL")
++		}
++		if c.NeuroForgeSearchK < 1 || c.NeuroForgeSearchK > 500 {
++			return errors.New("NEUROFORGE_SEARCH_K must be between 1 and 500")
++		}
++		if c.NeuroForgeTimeout <= 0 {
++			return errors.New("NEUROFORGE_TIMEOUT must be positive")
++		}
++	}
+ 	if c.LearningEnabled {
+ 		if c.LearningMaxExamples < 1 || c.LearningMaxExamples > 10000 {
+ 			return errors.New("LEARNING_MAX_EXAMPLES must be between 1 and 10000")
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpi/client.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpi/client.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpi/client.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpi/client.go	2026-08-25 18:19:32.870426876 +0000
+@@ -10,6 +10,7 @@
+ 	"io"
+ 	"net/http"
+ 	"net/url"
++	"regexp"
+ 	"sort"
+ 	"strconv"
+ 	"strings"
+@@ -493,6 +494,147 @@
+ 	return out, nil
+ }
+ 
++// ListKnowledgeBaseLinkedItems reads GLPI's KnowbaseItem_Item relation using
++// the route exposed by the installed OpenAPI contract. GLPI models these
++// records as (knowbaseitems_id, itemtype, items_id). The implementation
++// supports both a global relation collection and nested per-article routes.
++func (c *Client) ListKnowledgeBaseLinkedItems(ctx context.Context, articleIDs []int64, limit int) (map[int64][]model.LinkedItem, error) {
++	doc, err := c.FetchOpenAPI(ctx)
++	if err != nil {
++		return nil, fmt.Errorf("fetch GLPI OpenAPI for knowledge links: %w", err)
++	}
++	paths, ok := doc["paths"].(map[string]any)
++	if !ok {
++		return nil, errors.New("GLPI OpenAPI document has no paths map")
++	}
++	type candidate struct {
++		path   string
++		nested bool
++		score  int
++	}
++	var candidates []candidate
++	for documented, raw := range paths {
++		ops, ok := raw.(map[string]any)
++		if !ok || ops["get"] == nil {
++			continue
++		}
++		l := strings.ToLower(documented)
++		compact := strings.NewReplacer("_", "", "-", "", "/", "").Replace(l)
++		if !strings.Contains(compact, "knowbaseitemitem") {
++			continue
++		}
++		nested := strings.Contains(documented, "{")
++		score := 100
++		if !nested {
++			score += 40
++		}
++		if strings.Contains(l, "knowledge") {
++			score += 10
++		}
++		candidates = append(candidates, candidate{path: documented, nested: nested, score: score})
++	}
++	if len(candidates) == 0 {
++		return nil, errors.New("GLPI OpenAPI exposes no readable KnowbaseItem_Item relation route")
++	}
++	sort.Slice(candidates, func(i, j int) bool {
++		if candidates[i].score == candidates[j].score {
++			return candidates[i].path < candidates[j].path
++		}
++		return candidates[i].score > candidates[j].score
++	})
++	chosen := candidates[0]
++	cleanPath := func(p string) string {
++		if i := strings.Index(p, "/api.php/"); i >= 0 {
++			rest := p[i+len("/api.php/"):]
++			if slash := strings.Index(rest, "/"); slash >= 0 {
++				p = rest[slash:]
++			}
++		}
++		versionPrefix := "/" + strings.Trim(c.version, "/")
++		if strings.HasPrefix(p, versionPrefix+"/") {
++			p = strings.TrimPrefix(p, versionPrefix)
++		}
++		if !strings.HasPrefix(p, "/") {
++			p = "/" + p
++		}
++		return p
++	}
++	chosen.path = cleanPath(chosen.path)
++	if limit <= 0 {
++		limit = 10000
++	}
++	result := map[int64][]model.LinkedItem{}
++	seen := map[string]struct{}{}
++	addRows := func(articleHint int64, body []byte) error {
++		arr, err := extractArray(body)
++		if err != nil {
++			return err
++		}
++		for _, r := range arr {
++			articleID := firstPositiveInt(r, "knowbaseitems_id", "knowbaseitem_id")
++			if articleID <= 0 {
++				articleID = articleHint
++			}
++			itemType := firstString(r, "itemtype", "item_type", "type")
++			itemID := firstPositiveInt(r, "items_id", "item_id")
++			name := firstString(r, "item_name", "name", "completename", "title")
++			if articleID <= 0 || itemID <= 0 || strings.TrimSpace(itemType) == "" {
++				continue
++			}
++			key := fmt.Sprintf("%d|%s|%d", articleID, strings.ToLower(itemType), itemID)
++			if _, ok := seen[key]; ok {
++				continue
++			}
++			seen[key] = struct{}{}
++			result[articleID] = append(result[articleID], model.LinkedItem{ItemType: itemType, ID: itemID, Name: name})
++		}
++		return nil
++	}
++
++	if !chosen.nested {
++		body, _, err := c.do(ctx, http.MethodGet, chosen.path, url.Values{"limit": {strconv.Itoa(limit)}}, nil)
++		if err != nil {
++			return nil, err
++		}
++		if err := addRows(0, body); err != nil {
++			return nil, err
++		}
++	} else {
++		placeholder := regexp.MustCompile(`\{[^/{}]+\}`)
++		if len(placeholder.FindAllString(chosen.path, -1)) != 1 {
++			return nil, fmt.Errorf("unsupported GLPI knowledge relation route %q", chosen.path)
++		}
++		for _, articleID := range articleIDs {
++			p := placeholder.ReplaceAllString(chosen.path, strconv.FormatInt(articleID, 10))
++			body, _, err := c.do(ctx, http.MethodGet, p, url.Values{"limit": {strconv.Itoa(limit)}}, nil)
++			if err != nil {
++				return nil, err
++			}
++			if err := addRows(articleID, body); err != nil {
++				return nil, err
++			}
++		}
++	}
++	for id := range result {
++		sort.Slice(result[id], func(i, j int) bool {
++			if result[id][i].ItemType == result[id][j].ItemType {
++				return result[id][i].ID < result[id][j].ID
++			}
++			return result[id][i].ItemType < result[id][j].ItemType
++		})
++	}
++	return result, nil
++}
++
++func firstPositiveInt(r map[string]any, keys ...string) int64 {
++	for _, key := range keys {
++		if id := int64Val(r[key]); id > 0 {
++			return id
++		}
++	}
++	return 0
++}
++
+ func knowledgeCategoryIDs(r map[string]any) []int64 {
+ 	seen := map[int64]struct{}{}
+ 	var out []int64
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpi/client_test.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpi/client_test.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpi/client_test.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpi/client_test.go	2026-08-25 18:22:28.219087408 +0000
+@@ -320,3 +320,32 @@
+ 		t.Fatalf("unexpected link request path=%q body=%#v", gotPath, body)
+ 	}
+ }
++
++func TestListKnowledgeBaseLinkedItemsFromOpenAPICollection(t *testing.T) {
++	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		switch r.URL.Path {
++		case "/api.php/token":
++			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "x", "expires_in": 3600})
++		case "/api.php/doc.json":
++			_ = json.NewEncoder(w).Encode(map[string]any{"paths": map[string]any{
++				"/v2.3/Knowledge/KnowbaseItem_Item": map[string]any{"get": map[string]any{}},
++			}})
++		case "/api.php/v2.3/Knowledge/KnowbaseItem_Item":
++			_ = json.NewEncoder(w).Encode([]map[string]any{
++				{"knowbaseitems_id": 12, "itemtype": "Computer", "items_id": 42, "item_name": "NB-042"},
++				{"knowbaseitems_id": 12, "itemtype": "Ticket", "items_id": 99},
++			})
++		default:
++			http.NotFound(w, r)
++		}
++	}))
++	defer srv.Close()
++	c := New(srv.URL, "v2.3", "cid", "sec", "u", "p", time.Second)
++	links, err := c.ListKnowledgeBaseLinkedItems(context.Background(), []int64{12}, 100)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(links[12]) != 2 || links[12][0].ItemType != "Computer" || links[12][0].Name != "NB-042" {
++		t.Fatalf("unexpected links: %#v", links)
++	}
++}
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpikb/sync.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpikb/sync.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpikb/sync.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpikb/sync.go	2026-08-25 18:19:43.370684417 +0000
+@@ -28,6 +28,10 @@
+ 	GetCategories(context.Context) ([]model.Category, error)
+ }
+ 
++type LinkedItemSource interface {
++	ListKnowledgeBaseLinkedItems(context.Context, []int64, int) (map[int64][]model.LinkedItem, error)
++}
++
+ type Store interface {
+ 	ReplaceExternalSource(context.Context, string, []model.KnowledgeDoc) error
+ 	Count() int
+@@ -140,6 +144,24 @@
+ 		s.fail(err)
+ 		return fmt.Errorf("list GLPI knowledge base: %w", err)
+ 	}
++	if linkedSource, ok := s.glpi.(LinkedItemSource); ok {
++		articleIDs := make([]int64, 0, len(items))
++		for _, item := range items {
++			articleIDs = append(articleIDs, item.ID)
++		}
++		linkLimit := s.cfg.GLPIKBLimit * 20
++		if linkLimit < 1000 {
++			linkLimit = 1000
++		}
++		links, linkErr := linkedSource.ListKnowledgeBaseLinkedItems(ctx, articleIDs, linkLimit)
++		if linkErr != nil {
++			slog.Warn("GLPI knowledge linked items unavailable", "error", linkErr, "impact", "articles still synchronize; Obsidian export will omit unavailable GLPI object relations")
++		} else {
++			for i := range items {
++				items[i].LinkedItems = append([]model.LinkedItem(nil), links[items[i].ID]...)
++			}
++		}
++	}
+ 	cats, err := s.glpi.GetCategories(ctx)
+ 	if err != nil {
+ 		slog.Warn(
+@@ -298,6 +320,7 @@
+ 			Source: s.cfg.GLPIKBSource, SourceURI: "glpi://KnowbaseItem/" + strconv.FormatInt(item.ID, 10),
+ 			SourceCategoryIDs: append([]int64(nil), item.CategoryIDs...), SourceModifiedAt: item.ModifiedAt,
+ 			Language: language, CommunicationStyle: s.cfg.CommunicationStyle,
++			LinkedItems: append([]model.LinkedItem(nil), item.LinkedItems...),
+ 		})
+ 	}
+ 	return out
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpikb/sync_test.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpikb/sync_test.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/glpikb/sync_test.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/glpikb/sync_test.go	2026-08-25 18:23:32.995261319 +0000
+@@ -247,3 +247,25 @@
+ 		t.Fatalf("decision=%q", got)
+ 	}
+ }
++
++type linkedFakeSource struct{ fakeSource }
++
++func (linkedFakeSource) ListKnowledgeBaseLinkedItems(context.Context, []int64, int) (map[int64][]model.LinkedItem, error) {
++	return map[int64][]model.LinkedItem{12: {{ItemType: "Computer", ID: 42, Name: "NB-042"}}}, nil
++}
++
++func TestSyncPreservesGLPIKnowledgeLinkedItems(t *testing.T) {
++	cfg := config.Config{DataDir: t.TempDir(), GLPIKBEnabled: true, GLPIKBPath: "auto", GLPIKBLimit: 50, GLPIKBSyncInterval: time.Minute, GLPIKBSource: "glpi-kb", CommunicationLanguage: "de-DE", CommunicationStyle: "formal", GLPITimeout: time.Second}
++	st := &fakeStore{}
++	s := New(cfg, linkedFakeSource{}, st, metrics.New())
++	if err := s.Sync(context.Background()); err != nil {
++		t.Fatal(err)
++	}
++	if len(st.docs) != 1 || len(st.docs[0].LinkedItems) != 1 {
++		t.Fatalf("linked items lost during sync: %#v", st.docs)
++	}
++	got := st.docs[0].LinkedItems[0]
++	if got.ItemType != "Computer" || got.ID != 42 || got.Name != "NB-042" {
++		t.Fatalf("unexpected linked item: %#v", got)
++	}
++}
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/neuroforge_backend.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/neuroforge_backend.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/neuroforge_backend.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/neuroforge_backend.go	2026-08-25 16:02:10.000000000 +0000
+@@ -0,0 +1,371 @@
++package knowledge
++
++import (
++	"bytes"
++	"context"
++	"crypto/sha256"
++	"encoding/hex"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"io"
++	"log/slog"
++	"net/http"
++	"net/url"
++	"strconv"
++	"strings"
++	"time"
++
++	"github.com/example/glpi-ai-agent/internal/model"
++)
++
++// SemanticBackend externalizes chunk-vector persistence/search while the
++// existing deterministic GLPI hybrid scorer remains authoritative.
++type SemanticBackend interface {
++	Name() string
++	UpsertDocument(context.Context, model.KnowledgeDoc, []string, [][]float64) error
++	DeleteDocument(context.Context, string) error
++	Search(context.Context, []float64, int) ([]SemanticHit, error)
++	Health(context.Context) error
++}
++
++type SemanticHit struct {
++	DocumentID string
++	ChunkIndex int
++	Text       string
++	Similarity float64
++	Source     string
++}
++
++type NeuroForgeBackendConfig struct {
++	BaseURL   string
++	APIKey    string
++	Namespace string
++	Timeout   time.Duration
++}
++
++type NeuroForgeBackend struct {
++	baseURL   string
++	apiKey    string
++	namespace string
++	http      *http.Client
++}
++
++func NewNeuroForgeBackend(cfg NeuroForgeBackendConfig) (*NeuroForgeBackend, error) {
++	raw := strings.TrimRight(strings.TrimSpace(cfg.BaseURL), "/")
++	if raw == "" {
++		return nil, errors.New("neuroforge base URL is required")
++	}
++	u, err := url.Parse(raw)
++	if err != nil || u.Scheme == "" || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
++		return nil, fmt.Errorf("invalid neuroforge URL %q", raw)
++	}
++	ns := strings.TrimSpace(cfg.Namespace)
++	if ns == "" {
++		ns = "glpi-agent"
++	}
++	if cfg.Timeout <= 0 {
++		cfg.Timeout = 15 * time.Second
++	}
++	return &NeuroForgeBackend{baseURL: raw, apiKey: strings.TrimSpace(cfg.APIKey), namespace: ns, http: &http.Client{Timeout: cfg.Timeout}}, nil
++}
++
++func (c *NeuroForgeBackend) Name() string { return "neuroforge" }
++
++func vector32(in []float64) []float32 {
++	out := make([]float32, len(in))
++	for i, v := range in {
++		out[i] = float32(v)
++	}
++	return out
++}
++
++func contentHash(text string, vec []float64) string {
++	h := sha256.New()
++	_, _ = h.Write([]byte(text))
++	_, _ = h.Write([]byte{0})
++	for _, v := range vec {
++		_, _ = h.Write([]byte(strconv.FormatFloat(v, 'g', 9, 64)))
++		_, _ = h.Write([]byte{0})
++	}
++	return hex.EncodeToString(h.Sum(nil))
++}
++
++func (c *NeuroForgeBackend) UpsertDocument(ctx context.Context, d model.KnowledgeDoc, chunks []string, vectors [][]float64) error {
++	if len(chunks) != len(vectors) {
++		return fmt.Errorf("chunk/vector mismatch for %s: %d != %d", d.ID, len(chunks), len(vectors))
++	}
++	type chunkReq struct {
++		Index       int       `json:"index"`
++		Text        string    `json:"text"`
++		Vector      []float32 `json:"vector"`
++		ContentHash string    `json:"content_hash"`
++	}
++	req := struct {
++		Namespace  string     `json:"namespace"`
++		DocumentID string     `json:"document_id"`
++		Title      string     `json:"title,omitempty"`
++		SourceURI  string     `json:"source_uri,omitempty"`
++		Tags       []string   `json:"tags,omitempty"`
++		Confidence float64    `json:"confidence"`
++		Chunks     []chunkReq `json:"chunks"`
++	}{Namespace: c.namespace, DocumentID: d.ID, Title: d.Title, SourceURI: d.SourceURI, Confidence: 1}
++	req.Tags = append(req.Tags, "source:"+d.Source)
++	for _, cat := range d.Categories {
++		req.Tags = append(req.Tags, "category:"+strconv.FormatInt(cat, 10))
++	}
++	req.Chunks = make([]chunkReq, 0, len(chunks))
++	for i := range chunks {
++		req.Chunks = append(req.Chunks, chunkReq{Index: i, Text: chunks[i], Vector: vector32(vectors[i]), ContentHash: contentHash(chunks[i], vectors[i])})
++	}
++	var out map[string]any
++	return c.doJSON(ctx, http.MethodPost, "/api/v1/integrations/knowledge/upsert", req, &out)
++}
++
++func (c *NeuroForgeBackend) DeleteDocument(ctx context.Context, id string) error {
++	path := "/api/v1/integrations/knowledge/" + url.PathEscape(c.namespace) + "/" + url.PathEscape(strings.TrimSpace(id))
++	var out map[string]any
++	return c.doJSON(ctx, http.MethodDelete, path, nil, &out)
++}
++
++func (c *NeuroForgeBackend) Search(ctx context.Context, vector []float64, k int) ([]SemanticHit, error) {
++	if k <= 0 {
++		k = 128
++	}
++	req := struct {
++		Namespace string    `json:"namespace"`
++		Vector    []float32 `json:"vector"`
++		K         int       `json:"k"`
++	}{Namespace: c.namespace, Vector: vector32(vector), K: k}
++	var raw []struct {
++		Memory struct {
++			ID         string `json:"id"`
++			Text       string `json:"text"`
++			Provenance struct {
++				Source         string `json:"source"`
++				SourceMemoryID string `json:"source_memory_id"`
++				ChunkIndex     int    `json:"chunk_index"`
++			} `json:"provenance"`
++		} `json:"memory"`
++		Similarity float64 `json:"similarity"`
++	}
++	if err := c.doJSON(ctx, http.MethodPost, "/api/v1/integrations/knowledge/search", req, &raw); err != nil {
++		return nil, err
++	}
++	out := make([]SemanticHit, 0, len(raw))
++	for _, h := range raw {
++		if h.Memory.Provenance.SourceMemoryID == "" {
++			continue
++		}
++		out = append(out, SemanticHit{DocumentID: h.Memory.Provenance.SourceMemoryID, ChunkIndex: h.Memory.Provenance.ChunkIndex, Text: h.Memory.Text, Similarity: h.Similarity, Source: h.Memory.Provenance.Source})
++	}
++	return out, nil
++}
++
++func (c *NeuroForgeBackend) Health(ctx context.Context) error {
++	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+"/readyz", nil)
++	if err != nil {
++		return err
++	}
++	resp, err := c.http.Do(req)
++	if err != nil {
++		return err
++	}
++	defer resp.Body.Close()
++	if resp.StatusCode/100 != 2 {
++		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
++		return fmt.Errorf("neuroforge readiness failed: %s: %s", resp.Status, strings.TrimSpace(string(b)))
++	}
++	return nil
++}
++
++func (c *NeuroForgeBackend) doJSON(ctx context.Context, method, path string, input, output any) error {
++	var body io.Reader
++	if input != nil {
++		b, err := json.Marshal(input)
++		if err != nil {
++			return err
++		}
++		body = bytes.NewReader(b)
++	}
++	req, err := http.NewRequestWithContext(ctx, method, c.baseURL+path, body)
++	if err != nil {
++		return err
++	}
++	if input != nil {
++		req.Header.Set("Content-Type", "application/json")
++	}
++	if c.apiKey != "" {
++		req.Header.Set("Authorization", "Bearer "+c.apiKey)
++	}
++	resp, err := c.http.Do(req)
++	if err != nil {
++		return err
++	}
++	defer resp.Body.Close()
++	if resp.StatusCode/100 != 2 {
++		b, _ := io.ReadAll(io.LimitReader(resp.Body, 8192))
++		return fmt.Errorf("neuroforge %s %s failed: %s: %s", method, path, resp.Status, strings.TrimSpace(string(b)))
++	}
++	if output == nil {
++		return nil
++	}
++	return json.NewDecoder(resp.Body).Decode(output)
++}
++
++// SetSemanticBackend configures the migration mode. local keeps the original
++// snapshot-only behavior; dual mirrors vectors to the backend but preserves the
++// local cache; neuroforge makes NeuroForge authoritative for chunk-vector
++// persistence/search while keeping lexical/title fallback locally.
++func (s *Store) SetSemanticBackend(backend SemanticBackend, mode string, searchK int, failOpen bool) error {
++	if s == nil {
++		return errors.New("knowledge store is nil")
++	}
++	mode = strings.ToLower(strings.TrimSpace(mode))
++	if mode == "" {
++		mode = "local"
++	}
++	switch mode {
++	case "local":
++		backend = nil
++	case "dual", "neuroforge":
++		if backend == nil {
++			return fmt.Errorf("semantic backend %q requires a configured backend", mode)
++		}
++	default:
++		return fmt.Errorf("semantic backend mode must be local, dual or neuroforge")
++	}
++	if searchK <= 0 {
++		searchK = 128
++	}
++	s.mu.Lock()
++	s.semanticBackend = backend
++	s.semanticBackendMode = mode
++	s.semanticBackendSearchK = searchK
++	s.semanticBackendFailOpen = failOpen
++	s.mu.Unlock()
++	return nil
++}
++
++func (s *Store) semanticExternalized() bool {
++	return s != nil && s.semanticBackend != nil && s.semanticBackendMode == "neuroforge"
++}
++
++func (s *Store) syncSemanticDocument(ctx context.Context, d model.KnowledgeDoc, chunks []string, vectors [][]float64) error {
++	s.mu.RLock()
++	backend := s.semanticBackend
++	mode := s.semanticBackendMode
++	s.mu.RUnlock()
++	if backend == nil || mode == "local" || len(vectors) == 0 {
++		return nil
++	}
++	if err := backend.UpsertDocument(ctx, d, chunks, vectors); err != nil {
++		return fmt.Errorf("semantic backend sync %s: %w", d.ID, err)
++	}
++	return nil
++}
++
++func (s *Store) semanticSettings() (SemanticBackend, string, int, bool) {
++	if s == nil {
++		return nil, "local", 0, true
++	}
++	s.mu.RLock()
++	defer s.mu.RUnlock()
++	return s.semanticBackend, s.semanticBackendMode, s.semanticBackendSearchK, s.semanticBackendFailOpen
++}
++
++func (s *Store) handleSemanticSyncError(err error) error {
++	if err == nil {
++		return nil
++	}
++	_, mode, _, failOpen := s.semanticSettings()
++	if mode == "dual" || failOpen {
++		return nil
++	}
++	return err
++}
++
++func (s *Store) externalizeChunkVectors() {
++	if !s.semanticExternalized() {
++		return
++	}
++	s.mu.Lock()
++	s.chunkVectors = map[string][][]float64{}
++	s.mu.Unlock()
++}
++
++func (s *Store) syncSemanticDocuments(ctx context.Context, docs []model.KnowledgeDoc, embedded map[string]embeddedDoc) (bool, error) {
++	backend, mode, _, failOpen := s.semanticSettings()
++	if backend == nil || mode == "local" {
++		return true, nil
++	}
++	allOK := true
++	for _, d := range docs {
++		e, ok := embedded[d.ID]
++		if !ok || len(e.chunks) == 0 {
++			continue
++		}
++		chunks := chunkText(d.Text, s.scoring.ChunkWords, s.scoring.ChunkOverlap, s.scoring.MaxChunksPerDoc)
++		if err := s.syncSemanticDocument(ctx, d, chunks, e.chunks); err != nil {
++			allOK = false
++			slog.Warn("semantic backend sync failed; local vectors retained", "backend", backend.Name(), "document", d.ID, "mode", mode, "error", err)
++			if mode == "neuroforge" && !failOpen {
++				return false, err
++			}
++			// dual mode and fail-open neuroforge mode preserve the local vectors.
++			continue
++		}
++	}
++	return allOK, nil
++}
++
++func (s *Store) syncLoadedSemanticBackend(ctx context.Context) (bool, error) {
++	backend, mode, _, failOpen := s.semanticSettings()
++	if backend == nil || mode == "local" {
++		return true, nil
++	}
++	s.mu.RLock()
++	docs := append([]model.KnowledgeDoc(nil), s.docs...)
++	embedded := make(map[string]embeddedDoc, len(s.chunkVectors))
++	for _, d := range docs {
++		if vv := s.chunkVectors[d.ID]; len(vv) > 0 {
++			embedded[d.ID] = embeddedDoc{title: append([]float64(nil), s.titleVectors[d.ID]...), chunks: cloneChunkVectors(vv)}
++		}
++	}
++	s.mu.RUnlock()
++	if len(embedded) == 0 {
++		if err := backend.Health(ctx); err != nil {
++			if failOpen {
++				return false, nil
++			}
++			return false, fmt.Errorf("semantic backend readiness: %w", err)
++		}
++		return true, nil
++	}
++	ok, err := s.syncSemanticDocuments(ctx, docs, embedded)
++	if err != nil {
++		return false, err
++	}
++	if ok && mode == "neuroforge" {
++		s.externalizeChunkVectors()
++		if err := s.persistSnapshot(); err != nil {
++			return false, err
++		}
++	}
++	return ok, nil
++}
++
++func (s *Store) deleteSemanticDocument(ctx context.Context, id string) error {
++	backend, mode, _, failOpen := s.semanticSettings()
++	if backend == nil || mode == "local" {
++		return nil
++	}
++	if err := backend.DeleteDocument(ctx, id); err != nil {
++		if mode == "dual" || failOpen {
++			slog.Warn("semantic backend delete failed; continuing by policy", "backend", backend.Name(), "document", id, "mode", mode, "error", err)
++			return nil
++		}
++		return fmt.Errorf("semantic backend delete %s: %w", id, err)
++	}
++	return nil
++}
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/persistent_index.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/persistent_index.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/persistent_index.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/persistent_index.go	2026-08-25 15:56:01.000000000 +0000
+@@ -323,6 +323,7 @@
+ 	oldTitle := s.titleVectors
+ 	oldChunkVec := s.chunkVectors
+ 	oldChunks := s.chunks
++	_, semanticMode, _, _ := s.semanticSettings()
+ 	externalDocs := make([]model.KnowledgeDoc, 0)
+ 	externalMap := make(map[string]string, len(s.external))
+ 	for id, src := range s.external {
+@@ -382,15 +383,18 @@
+ 	for _, d := range localDocs {
+ 		parts := chunkText(d.Text, s.scoring.ChunkWords, s.scoring.ChunkOverlap, s.scoring.MaxChunksPerDoc)
+ 		newChunks[d.ID] = parts
+-		if old, ok := oldDocs[d.ID]; ok && hashDoc(old, s.scoring) == hashDoc(d, s.scoring) && len(oldTitle[d.ID]) > 0 && len(oldChunkVec[d.ID]) == len(parts) {
++		if old, ok := oldDocs[d.ID]; ok && hashDoc(old, s.scoring) == hashDoc(d, s.scoring) && len(oldTitle[d.ID]) > 0 && (semanticMode == "neuroforge" || len(oldChunkVec[d.ID]) == len(parts)) {
+ 			newTitle[d.ID] = oldTitle[d.ID]
+-			newChunkVec[d.ID] = oldChunkVec[d.ID]
++			if semanticMode != "neuroforge" {
++				newChunkVec[d.ID] = oldChunkVec[d.ID]
++			}
+ 			reused++
+ 		} else if s.rag {
+ 			needEmbed = append(needEmbed, d)
+ 		}
+ 	}
+ 
++	semanticReady := true
+ 	if s.rag && len(needEmbed) > 0 {
+ 		if s.embedder == nil {
+ 			return fmt.Errorf("RAG is enabled but no embedding provider is configured")
+@@ -404,11 +408,17 @@
+ 			if end > len(needEmbed) {
+ 				end = len(needEmbed)
+ 			}
+-			emb, err := s.embedDocuments(ctx, needEmbed[start:end])
++			batch := needEmbed[start:end]
++			emb, err := s.embedDocuments(ctx, batch)
+ 			if err != nil {
+ 				return err
+ 			}
+-			for _, d := range needEmbed[start:end] {
++			if ok, syncErr := s.syncSemanticDocuments(ctx, batch, emb); syncErr != nil {
++				return syncErr
++			} else if !ok {
++				semanticReady = false
++			}
++			for _, d := range batch {
+ 				newTitle[d.ID] = emb[d.ID].title
+ 				newChunkVec[d.ID] = emb[d.ID].chunks
+ 			}
+@@ -425,6 +435,22 @@
+ 		newChunks[d.ID] = oldChunks[d.ID]
+ 	}
+ 
++	for id := range oldDocs {
++		if externalMap[id] != "" {
++			continue
++		}
++		if _, stillLocal := merged[id]; !stillLocal {
++			if err := s.deleteSemanticDocument(ctx, id); err != nil {
++				return err
++			}
++		}
++	}
++	if semanticMode == "neuroforge" && semanticReady {
++		for _, d := range localDocs {
++			delete(newChunkVec, d.ID)
++		}
++	}
++
+ 	files := map[string]string{}
+ 	managedMap := map[string]bool{}
+ 	for _, rec := range manifest {
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/store.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/store.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/store.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/store.go	2026-08-25 16:02:10.000000000 +0000
+@@ -82,31 +82,35 @@
+ }
+ 
+ type Store struct {
+-	mu                 sync.RWMutex
+-	initMu             sync.Mutex
+-	categoryMapWriteMu sync.Mutex
+-	initStatus         InitStatus
+-	dir                string
+-	managedDir         string
+-	docs               []model.KnowledgeDoc
+-	files              map[string]string
+-	managed            map[string]bool
+-	external           map[string]string
+-	staticDocs         map[string]model.KnowledgeDoc
+-	titleVectors       map[string][]float64
+-	chunkVectors       map[string][][]float64
+-	chunks             map[string][]string
+-	embedder           Embedder
+-	rag                bool
+-	cachePath          string
+-	allowedSources     map[string]struct{}
+-	scoring            ScoringConfig
+-	loadOptions        LoadOptions
+-	loadStats          LoadStats
+-	categoryMap        map[string][]int64
+-	manifest           map[string]fileRecord
+-	snapshotPath       string
+-	externalCachePath  string
++	mu                      sync.RWMutex
++	initMu                  sync.Mutex
++	categoryMapWriteMu      sync.Mutex
++	initStatus              InitStatus
++	dir                     string
++	managedDir              string
++	docs                    []model.KnowledgeDoc
++	files                   map[string]string
++	managed                 map[string]bool
++	external                map[string]string
++	staticDocs              map[string]model.KnowledgeDoc
++	titleVectors            map[string][]float64
++	chunkVectors            map[string][][]float64
++	chunks                  map[string][]string
++	embedder                Embedder
++	rag                     bool
++	cachePath               string
++	allowedSources          map[string]struct{}
++	scoring                 ScoringConfig
++	loadOptions             LoadOptions
++	loadStats               LoadStats
++	categoryMap             map[string][]int64
++	manifest                map[string]fileRecord
++	snapshotPath            string
++	externalCachePath       string
++	semanticBackend         SemanticBackend
++	semanticBackendMode     string
++	semanticBackendSearchK  int
++	semanticBackendFailOpen bool
+ }
+ type cacheFile struct {
+ 	Version      int                    `json:"version,omitempty"`
+@@ -230,6 +234,9 @@
+ 			}
+ 			slog.Warn("persistent knowledge index unavailable; falling back to rebuild", "error", loadErr, "path", s.snapshotPath)
+ 		} else if loaded {
++			if _, err := s.syncLoadedSemanticBackend(ctx); err != nil {
++				return err
++			}
+ 			return nil
+ 		} else if mode == "readonly" {
+ 			return fmt.Errorf("KNOWLEDGE_INDEX_MODE=readonly requires a compatible persistent index at %s", s.snapshotPath)
+@@ -831,6 +838,20 @@
+ 		s.chunkVectors[d.ID] = chunkVectors
+ 	}
+ 	s.mu.Unlock()
++	semanticOK := true
++	if s.rag && len(chunkVectors) > 0 {
++		if err := s.syncSemanticDocument(ctx, d, chunks, chunkVectors); err != nil {
++			semanticOK = false
++			if handled := s.handleSemanticSyncError(err); handled != nil {
++				return fmt.Errorf("knowledge saved locally but %w", handled)
++			}
++		}
++	}
++	if semanticOK && s.semanticExternalized() {
++		s.mu.Lock()
++		delete(s.chunkVectors, d.ID)
++		s.mu.Unlock()
++	}
+ 	return s.persistVectorCache()
+ }
+ 
+@@ -855,6 +876,9 @@
+ 	if !isManaged {
+ 		return fmt.Errorf("static knowledge entry %q is read-only", id)
+ 	}
++	if err := s.deleteSemanticDocument(context.Background(), id); err != nil {
++		return err
++	}
+ 	if err := os.Remove(path); err != nil {
+ 		return err
+ 	}
+@@ -922,9 +946,13 @@
+ 	oldDocs := make(map[string]model.KnowledgeDoc, len(s.docs))
+ 	oldTitle := cloneVectorMap(s.titleVectors)
+ 	oldChunks := cloneChunkVectorMap(s.chunkVectors)
++	oldExternal := make(map[string]string, len(s.external))
+ 	for _, d := range s.docs {
+ 		oldDocs[d.ID] = d
+ 	}
++	for id, src := range s.external {
++		oldExternal[id] = src
++	}
+ 	s.mu.RUnlock()
+ 	cached := loadCache(s.externalCachePath)
+ 	if len(cached.Hashes) == 0 {
+@@ -976,6 +1004,18 @@
+ 		if err != nil {
+ 			return err
+ 		}
++		if _, err := s.syncSemanticDocuments(ctx, changed, newEmbedded); err != nil {
++			return err
++		}
++	}
++	for id, src := range oldExternal {
++		if src == source {
++			if _, stillPresent := seen[id]; !stillPresent {
++				if err := s.deleteSemanticDocument(ctx, id); err != nil {
++					return err
++				}
++			}
++		}
+ 	}
+ 
+ 	s.mu.Lock()
+@@ -1114,6 +1154,38 @@
+ 		}
+ 	}
+ 
++	type remoteSemanticMatch struct {
++		score      float64
++		chunk      string
++		queryChunk string
++	}
++	remoteSemantic := map[string]remoteSemanticMatch{}
++	remoteAttempted, remoteFailed := false, false
++	backend, backendMode, backendSearchK, backendFailOpen := s.semanticSettings()
++	if ragEnabled && backend != nil && backendMode == "neuroforge" && len(queryVectors) > 0 {
++		remoteAttempted = true
++		for qi, qv := range queryVectors {
++			hits, err := backend.Search(ctx, qv, backendSearchK)
++			if err != nil {
++				remoteFailed = true
++				if !backendFailOpen {
++					return nil, fmt.Errorf("neuroforge semantic search: %w", err)
++				}
++				break
++			}
++			for _, h := range hits {
++				cur, ok := remoteSemantic[h.DocumentID]
++				if !ok || h.Similarity > cur.score {
++					qc := ""
++					if qi < len(queryChunks) {
++						qc = queryChunks[qi]
++					}
++					remoteSemantic[h.DocumentID] = remoteSemanticMatch{score: clamp01(h.Similarity), chunk: h.Text, queryChunk: qc}
++				}
++			}
++		}
++	}
++
+ 	s.mu.RLock()
+ 	defer s.mu.RUnlock()
+ 	if len(s.docs) == 0 {
+@@ -1123,7 +1195,15 @@
+ 	for _, d := range s.docs {
+ 		semantic, bestChunk, bestQueryChunk := 0.0, "", ""
+ 		semanticAvailable := false
+-		if len(queryVectors) > 0 && len(s.chunkVectors[d.ID]) > 0 {
++		if remoteAttempted && !remoteFailed {
++			if rm, ok := remoteSemantic[d.ID]; ok {
++				semanticAvailable = true
++				semantic = rm.score
++				bestChunk = rm.chunk
++				bestQueryChunk = rm.queryChunk
++			}
++		}
++		if !semanticAvailable && len(queryVectors) > 0 && len(s.chunkVectors[d.ID]) > 0 {
+ 			semanticAvailable = true
+ 			for qi, qv := range queryVectors {
+ 				for di, dv := range s.chunkVectors[d.ID] {
+@@ -1139,7 +1219,7 @@
+ 					}
+ 				}
+ 			}
+-		} else if strings.TrimSpace(d.Text) != "" {
++		} else if !semanticAvailable && (!remoteAttempted || remoteFailed) && strings.TrimSpace(d.Text) != "" {
+ 			semanticAvailable = true
+ 			docChunks := s.chunks[d.ID]
+ 			if len(docChunks) == 0 {
+@@ -1274,6 +1354,7 @@
+ 	cf := loadCache(s.cachePath)
+ 	var need []model.KnowledgeDoc
+ 	cacheHits := 0
++	cachedEmbedded := map[string]embeddedDoc{}
+ 	for _, d := range s.docs {
+ 		bodyChunks := chunkText(d.Text, s.scoring.ChunkWords, s.scoring.ChunkOverlap, s.scoring.MaxChunksPerDoc)
+ 		s.mu.Lock()
+@@ -1281,10 +1362,13 @@
+ 		s.mu.Unlock()
+ 		h := hashDoc(d, s.scoring)
+ 		if cf.Hashes[d.ID] == h && len(cf.TitleVectors[d.ID]) > 0 && len(cf.ChunkVectors[d.ID]) == len(bodyChunks) {
++			title := append([]float64(nil), cf.TitleVectors[d.ID]...)
++			chunks := cloneChunkVectors(cf.ChunkVectors[d.ID])
+ 			s.mu.Lock()
+-			s.titleVectors[d.ID] = append([]float64(nil), cf.TitleVectors[d.ID]...)
+-			s.chunkVectors[d.ID] = cloneChunkVectors(cf.ChunkVectors[d.ID])
++			s.titleVectors[d.ID] = title
++			s.chunkVectors[d.ID] = chunks
+ 			s.mu.Unlock()
++			cachedEmbedded[d.ID] = embeddedDoc{title: title, chunks: chunks}
+ 			cacheHits++
+ 		} else {
+ 			need = append(need, d)
+@@ -1296,8 +1380,14 @@
+ 		st.PendingEmbeddings = len(need)
+ 	})
+ 	slog.Info("knowledge index prepared", "documents", len(s.docs), "cache_hits", cacheHits, "documents_to_embed", len(need))
+-	if len(need) == 0 {
+-		return s.persistVectorCache()
++
++	semanticReady := true
++	if len(cachedEmbedded) > 0 {
++		if ok, err := s.syncSemanticDocuments(ctx, s.docs, cachedEmbedded); err != nil {
++			return err
++		} else if !ok {
++			semanticReady = false
++		}
+ 	}
+ 
+ 	// Batch by documents, not by the whole corpus. A corpus with tens of
+@@ -1318,6 +1408,11 @@
+ 		if err != nil {
+ 			return err
+ 		}
++		if ok, err := s.syncSemanticDocuments(ctx, batch, embedded); err != nil {
++			return err
++		} else if !ok {
++			semanticReady = false
++		}
+ 		s.mu.Lock()
+ 		for _, d := range batch {
+ 			s.titleVectors[d.ID] = embedded[d.ID].title
+@@ -1335,6 +1430,9 @@
+ 			slog.Info("knowledge embedding progress", "indexed_docs", indexed, "total_docs", len(s.docs), "cache_hits", cacheHits, "pending_embeddings", pending)
+ 		}
+ 	}
++	if semanticReady {
++		s.externalizeChunkVectors()
++	}
+ 	return s.persistVectorCache()
+ }
+ 
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/store_test.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/store_test.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/knowledge/store_test.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/knowledge/store_test.go	2026-08-25 16:03:28.000000000 +0000
+@@ -3,6 +3,7 @@
+ import (
+ 	"context"
+ 	"encoding/json"
++	"errors"
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+@@ -625,3 +626,93 @@
+ 		t.Fatalf("reply hits=%+v", reply)
+ 	}
+ }
++
++type semanticBackendStub struct {
++	hits      []SemanticHit
++	searchErr error
++	searches  int
++	upserts   int
++	deletes   int
++}
++
++func (b *semanticBackendStub) Name() string { return "stub" }
++func (b *semanticBackendStub) UpsertDocument(context.Context, model.KnowledgeDoc, []string, [][]float64) error {
++	b.upserts++
++	return nil
++}
++func (b *semanticBackendStub) DeleteDocument(context.Context, string) error {
++	b.deletes++
++	return nil
++}
++func (b *semanticBackendStub) Search(context.Context, []float64, int) ([]SemanticHit, error) {
++	b.searches++
++	if b.searchErr != nil {
++		return nil, b.searchErr
++	}
++	return append([]SemanticHit(nil), b.hits...), nil
++}
++func (b *semanticBackendStub) Health(context.Context) error { return nil }
++
++func TestNeuroForgeSemanticBackendIsEvidenceNotPolicy(t *testing.T) {
++	dir := t.TempDir()
++	data := t.TempDir()
++	doc := model.KnowledgeDoc{ID: "KB-REMOTE", Title: "VPN Zugang", Text: "VPN Gateway und Token prüfen", Source: "internal-kb", Language: "de-DE", CommunicationStyle: "formal"}
++	b, _ := json.Marshal(doc)
++	if err := os.WriteFile(filepath.Join(dir, "remote.json"), b, 0o644); err != nil {
++		t.Fatal(err)
++	}
++	cfg := ScoringConfig{SemanticWeight: 1, ChunkWords: 80, ChunkOverlap: 20, MaxChunksPerDoc: 8, MaxQueryChunks: 4}
++	s, err := Load(context.Background(), dir, data, hashTestEmbedder{}, true, []string{"internal-kb"}, cfg)
++	if err != nil {
++		t.Fatal(err)
++	}
++	backend := &semanticBackendStub{hits: []SemanticHit{{DocumentID: doc.ID, ChunkIndex: 0, Text: "remote canonical chunk", Similarity: .83}}}
++	if err := s.SetSemanticBackend(backend, "neuroforge", 32, false); err != nil {
++		t.Fatal(err)
++	}
++	hits, err := s.Search(context.Background(), "VPN Zugang\nToken prüfen", 1)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if backend.searches == 0 || len(hits) != 1 {
++		t.Fatalf("backend searches=%d hits=%d", backend.searches, len(hits))
++	}
++	if hits[0].Doc.ID != doc.ID || hits[0].SemanticScore != .83 {
++		t.Fatalf("remote semantic evidence was not preserved: %+v", hits[0])
++	}
++	if hits[0].BestChunkExcerpt != "remote canonical chunk" {
++		t.Fatalf("unexpected semantic chunk: %q", hits[0].BestChunkExcerpt)
++	}
++}
++
++func TestNeuroForgeSearchFailureHonorsFailOpenPolicy(t *testing.T) {
++	dir := t.TempDir()
++	data := t.TempDir()
++	doc := model.KnowledgeDoc{ID: "KB-FALLBACK", Title: "Anmeldung", Text: "Anmeldung Passwort Benutzerkonto", Source: "internal-kb", Language: "de-DE", CommunicationStyle: "formal"}
++	b, _ := json.Marshal(doc)
++	if err := os.WriteFile(filepath.Join(dir, "fallback.json"), b, 0o644); err != nil {
++		t.Fatal(err)
++	}
++	s, err := Load(context.Background(), dir, data, hashTestEmbedder{}, true, []string{"internal-kb"}, ScoringConfig{SemanticWeight: 1, ChunkWords: 80, ChunkOverlap: 20, MaxChunksPerDoc: 8, MaxQueryChunks: 4})
++	if err != nil {
++		t.Fatal(err)
++	}
++	backend := &semanticBackendStub{searchErr: errors.New("backend unavailable")}
++	if err := s.SetSemanticBackend(backend, "neuroforge", 32, true); err != nil {
++		t.Fatal(err)
++	}
++	hits, err := s.Search(context.Background(), "Anmeldung Passwort", 1)
++	if err != nil {
++		t.Fatalf("fail-open search should use local evidence: %v", err)
++	}
++	if len(hits) != 1 || hits[0].SemanticScore <= 0 {
++		t.Fatalf("expected local semantic fallback, hits=%+v", hits)
++	}
++
++	if err := s.SetSemanticBackend(backend, "neuroforge", 32, false); err != nil {
++		t.Fatal(err)
++	}
++	if _, err := s.Search(context.Background(), "Anmeldung Passwort", 1); err == nil {
++		t.Fatal("fail-closed search must surface backend failure")
++	}
++}
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/model/model.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/model/model.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/model/model.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/model/model.go	2026-08-25 18:19:03.554284889 +0000
+@@ -77,30 +77,32 @@
+ 	// AutoReplyDecision explains why a synchronized source document is or is
+ 	// not eligible for automatic replies. Local JSON documents may leave this
+ 	// empty because their explicit auto_reply flag is already authoritative.
+-	AutoReplyDecision string `json:"auto_reply_decision,omitempty"`
+-	AutoReplyDetail   string `json:"auto_reply_detail,omitempty"`
+-	MinScore                   float64  `json:"min_score"`
+-	Categories                 []int64  `json:"categories"`
+-	ExternalCategories         []string `json:"external_categories,omitempty"`
+-	UnmappedExternalCategories []string `json:"unmapped_external_categories,omitempty"`
+-	Keywords                   []string `json:"keywords"`
+-	Source                     string   `json:"source"`
+-	SourceURI                  string   `json:"source_uri,omitempty"`
+-	SourceCategoryIDs          []int64  `json:"source_category_ids,omitempty"`
+-	SourceModifiedAt           string   `json:"source_modified_at,omitempty"`
+-	Language                   string   `json:"language"`
+-	CommunicationStyle         string   `json:"communication_style"`
++	AutoReplyDecision          string       `json:"auto_reply_decision,omitempty"`
++	AutoReplyDetail            string       `json:"auto_reply_detail,omitempty"`
++	MinScore                   float64      `json:"min_score"`
++	Categories                 []int64      `json:"categories"`
++	ExternalCategories         []string     `json:"external_categories,omitempty"`
++	UnmappedExternalCategories []string     `json:"unmapped_external_categories,omitempty"`
++	Keywords                   []string     `json:"keywords"`
++	Source                     string       `json:"source"`
++	SourceURI                  string       `json:"source_uri,omitempty"`
++	SourceCategoryIDs          []int64      `json:"source_category_ids,omitempty"`
++	SourceModifiedAt           string       `json:"source_modified_at,omitempty"`
++	Language                   string       `json:"language"`
++	CommunicationStyle         string       `json:"communication_style"`
++	LinkedItems                []LinkedItem `json:"linked_items,omitempty"`
+ }
+ 
+ // GLPIKnowledgeItem is the normalized read-only representation returned by
+ // the GLPI connector before it is converted into a KnowledgeDoc.
+ type GLPIKnowledgeItem struct {
+-	ID          int64   `json:"id"`
+-	Title       string  `json:"title"`
+-	Content     string  `json:"content"`
+-	CategoryIDs []int64 `json:"category_ids,omitempty"`
+-	Language    string  `json:"language,omitempty"`
+-	ModifiedAt  string  `json:"modified_at,omitempty"`
++	ID          int64        `json:"id"`
++	Title       string       `json:"title"`
++	Content     string       `json:"content"`
++	CategoryIDs []int64      `json:"category_ids,omitempty"`
++	Language    string       `json:"language,omitempty"`
++	ModifiedAt  string       `json:"modified_at,omitempty"`
++	LinkedItems []LinkedItem `json:"linked_items,omitempty"`
+ }
+ 
+ type KnowledgeHit struct {
+@@ -299,26 +301,26 @@
+ // KnowledgeCandidateAudit captures the top retrieval candidates used for a run.
+ // It intentionally stores only normalized, non-secret diagnostic information.
+ type KnowledgeCandidateAudit struct {
+-	ID                   string  `json:"id"`
+-	Title                string  `json:"title"`
+-	Source               string  `json:"source"`
+-	Score                float64 `json:"score"`
+-	SemanticScore        float64 `json:"semantic_score,omitempty"`
+-	TitleScore           float64 `json:"title_score,omitempty"`
+-	LexicalScore         float64 `json:"lexical_score,omitempty"`
+-	KeywordScore         float64 `json:"keyword_score,omitempty"`
+-	CategoryScore        float64 `json:"category_score,omitempty"`
+-	RequiredScore        float64 `json:"required_score,omitempty"`
+-	AutoReply            bool    `json:"auto_reply"`
+-	AutoReplyDecision string `json:"auto_reply_decision,omitempty"`
+-	AutoReplyDetail   string `json:"auto_reply_detail,omitempty"`
+-	BestChunkExcerpt     string  `json:"best_chunk_excerpt,omitempty"`
+-	BestQueryExcerpt     string  `json:"best_query_excerpt,omitempty"`
+-	QueryChunkCount      int     `json:"query_chunk_count,omitempty"`
+-	DocumentChunkCount   int     `json:"document_chunk_count,omitempty"`
+-	SentToAI             bool    `json:"sent_to_ai,omitempty"`
+-	RetrievalRank        int     `json:"retrieval_rank,omitempty"`
+-	SelectionReason      string  `json:"selection_reason,omitempty"`
++	ID                 string  `json:"id"`
++	Title              string  `json:"title"`
++	Source             string  `json:"source"`
++	Score              float64 `json:"score"`
++	SemanticScore      float64 `json:"semantic_score,omitempty"`
++	TitleScore         float64 `json:"title_score,omitempty"`
++	LexicalScore       float64 `json:"lexical_score,omitempty"`
++	KeywordScore       float64 `json:"keyword_score,omitempty"`
++	CategoryScore      float64 `json:"category_score,omitempty"`
++	RequiredScore      float64 `json:"required_score,omitempty"`
++	AutoReply          bool    `json:"auto_reply"`
++	AutoReplyDecision  string  `json:"auto_reply_decision,omitempty"`
++	AutoReplyDetail    string  `json:"auto_reply_detail,omitempty"`
++	BestChunkExcerpt   string  `json:"best_chunk_excerpt,omitempty"`
++	BestQueryExcerpt   string  `json:"best_query_excerpt,omitempty"`
++	QueryChunkCount    int     `json:"query_chunk_count,omitempty"`
++	DocumentChunkCount int     `json:"document_chunk_count,omitempty"`
++	SentToAI           bool    `json:"sent_to_ai,omitempty"`
++	RetrievalRank      int     `json:"retrieval_rank,omitempty"`
++	SelectionReason    string  `json:"selection_reason,omitempty"`
+ }
+ 
+ // ContextAuditItem is a compact snapshot of context that influenced a run.
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/obsidian/export.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/obsidian/export.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/obsidian/export.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/obsidian/export.go	2026-08-25 18:18:55.754239323 +0000
+@@ -0,0 +1,384 @@
++package obsidian
++
++import (
++	"archive/zip"
++	"bytes"
++	"encoding/json"
++	"fmt"
++	"io"
++	"path"
++	"regexp"
++	"sort"
++	"strconv"
++	"strings"
++	"time"
++	"unicode"
++
++	"github.com/example/glpi-ai-agent/internal/model"
++)
++
++type manifest struct {
++	Format      string    `json:"format"`
++	Version     int       `json:"version"`
++	GeneratedAt time.Time `json:"generated_at"`
++	Documents   int       `json:"documents"`
++	Relations   int       `json:"relations"`
++}
++
++type graphNode struct {
++	ID    string `json:"id"`
++	Title string `json:"title"`
++	Type  string `json:"type"`
++	Path  string `json:"path"`
++}
++
++type graphEdge struct {
++	From     string `json:"from"`
++	To       string `json:"to"`
++	Relation string `json:"relation"`
++}
++
++type graph struct {
++	Nodes []graphNode `json:"nodes"`
++	Edges []graphEdge `json:"edges"`
++}
++
++// WriteZIP exports a snapshot of the live knowledge store as an Obsidian vault.
++// It is deliberately read-only: no source files are modified by an export.
++func WriteZIP(w io.Writer, docs []model.KnowledgeDoc, generatedAt time.Time) error {
++	if generatedAt.IsZero() {
++		generatedAt = time.Now().UTC()
++	}
++	docs = append([]model.KnowledgeDoc(nil), docs...)
++	sort.Slice(docs, func(i, j int) bool {
++		if strings.EqualFold(docs[i].Title, docs[j].Title) {
++			return docs[i].ID < docs[j].ID
++		}
++		return strings.ToLower(docs[i].Title) < strings.ToLower(docs[j].Title)
++	})
++
++	pageByID := make(map[string]string, len(docs))
++	for _, d := range docs {
++		pageByID[d.ID] = "Wiki/Knowledge/" + pageFilename(d.Title, d.ID)
++	}
++
++	zw := zip.NewWriter(w)
++	defer zw.Close()
++	if err := writeFile(zw, "Wiki/Schema.md", schemaPage()); err != nil {
++		return err
++	}
++
++	g := graph{}
++	relationCount := 0
++	stubPages := map[string]model.LinkedItem{}
++	for _, d := range docs {
++		p := pageByID[d.ID]
++		g.Nodes = append(g.Nodes, graphNode{ID: d.ID, Title: d.Title, Type: "knowledge", Path: p})
++		content, edges := articlePage(d, p, pageByID, generatedAt, stubPages)
++		relationCount += len(edges)
++		g.Edges = append(g.Edges, edges...)
++		if err := writeFile(zw, p, content); err != nil {
++			return err
++		}
++	}
++
++	stubKeys := make([]string, 0, len(stubPages))
++	for key := range stubPages {
++		stubKeys = append(stubKeys, key)
++	}
++	sort.Strings(stubKeys)
++	for _, key := range stubKeys {
++		item := stubPages[key]
++		p := glpiItemPath(item)
++		title := linkedTitle(item)
++		g.Nodes = append(g.Nodes, graphNode{ID: key, Title: title, Type: "entity", Path: p})
++		if err := writeFile(zw, p, glpiEntityPage(item, generatedAt)); err != nil {
++			return err
++		}
++	}
++
++	if err := writeFile(zw, "Wiki/index.md", indexPage(docs, pageByID, generatedAt)); err != nil {
++		return err
++	}
++	gb, err := json.MarshalIndent(g, "", "  ")
++	if err != nil {
++		return err
++	}
++	if err := writeFile(zw, "Wiki/graph.json", string(gb)+"\n"); err != nil {
++		return err
++	}
++	mb, err := json.MarshalIndent(manifest{Format: "glpi-neuroforge-obsidian", Version: 1, GeneratedAt: generatedAt.UTC(), Documents: len(docs), Relations: relationCount}, "", "  ")
++	if err != nil {
++		return err
++	}
++	return writeFile(zw, "Wiki/.manifest.json", string(mb)+"\n")
++}
++
++func articlePage(d model.KnowledgeDoc, page string, pageByID map[string]string, now time.Time, stubs map[string]model.LinkedItem) (string, []graphEdge) {
++	var b strings.Builder
++	date := isoDate(d.SourceModifiedAt, now)
++	b.WriteString("---\n")
++	front(&b, "type", "knowledge")
++	front(&b, "title", d.Title)
++	front(&b, "id", d.ID)
++	front(&b, "source", d.Source)
++	front(&b, "source_uri", d.SourceURI)
++	front(&b, "language", d.Language)
++	front(&b, "communication_style", d.CommunicationStyle)
++	front(&b, "created", date)
++	front(&b, "updated", date)
++	frontBool(&b, "auto_reply", d.AutoReply)
++	frontFloat(&b, "min_score", d.MinScore)
++	frontList(&b, "tags", d.Keywords)
++	frontIntList(&b, "categories", d.Categories)
++	frontIntList(&b, "glpi_kb_categories", d.SourceCategoryIDs)
++	frontList(&b, "external_categories", d.ExternalCategories)
++	if len(d.LinkedItems) > 0 {
++		b.WriteString("related:\n")
++		for _, item := range d.LinkedItems {
++			target := relationTarget(item, pageByID, stubs)
++			b.WriteString("  - ")
++			b.WriteString(yamlQuote("[[" + trimMD(target) + "|" + linkedTitle(item) + "]]"))
++			b.WriteByte('\n')
++		}
++	}
++	b.WriteString("---\n\n")
++	b.WriteString("# " + d.Title + "\n\n")
++	if strings.TrimSpace(d.Text) != "" {
++		b.WriteString("## Kontext / Problem\n\n" + strings.TrimSpace(d.Text) + "\n\n")
++	}
++	if strings.TrimSpace(d.Answer) != "" {
++		b.WriteString("## Lösung / Antwort\n\n" + strings.TrimSpace(d.Answer) + "\n\n")
++	}
++	if len(d.LinkedItems) > 0 || d.SourceURI != "" {
++		b.WriteString("## Verknüpfungen\n\n")
++	}
++	var edges []graphEdge
++	for _, item := range d.LinkedItems {
++		target := relationTarget(item, pageByID, stubs)
++		b.WriteString("- [[" + trimMD(target) + "|" + escapeLinkLabel(linkedTitle(item)) + "]] — `" + item.ItemType + " #" + strconv.FormatInt(item.ID, 10) + "`\n")
++		edges = append(edges, graphEdge{From: d.ID, To: relationID(item), Relation: "glpi-linked-item"})
++	}
++	if d.SourceURI != "" {
++		b.WriteString("- Quelle: `" + strings.ReplaceAll(d.SourceURI, "`", "") + "`\n")
++	}
++	if d.AutoReplyDecision != "" {
++		b.WriteString("\n## Governance\n\n")
++		b.WriteString("- Auto-Reply: **" + strconv.FormatBool(d.AutoReply) + "**\n")
++		b.WriteString("- Entscheidung: `" + strings.ReplaceAll(d.AutoReplyDecision, "`", "") + "`\n")
++		if d.AutoReplyDetail != "" {
++			b.WriteString("- Begründung: " + strings.TrimSpace(d.AutoReplyDetail) + "\n")
++		}
++	}
++	_ = page
++	return b.String(), edges
++}
++
++func relationTarget(item model.LinkedItem, pageByID map[string]string, stubs map[string]model.LinkedItem) string {
++	if strings.EqualFold(item.ItemType, "KnowbaseItem") {
++		if p, ok := pageByID["GLPI-KB-"+strconv.FormatInt(item.ID, 10)]; ok {
++			return p
++		}
++	}
++	key := relationID(item)
++	stubs[key] = item
++	return glpiItemPath(item)
++}
++
++func relationID(item model.LinkedItem) string {
++	return "GLPI-" + safePart(item.ItemType) + "-" + strconv.FormatInt(item.ID, 10)
++}
++
++func glpiItemPath(item model.LinkedItem) string {
++	return "Wiki/GLPI/" + safePart(item.ItemType) + "/" + pageFilename(linkedTitle(item), strconv.FormatInt(item.ID, 10))
++}
++
++func linkedTitle(item model.LinkedItem) string {
++	if strings.TrimSpace(item.Name) != "" {
++		return strings.TrimSpace(item.Name)
++	}
++	t := strings.TrimSpace(item.ItemType)
++	if t == "" {
++		t = "GLPI-Objekt"
++	}
++	return fmt.Sprintf("%s #%d", t, item.ID)
++}
++
++func glpiEntityPage(item model.LinkedItem, now time.Time) string {
++	var b strings.Builder
++	b.WriteString("---\n")
++	front(&b, "type", "entity")
++	front(&b, "entity_type", strings.ToLower(safePart(item.ItemType)))
++	front(&b, "title", linkedTitle(item))
++	front(&b, "source", "glpi")
++	front(&b, "source_uri", fmt.Sprintf("glpi://%s/%d", item.ItemType, item.ID))
++	front(&b, "created", now.UTC().Format("2006-01-02"))
++	front(&b, "updated", now.UTC().Format("2006-01-02"))
++	b.WriteString("---\n\n# " + linkedTitle(item) + "\n\n")
++	b.WriteString("Von GLPI mit einem oder mehreren Knowledge-Base-Artikeln verknüpft.\n")
++	return b.String()
++}
++
++func indexPage(docs []model.KnowledgeDoc, pages map[string]string, now time.Time) string {
++	var b strings.Builder
++	b.WriteString("---\n")
++	front(&b, "type", "overview")
++	front(&b, "title", "Knowledge Index")
++	front(&b, "created", now.UTC().Format("2006-01-02"))
++	front(&b, "updated", now.UTC().Format("2006-01-02"))
++	b.WriteString("---\n\n# Knowledge Index\n\n")
++	b.WriteString("Exportierte Artikel: **" + strconv.Itoa(len(docs)) + "**\n\n")
++	for _, d := range docs {
++		b.WriteString("- [[" + trimMD(pages[d.ID]) + "|" + escapeLinkLabel(d.Title) + "]] — `" + d.ID + "` · `" + d.Source + "`\n")
++	}
++	return b.String()
++}
++
++func schemaPage() string {
++	return `---
++type: meta
++title: GLPI NeuroForge Wiki Schema
++status: active
++---
++
++# Wiki Schema
++
++Dieser Export ist für Obsidian und llm-wiki-artige Workflows ausgelegt.
++
++## Seitentypen
++
++- ` + "`knowledge`" + ` — Knowledge-Base-Artikel.
++- ` + "`entity`" + ` — aus GLPI verknüpfte Objekte.
++- ` + "`overview`" + ` — Indexseiten.
++- ` + "`meta`" + ` — Schema- und Steuerseiten.
++
++## Konventionen
++
++- Metadaten stehen in YAML-Frontmatter.
++- Interne Beziehungen verwenden ` + "`[[Wiki/...]]`" + `.
++- Datumswerte verwenden ISO-8601 (` + "`YYYY-MM-DD`" + `).
++- ` + "`source_uri`" + ` bewahrt die Herkunft; Secrets werden nicht exportiert.
++- ` + "`graph.json`" + ` enthält dieselben expliziten Beziehungen maschinenlesbar.
++`
++}
++
++func writeFile(zw *zip.Writer, name, content string) error {
++	h := &zip.FileHeader{Name: path.Clean(name), Method: zip.Deflate}
++	h.SetMode(0o644)
++	f, err := zw.CreateHeader(h)
++	if err != nil {
++		return err
++	}
++	_, err = io.Copy(f, bytes.NewBufferString(content))
++	return err
++}
++
++var nonSlug = regexp.MustCompile(`[^a-z0-9]+`)
++
++func pageFilename(title, id string) string {
++	s := slug(title)
++	if s == "" {
++		s = "artikel"
++	}
++	i := slug(id)
++	if i != "" && !strings.Contains(s, i) {
++		s += "--" + i
++	}
++	return s + ".md"
++}
++
++func slug(v string) string {
++	v = strings.ToLower(strings.TrimSpace(v))
++	var b strings.Builder
++	for _, r := range v {
++		switch r {
++		case 'ä':
++			b.WriteString("ae")
++		case 'ö':
++			b.WriteString("oe")
++		case 'ü':
++			b.WriteString("ue")
++		case 'ß':
++			b.WriteString("ss")
++		default:
++			if unicode.IsLetter(r) || unicode.IsDigit(r) {
++				b.WriteRune(r)
++			} else {
++				b.WriteByte('-')
++			}
++		}
++	}
++	return strings.Trim(nonSlug.ReplaceAllString(b.String(), "-"), "-")
++}
++
++func safePart(v string) string {
++	s := slug(v)
++	if s == "" {
++		return "item"
++	}
++	return s
++}
++func trimMD(v string) string          { return strings.TrimSuffix(v, ".md") }
++func escapeLinkLabel(v string) string { return strings.ReplaceAll(v, "]", "\\]") }
++func yamlQuote(v string) string {
++	b, _ := json.Marshal(v)
++	return string(b)
++}
++func front(b *strings.Builder, key, value string) {
++	if strings.TrimSpace(value) == "" {
++		return
++	}
++	b.WriteString(key + ": " + yamlQuote(strings.TrimSpace(value)) + "\n")
++}
++func frontBool(b *strings.Builder, key string, value bool) {
++	b.WriteString(key + ": " + strconv.FormatBool(value) + "\n")
++}
++func frontFloat(b *strings.Builder, key string, value float64) {
++	b.WriteString(key + ": " + strconv.FormatFloat(value, 'f', -1, 64) + "\n")
++}
++func frontList(b *strings.Builder, key string, values []string) {
++	values = uniqueStrings(values)
++	if len(values) == 0 {
++		return
++	}
++	b.WriteString(key + ":\n")
++	for _, v := range values {
++		b.WriteString("  - " + yamlQuote(v) + "\n")
++	}
++}
++func frontIntList(b *strings.Builder, key string, values []int64) {
++	if len(values) == 0 {
++		return
++	}
++	b.WriteString(key + ":\n")
++	for _, v := range values {
++		b.WriteString("  - " + strconv.FormatInt(v, 10) + "\n")
++	}
++}
++func uniqueStrings(in []string) []string {
++	seen := map[string]struct{}{}
++	out := make([]string, 0, len(in))
++	for _, v := range in {
++		v = strings.TrimSpace(v)
++		if v == "" {
++			continue
++		}
++		k := strings.ToLower(v)
++		if _, ok := seen[k]; ok {
++			continue
++		}
++		seen[k] = struct{}{}
++		out = append(out, v)
++	}
++	sort.Strings(out)
++	return out
++}
++func isoDate(v string, fallback time.Time) string {
++	v = strings.TrimSpace(v)
++	for _, layout := range []string{time.RFC3339, "2006-01-02 15:04:05", "2006-01-02"} {
++		if t, err := time.Parse(layout, v); err == nil {
++			return t.Format("2006-01-02")
++		}
++	}
++	return fallback.UTC().Format("2006-01-02")
++}
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/obsidian/export_test.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/obsidian/export_test.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/obsidian/export_test.go	1970-01-01 00:00:00.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/obsidian/export_test.go	2026-08-25 18:22:28.211087382 +0000
+@@ -0,0 +1,69 @@
++package obsidian
++
++import (
++	"archive/zip"
++	"bytes"
++	"io"
++	"strings"
++	"testing"
++	"time"
++
++	"github.com/example/glpi-ai-agent/internal/model"
++)
++
++func TestWriteZIPPreservesGLPILinksAsWikilinks(t *testing.T) {
++	docs := []model.KnowledgeDoc{
++		{ID: "GLPI-KB-12", Title: "VPN Hilfe", Text: "VPN Fehler", Answer: "Neu verbinden", Source: "glpi-kb", SourceURI: "glpi://KnowbaseItem/12", SourceModifiedAt: "2026-08-20 10:00:00", LinkedItems: []model.LinkedItem{{ItemType: "Computer", ID: 42, Name: "NB-042"}, {ItemType: "KnowbaseItem", ID: 13, Name: "Netzwerk"}}},
++		{ID: "GLPI-KB-13", Title: "Netzwerk", Text: "Netzwerk", Answer: "Pruefen", Source: "glpi-kb"},
++	}
++	var buf bytes.Buffer
++	if err := WriteZIP(&buf, docs, time.Date(2026, 8, 25, 12, 0, 0, 0, time.UTC)); err != nil {
++		t.Fatal(err)
++	}
++	zr, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
++	if err != nil {
++		t.Fatal(err)
++	}
++	files := map[string]string{}
++	for _, f := range zr.File {
++		r, err := f.Open()
++		if err != nil {
++			t.Fatal(err)
++		}
++		b, err := io.ReadAll(r)
++		r.Close()
++		if err != nil {
++			t.Fatal(err)
++		}
++		files[f.Name] = string(b)
++	}
++	var vpn string
++	for name, body := range files {
++		if strings.Contains(name, "vpn-hilfe") {
++			vpn = body
++		}
++	}
++	if vpn == "" {
++		t.Fatalf("VPN article missing: %v", keys(files))
++	}
++	if !strings.Contains(vpn, "type: \"knowledge\"") || !strings.Contains(vpn, "[[Wiki/GLPI/computer/") || !strings.Contains(vpn, "|NB-042]]") {
++		t.Fatalf("missing Obsidian metadata/relation:\n%s", vpn)
++	}
++	if !strings.Contains(vpn, "[[Wiki/Knowledge/netzwerk--glpi-kb-13|Netzwerk]]") {
++		t.Fatalf("linked KB article did not resolve to article page:\n%s", vpn)
++	}
++	if _, ok := files["Wiki/Schema.md"]; !ok {
++		t.Fatal("schema missing")
++	}
++	if _, ok := files["Wiki/graph.json"]; !ok {
++		t.Fatal("graph missing")
++	}
++}
++
++func keys(m map[string]string) []string {
++	out := make([]string, 0, len(m))
++	for k := range m {
++		out = append(out, k)
++	}
++	return out
++}
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/web/server.go /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/web/server.go
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/web/server.go	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/web/server.go	2026-08-25 18:20:01.518776121 +0000
+@@ -21,6 +21,7 @@
+ 	knowledgepkg "github.com/example/glpi-ai-agent/internal/knowledge"
+ 	"github.com/example/glpi-ai-agent/internal/metrics"
+ 	"github.com/example/glpi-ai-agent/internal/model"
++	"github.com/example/glpi-ai-agent/internal/obsidian"
+ 	"github.com/example/glpi-ai-agent/internal/queue"
+ 	"github.com/example/glpi-ai-agent/internal/state"
+ )
+@@ -103,6 +104,7 @@
+ 	mux.Handle("GET /api/category-mappings", s.auth(http.HandlerFunc(s.categoryMappingsGet)))
+ 	mux.Handle("PUT /api/category-mappings", s.auth(s.mutation(http.HandlerFunc(s.categoryMappingsPut))))
+ 	mux.Handle("GET /api/knowledge", s.auth(http.HandlerFunc(s.knowledgeList)))
++	mux.Handle("GET /api/knowledge/export/obsidian", s.auth(http.HandlerFunc(s.knowledgeExportObsidian)))
+ 	mux.Handle("GET /api/knowledge/{id}", s.auth(http.HandlerFunc(s.knowledgeGet)))
+ 	mux.Handle("POST /api/knowledge", s.auth(s.mutation(http.HandlerFunc(s.knowledgeCreate))))
+ 	mux.Handle("PUT /api/knowledge/{id}", s.auth(s.mutation(http.HandlerFunc(s.knowledgeUpdate))))
+@@ -477,6 +479,15 @@
+ 	}
+ 	respondJSON(w, out)
+ }
++func (s *Server) knowledgeExportObsidian(w http.ResponseWriter, r *http.Request) {
++	w.Header().Set("Content-Type", "application/zip")
++	w.Header().Set("Content-Disposition", `attachment; filename="glpi-neuroforge-knowledge-obsidian.zip"`)
++	w.Header().Set("Cache-Control", "no-store")
++	if err := obsidian.WriteZIP(w, s.knowledge.List(), time.Now().UTC()); err != nil {
++		slog.Error("Obsidian knowledge export failed", "error", err)
++	}
++}
++
+ func (s *Server) knowledgeGet(w http.ResponseWriter, r *http.Request) {
+ 	id := strings.TrimSpace(r.PathValue("id"))
+ 	d, ok := s.knowledge.ByID(id)
+diff -ruN '--exclude=.git' '--exclude=.env_local' '--exclude=agent' '--exclude=mega-control' /mnt/data/mega_work/originals/glpi-ai-agent/internal/web/templates/dashboard.html /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/web/templates/dashboard.html
+--- /mnt/data/mega_work/originals/glpi-ai-agent/internal/web/templates/dashboard.html	2026-08-05 17:17:23.000000000 +0000
++++ /mnt/data/mega_work/glpi-neuroforge-mega/services/agent/internal/web/templates/dashboard.html	2026-08-25 18:23:14.811739258 +0000
+@@ -62,7 +62,7 @@
+     </section>
+ 
+     <section class="view" id="view-knowledge">
+-      <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap"><div><h2 class="section-title">Knowledge Base</h2><div class="section-sub">Interne Artikel verwalten und synchronisierte Quellen kontrollieren.</div></div><button class="btn primary" id="newKbBtn">＋ Neuer interner Artikel</button></div>
++      <div style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap"><div><h2 class="section-title">Knowledge Base</h2><div class="section-sub">Interne Artikel verwalten und synchronisierte Quellen kontrollieren.</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="btn" href="/api/knowledge/export/obsidian" title="Live-Export inklusive synchronisierter GLPI-KB-Artikel und Verknüpfungen">⇩ Obsidian Export</a><button class="btn primary" id="newKbBtn">＋ Neuer interner Artikel</button></div></div>
+       <div class="grid stats" id="kbStats" style="grid-template-columns:repeat(4,minmax(150px,1fr))"></div>
+       <div class="filterbar"><div class="search"><input id="kbSearch" placeholder="ID, Titel, Inhalt oder Keyword suchen …"></div><select id="kbSourceFilter" style="max-width:210px"><option value="">Alle Quellen</option></select><select id="kbManageFilter" style="max-width:210px"><option value="">Alle Artikel</option><option value="managed">Web-verwaltet</option><option value="readonly">Read-only</option><option value="autoreply">Auto-Reply erlaubt</option></select></div>
+       <div id="kbGrid" class="kb-card-grid"></div>

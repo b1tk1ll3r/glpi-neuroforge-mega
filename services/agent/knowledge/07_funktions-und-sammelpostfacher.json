@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-FUNKTIONS-UND-SAMMELPOSTFACHER-SELECT",
+    "title":  "Funktions- und Sammelpostfächer",
+    "text":  "Auswahlziel: Benutzerkonten und Berechtigungen \u003e Funktions- und Sammelpostfächer. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn ein Funktionspostfach, Sammelpostfach, Team-Postfach oder gemeinsam genutztes Postfach neu angelegt, geändert, umbenannt, berechtigt oder außer Betrieb genommen werden soll. Typische Ticketformulierungen sind: „Postfach info@ anlegen“; „Zugriff auf gemeinsames Postfach“; „Funktionspostfach umbenennen“; „Sammelpostfach schließen“. Nicht auswählen, wenn der Outlook-Client lokal nicht startet, eine einzelne E-Mail nicht zugestellt wird oder eine Verteilerliste ohne Postfachbezug gemeint ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Lokale Outlook-Probleme gehören zu Microsoft Office \u003e Outlook-Client; serverseitige Mailstörungen zu Infrastruktur und Backend.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Benutzerkonten und Berechtigungen \u003e Funktions- und Sammelpostfächer“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Benutzerkonten und Berechtigungen \u003e Funktions- und Sammelpostfächer"
+                   ],
+    "keywords":  [
+                     "Funktionspostfach",
+                     "Sammelpostfach",
+                     "gemeinsames Postfach",
+                     "Shared Mailbox",
+                     "Team-Postfach",
+                     "Postfachberechtigung",
+                     "Senden als",
+                     "Postfach anlegen",
+                     "Funktions- und Sammelpostfächer",
+                     "Benutzerkonten und Berechtigungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/benutzerkonten-und-berechtigungen/funktions-und-sammelpostfacher",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

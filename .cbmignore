@@ -1,0 +1,10 @@
+.git/
+backups/
+exports/
+staging/
+patches/
+services/control/engineering-graph.json
+services/agent/data/
+platform/neuroforge/data/
+*.zip
+*.bin

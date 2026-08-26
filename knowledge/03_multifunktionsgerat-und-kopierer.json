@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-MULTIFUNKTIONSGERAT-UND-KOPIERER-SELECT",
+    "title":  "Multifunktionsgerät und Kopierer",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Multifunktionsgerät und Kopierer. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Multifunktionsgerät oder Kopierer beim Drucken, Kopieren, Einzug, Bedienfeld oder Gerätebetrieb fehlerhaft ist. Typische Ticketformulierungen sind: „Kopierer zeigt Fehlercode“; „Dokumenteneinzug klemmt“; „MFP kopiert nicht“; „Bedienfeld reagiert nicht“. Nicht auswählen, wenn ausschließlich Scan-to-Mail, ein einzelner Arbeitsplatzdrucker oder eine Neubeschaffung betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Vertragspartner- oder Wartungseinsätze können durch Support koordiniert werden.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Multifunktionsgerät und Kopierer“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Multifunktionsgerät und Kopierer"
+                   ],
+    "keywords":  [
+                     "Kopierer",
+                     "Multifunktionsgerät",
+                     "MFP",
+                     "Kopieren",
+                     "Dokumenteneinzug",
+                     "Fehlercode",
+                     "Bedienfeld",
+                     "Multifunktionsgerät und Kopierer",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/multifunktionsgerat-und-kopierer",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

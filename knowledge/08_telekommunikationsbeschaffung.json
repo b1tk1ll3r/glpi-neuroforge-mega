@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-TELEKOMMUNIKATIONSBESCHAFFUNG-SELECT",
+    "title":  "Telekommunikationsbeschaffung",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Telekommunikationsbeschaffung. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn neue Telefone, Smartphones, SIM-Karten, Mobilfunkverträge, Headsets oder andere Telekommunikationsleistungen beschafft, verlängert oder wirtschaftlich bewertet werden sollen. Typische Ticketformulierungen sind: „Neues Diensthandy bestellen“; „Mobilfunkvertrag abschließen“; „Telefone für neue Arbeitsplätze beschaffen“; „Headsets in größerer Stückzahl kaufen“. Nicht auswählen, wenn ein vorhandenes Gerät nur defekt ist, eine Rufumleitung geändert oder eine technische Störung behoben werden muss. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Technische Spezifikation erfolgt gemeinsam mit Support und Telekommunikation.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Telekommunikationsbeschaffung“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Telekommunikationsbeschaffung"
+                   ],
+    "keywords":  [
+                     "Telekommunikation Beschaffung",
+                     "Telefon bestellen",
+                     "Diensthandy bestellen",
+                     "Mobilfunkvertrag",
+                     "SIM bestellen",
+                     "Headset beschaffen",
+                     "Kauf",
+                     "Telekommunikationsbeschaffung",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/telekommunikationsbeschaffung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

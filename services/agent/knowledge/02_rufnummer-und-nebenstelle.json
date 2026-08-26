@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-RUFNUMMER-UND-NEBENSTELLE-SELECT",
+    "title":  "Rufnummer und Nebenstelle",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Rufnummer und Nebenstelle. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn eine Rufnummer oder Nebenstelle neu eingerichtet, geändert, einem Arbeitsplatz zugeordnet, portiert oder aufgehoben werden soll. Typische Ticketformulierungen sind: „Neue Nebenstelle einrichten“; „Rufnummer umziehen“; „Durchwahl ändern“; „Nebenstelle löschen“. Nicht auswählen, wenn nur das Telefon defekt ist, eine Weiterleitung benötigt wird oder ein Mobilfunkvertrag betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Beschaffungs- oder Vertragsanteile werden bei Bedarf an Leitung und Finanzen / Beschaffung übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Rufnummer und Nebenstelle“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Rufnummer und Nebenstelle"
+                   ],
+    "keywords":  [
+                     "Rufnummer",
+                     "Nebenstelle",
+                     "Durchwahl",
+                     "Telefonnummer",
+                     "Portierung",
+                     "Nummer zuordnen",
+                     "Nummer ändern",
+                     "Rufnummer und Nebenstelle",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/rufnummer-und-nebenstelle",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

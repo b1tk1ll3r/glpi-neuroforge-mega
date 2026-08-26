@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-FACHANWENDUNG-BERECHTIGUNG-SELECT",
+    "title":  "Fachanwendung – Berechtigung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Berechtigung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Rollen, Rechte, Mandanten, Organisationseinheiten oder Funktionszugriffe innerhalb einer bestimmten Fachanwendung beantragt, geändert oder korrigiert werden sollen. Typische Ticketformulierungen sind: „Rolle Kassenverwalter vergeben“; „Zugriff auf Modul Personal“; „Mandant freischalten“; „Berechtigung im Fachverfahren fehlt“. Nicht auswählen, wenn das zentrale AD-Konto fehlt, das Kennwort gesperrt ist oder eine allgemeine AD-Gruppenmitgliedschaft ohne konkrete Anwendung betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Anwendung und genaue Soll-Rolle müssen genannt werden; Genehmigungswege bleiben unberührt.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Berechtigung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Berechtigung"
+                   ],
+    "keywords":  [
+                     "Fachanwendung Berechtigung",
+                     "Rolle",
+                     "Rechte",
+                     "Freischaltung",
+                     "Mandant",
+                     "Modulzugriff",
+                     "Benutzerrolle",
+                     "Fachverfahren Zugriff",
+                     "Fachanwendung – Berechtigung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-berechtigung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

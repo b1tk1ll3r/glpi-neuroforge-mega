@@ -1,0 +1,15 @@
+{
+  "routing": {
+    "chat_provider": "ollama",
+    "embedding_provider": "ollama",
+    "chat_node_id": "brain-01",
+    "embedding_node_id": "brain-01",
+    "critic": {"provider": "ollama", "node_id": "critic-01"},
+    "consolidator": {"provider": "ollama", "node_id": "brain-01"},
+    "goal": {"provider": "ollama", "node_id": "brain-01"}
+  },
+  "ollama": [
+    {"id":"brain-01","name":"Primary Brain","base_url":"http://10.0.0.11:11434","chat_model":"<CHAT_MODEL>","embedding_model":"<EMBED_MODEL>","weight":1,"enabled":true},
+    {"id":"critic-01","name":"Independent Critic","base_url":"http://10.0.0.12:11434","chat_model":"<CRITIC_MODEL>","embedding_model":"<EMBED_MODEL>","weight":1,"enabled":true}
+  ]
+}

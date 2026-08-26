@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-RECHNUNG-UND-KOSTENSTELLE-SELECT",
+    "title":  "Rechnung und Kostenstelle",
+    "text":  "Auswahlziel: Beschaffung, Verträge und Lizenzen \u003e Rechnung und Kostenstelle. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn eine IT-Rechnung geprüft, sachlich zugeordnet, kontiert, beanstandet oder einer Kostenstelle, Bestellung oder einem Vertrag zugeordnet werden muss. Typische Ticketformulierungen sind: „Rechnung prüfen“; „Kostenstelle korrigieren“; „Bestellbezug fehlt“; „Falscher Rechnungsbetrag“. Nicht auswählen, wenn ein Angebot vorliegt, eine Lizenz erst bestellt werden soll oder ein technisches Problem mit dem gelieferten Produkt besteht. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Technische Leistungsbestätigung kann durch das zuständige Fachteam erforderlich sein.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Beschaffung, Verträge und Lizenzen \u003e Rechnung und Kostenstelle“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Beschaffung, Verträge und Lizenzen \u003e Rechnung und Kostenstelle"
+                   ],
+    "keywords":  [
+                     "Rechnung",
+                     "Kostenstelle",
+                     "Kontierung",
+                     "Bestellnummer",
+                     "Rechnungsprüfung",
+                     "Zahlung",
+                     "Gutschrift",
+                     "Betrag falsch",
+                     "Rechnung und Kostenstelle",
+                     "Beschaffung, Verträge und Lizenzen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/beschaffung-vertrage-und-lizenzen/rechnung-und-kostenstelle",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

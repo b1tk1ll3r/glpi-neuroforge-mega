@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-OUTLOOK-CLIENT-SELECT",
+    "title":  "Outlook-Client",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Outlook-Client. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn die lokale Outlook-Anwendung nicht startet, Profile oder Ansichten fehlerhaft sind, Suche, Kalenderdarstellung, Signatur oder lokale Outlook-Funktionen nicht korrekt arbeiten. Typische Ticketformulierungen sind: „Outlook startet nicht“; „Outlook-Profil defekt“; „Suche findet nichts“; „Kalenderansicht fehlerhaft“; „Signatur fehlt“. Nicht auswählen, wenn das Postfach serverseitig nicht erreichbar ist, E-Mails organisationsweit nicht zugestellt werden, ein Funktionspostfach beantragt wird oder nur das Kennwort gesperrt ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Serverseitige Mail- und Postfachstörungen werden an Infrastruktur und Backend übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Outlook-Client“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Outlook-Client"
+                   ],
+    "keywords":  [
+                     "Outlook",
+                     "Outlook-Client",
+                     "Profil",
+                     "Outlook Suche",
+                     "Kalenderansicht",
+                     "Signatur",
+                     "OST",
+                     "PST",
+                     "lokales Outlook",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/outlook-client",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

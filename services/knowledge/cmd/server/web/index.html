@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KB Mass Editor</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">KB</div>
+        <div>
+          <div id="brandTitle" class="brand-title">Knowledge Base Editor</div>
+          <div id="brandSubtitle" class="brand-subtitle">JSON · Massenbearbeitung · Docker</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span id="healthPill" class="pill muted">Verbinde …</span>
+        <a class="btn ghost" href="/api/export/obsidian" title="Obsidian/llm-wiki-kompatiblen Vault exportieren">⇩ Obsidian Export</a>
+        <button id="reloadBtn" class="btn ghost" title="Dateien neu einlesen">↻ Neu einlesen</button>
+        <button id="bulkBtn" class="btn primary" disabled>✦ Massenbearbeitung</button>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <section class="filters">
+        <div class="scope-switch" role="group" aria-label="Datenbereich">
+          <button id="scopeProduction" type="button" class="scope-btn active" data-scope="production">Produktiv</button>
+          <button id="scopeStaging" type="button" class="scope-btn" data-scope="staging">Staging <span id="stagingCountBadge">0</span></button>
+        </div>
+        <label class="search-wrap">
+          <span>⌕</span>
+          <input id="searchInput" type="search" placeholder="Code, Titel, Text, Keyword …" autocomplete="off">
+          <kbd>/</kbd>
+        </label>
+        <div class="filter-row">
+          <select id="autoReplyFilter" aria-label="Auto Reply Filter">
+            <option value="any">auto_reply: alle</option>
+            <option value="true">auto_reply: true</option>
+            <option value="false">auto_reply: false</option>
+          </select>
+          <input id="languageFilter" placeholder="Sprache, z. B. de-DE">
+        </div>
+        <div class="filter-row">
+          <input id="sourceFilter" placeholder="Quelle enthält …">
+          <input id="styleFilter" placeholder="Stil, z. B. formal">
+        </div>
+      </section>
+
+      <section class="list-tools">
+        <label class="check-label"><input id="selectPage" type="checkbox"> Seite auswählen</label>
+        <span id="selectionCount" class="muted-text">0 ausgewählt</span>
+      </section>
+
+      <div id="resultList" class="result-list" aria-live="polite"></div>
+
+      <footer class="pager">
+        <button id="prevPage" class="icon-btn" aria-label="Vorherige Seite">‹</button>
+        <div>
+          <strong id="pageLabel">Seite 1</strong>
+          <span id="totalLabel">0 Treffer</span>
+        </div>
+        <button id="nextPage" class="icon-btn" aria-label="Nächste Seite">›</button>
+      </footer>
+    </aside>
+
+    <main class="main-pane">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">{ }</div>
+        <h1>JSON-Wissensbasis bearbeiten</h1>
+        <p>Wähle links einen Eintrag aus oder markiere mehrere Dateien für eine Massenänderung.</p>
+        <div class="empty-cards">
+          <div><strong>Sicher</strong><span>Automatische Backups vor jedem Schreibvorgang</span></div>
+          <div><strong>Schnell</strong><span>Indexierte Suche auch bei zehntausenden JSON-Dateien</span></div>
+          <div><strong>Flexibel</strong><span>Formularansicht und vollständiger Raw-JSON-Editor</span></div>
+        </div>
+      </div>
+
+      <section id="editor" class="editor hidden">
+        <div class="editor-head">
+          <div class="breadcrumb">
+            <span id="filePath">–</span>
+            <span id="stagingBadge" class="badge staging hidden">AI-STAGING · UNGEPRÜFT</span>
+            <span id="dirtyBadge" class="badge warn hidden">Ungespeichert</span>
+          </div>
+          <div class="editor-actions">
+            <button id="deleteStagingBtn" class="btn danger hidden">Löschen</button>
+            <button id="promoteStagingBtn" class="btn primary hidden">✓ Freigeben → Produktiv</button>
+            <button id="formatJsonBtn" class="btn ghost hidden">JSON formatieren</button>
+            <button id="saveBtn" class="btn success">Speichern <span class="shortcut">Ctrl S</span></button>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="form">Formular</button>
+          <button class="tab" data-tab="raw">Raw JSON</button>
+        </div>
+
+        <div id="formTab" class="tab-panel active">
+          <div class="form-grid">
+            <label class="field span-2">
+              <span>ID</span>
+              <input data-field="id" placeholder="KB-…">
+            </label>
+            <label class="field span-10">
+              <span>Titel</span>
+              <input data-field="title" placeholder="Titel des KB-Artikels">
+            </label>
+
+            <label class="field span-12">
+              <span>Erkennungstext / Problem</span>
+              <textarea data-field="text" rows="7" placeholder="Beschreibung, Fehlerkontext, Erkennung …"></textarea>
+            </label>
+
+            <label class="field span-12">
+              <span>Antwort / Lösung</span>
+              <textarea data-field="answer" rows="10" placeholder="Lösungsschritte …"></textarea>
+            </label>
+
+            <label class="field span-3 switch-field">
+              <span>Automatische Antwort</span>
+              <span class="switch-line"><input data-field="auto_reply" type="checkbox"><span>auto_reply</span></span>
+            </label>
+            <label class="field span-3">
+              <span>Min. Score</span>
+              <input data-field="min_score" type="number" min="0" max="1" step="0.01">
+            </label>
+            <label class="field span-3">
+              <span>Sprache</span>
+              <input data-field="language" placeholder="de-DE">
+            </label>
+            <label class="field span-3">
+              <span>Kommunikationsstil</span>
+              <input data-field="communication_style" placeholder="formal">
+            </label>
+
+            <label class="field span-4">
+              <span>Quelle</span>
+              <input data-field="source" placeholder="Microsoft Learn">
+            </label>
+            <label class="field span-8">
+              <span>Quell-URL</span>
+              <input data-field="source_uri" placeholder="https://…">
+            </label>
+
+            <label class="field span-6">
+              <span>Keywords <small>eine Zeile pro Wert</small></span>
+              <textarea data-list-field="keywords" rows="7" placeholder="Windows&#10;0x80070005&#10;Zugriff verweigert"></textarea>
+            </label>
+            <label class="field span-6">
+              <span>Kategorien <small>eine Zeile pro Wert</small></span>
+              <textarea data-list-field="categories" rows="7" placeholder="Windows&#10;Aktivierung"></textarea>
+            </label>
+          </div>
+        </div>
+
+        <div id="rawTab" class="tab-panel">
+          <div id="rawError" class="inline-error hidden"></div>
+          <textarea id="rawEditor" class="raw-editor" spellcheck="false"></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="bulkDialog" class="modal">
+    <form method="dialog" class="modal-card" id="bulkForm">
+      <header class="modal-head">
+        <div>
+          <h2>Massenbearbeitung</h2>
+          <p id="bulkTargetText">–</p>
+        </div>
+        <button value="cancel" class="icon-btn" aria-label="Schließen">×</button>
+      </header>
+
+      <div class="modal-body">
+        <label class="target-choice">
+          <input id="bulkAllMatching" type="checkbox">
+          <span><strong>Alle aktuellen Treffer bearbeiten</strong><small id="allMatchingHint"></small></span>
+        </label>
+
+        <div class="bulk-grid">
+          <div class="bulk-section">
+            <h3>Felder setzen</h3>
+            <label class="bulk-control">
+              <input type="checkbox" data-enable="bulkAutoReply">
+              <span>auto_reply</span>
+              <select id="bulkAutoReply" disabled><option value="true">true</option><option value="false">false</option></select>
+            </label>
+            <label class="bulk-control">
+              <input type="checkbox" data-enable="bulkMinScore">
+              <span>min_score</span>
+              <input id="bulkMinScore" type="number" min="0" max="1" step="0.01" value="0.78" disabled>
+            </label>
+            <label class="bulk-control">
+              <input type="checkbox" data-enable="bulkLanguage">
+              <span>language</span>
+              <input id="bulkLanguage" value="de-DE" disabled>
+            </label>
+            <label class="bulk-control">
+              <input type="checkbox" data-enable="bulkStyle">
+              <span>communication_style</span>
+              <input id="bulkStyle" value="formal" disabled>
+            </label>
+            <label class="bulk-control">
+              <input type="checkbox" data-enable="bulkSource">
+              <span>source</span>
+              <input id="bulkSource" placeholder="Microsoft Learn" disabled>
+            </label>
+            <label class="bulk-control">
+              <input type="checkbox" data-enable="bulkSourceUri">
+              <span>source_uri</span>
+              <input id="bulkSourceUri" placeholder="https://…" disabled>
+            </label>
+          </div>
+
+          <div class="bulk-section">
+            <h3>Listen ändern</h3>
+            <label class="field compact"><span>Keywords hinzufügen</span><textarea id="addKeywords" rows="3" placeholder="ein Wert pro Zeile"></textarea></label>
+            <label class="field compact"><span>Keywords entfernen</span><textarea id="removeKeywords" rows="3"></textarea></label>
+            <label class="field compact"><span>Kategorien hinzufügen</span><textarea id="addCategories" rows="3"></textarea></label>
+            <label class="field compact"><span>Kategorien entfernen</span><textarea id="removeCategories" rows="3"></textarea></label>
+          </div>
+        </div>
+
+        <div class="bulk-section replace-section">
+          <h3>Suchen & Ersetzen <small>optional</small></h3>
+          <div class="replace-grid">
+            <input id="replaceFind" placeholder="Suchen nach …">
+            <input id="replaceWith" placeholder="Ersetzen durch …">
+          </div>
+          <div class="replace-options">
+            <label><input type="checkbox" name="replaceField" value="title" checked> Titel</label>
+            <label><input type="checkbox" name="replaceField" value="text" checked> Text</label>
+            <label><input type="checkbox" name="replaceField" value="answer" checked> Antwort</label>
+            <label><input id="replaceRegex" type="checkbox"> Regex</label>
+            <label><input id="replaceCase" type="checkbox"> Groß-/Kleinschreibung</label>
+          </div>
+        </div>
+
+        <div id="bulkPreview" class="preview-box muted hidden"></div>
+      </div>
+
+      <footer class="modal-foot">
+        <span class="muted-text">Vor dem Anwenden wird automatisch ein Backup erstellt.</span>
+        <div>
+          <button value="cancel" class="btn ghost">Abbrechen</button>
+          <button id="previewBulkBtn" type="button" class="btn">Vorschau</button>
+          <button id="applyBulkBtn" type="button" class="btn danger" disabled>Änderungen anwenden</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+
+
+  <dialog id="stagingBulkDialog" class="modal staging-modal">
+    <form method="dialog" class="modal-card">
+      <header class="modal-head">
+        <div>
+          <h2>Staging-Aktionen</h2>
+          <p id="stagingBulkTargetText">–</p>
+        </div>
+        <button value="cancel" class="icon-btn" aria-label="Schließen">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="staging-info-card">
+          <strong>Review-Workflow</strong>
+          <p>Freigeben kopiert den aktuellen JSON-Inhalt unverändert in die produktive Wissensbasis und archiviert den geprüften Originalentwurf anschließend unter <code>staging/.approved</code>. <code>auto_reply</code> bleibt genau wie im Entwurf gesetzt.</p>
+        </div>
+        <div id="stagingBulkResult" class="preview-box hidden"></div>
+      </div>
+      <footer class="modal-foot">
+        <span class="muted-text">Löschen verschiebt Entwürfe sicher nach <code>staging/.trash</code>.</span>
+        <div>
+          <button value="cancel" class="btn ghost">Abbrechen</button>
+          <button id="bulkDeleteStagingBtn" type="button" class="btn danger">Auswahl löschen</button>
+          <button id="bulkPromoteStagingBtn" type="button" class="btn primary">Auswahl freigeben</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+
+  <div id="toastHost" class="toast-host" aria-live="polite"></div>
+  <script src="/app.js" defer></script>
+</body>
+</html>

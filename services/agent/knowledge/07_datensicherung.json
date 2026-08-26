@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-DATENSICHERUNG-SELECT",
+    "title":  "Datensicherung",
+    "text":  "Auswahlziel: IT-Sicherheit und Datensicherung \u003e Datensicherung. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Backup-Jobs fehlschlagen, Sicherungspläne, Aufbewahrung, Sicherungsziele, Kapazitäten oder Backup-Konzepte eingerichtet, geändert oder geprüft werden müssen. Typische Ticketformulierungen sind: „Backup fehlgeschlagen“; „Sicherungsjob rot“; „Aufbewahrung ändern“; „Neues System in Datensicherung aufnehmen“. Nicht auswählen, wenn konkrete Daten wiederhergestellt werden sollen oder eine Fachanwendung lediglich keine Exportdatei erzeugt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Wiederherstellungsanforderungen werden getrennt unter Datenwiederherstellung erfasst.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „IT-Sicherheit und Datensicherung \u003e Datensicherung“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "IT-Sicherheit und Datensicherung \u003e Datensicherung"
+                   ],
+    "keywords":  [
+                     "Datensicherung",
+                     "Backup",
+                     "Sicherungsjob",
+                     "Aufbewahrung",
+                     "Retention",
+                     "Backupziel",
+                     "Sicherungskonzept",
+                     "Backup fehlgeschlagen",
+                     "IT-Sicherheit und Datensicherung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/it-sicherheit-und-datensicherung/datensicherung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

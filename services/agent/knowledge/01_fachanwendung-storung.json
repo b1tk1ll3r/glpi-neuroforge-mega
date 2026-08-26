@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-FACHANWENDUNG-STORUNG-SELECT",
+    "title":  "Fachanwendung – Störung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Störung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn eine konkrete Fachanwendung eine Fehlermeldung zeigt, eine fachliche Funktion nicht arbeitet, Masken nicht laden, Verarbeitungsschritte abbrechen oder einzelne Module nicht verfügbar sind. Typische Ticketformulierungen sind: „Fachverfahren zeigt Fehler“; „Buchung kann nicht abgeschlossen werden“; „Maske bleibt leer“; „Modul startet nicht“. Nicht auswählen, wenn das Problem ausschließlich durch Netzwerk, Serverplattform, Datenbankplattform oder das zentrale Benutzerkonto verursacht wird; wenn es sich nur um eine Bedienungsfrage oder neue Anforderung handelt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Die konkrete Anwendung, Fehlermeldung, betroffene Funktion und Anzahl der Betroffenen sind entscheidend.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Störung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Störung"
+                   ],
+    "keywords":  [
+                     "Fachanwendung",
+                     "Fachverfahren",
+                     "Fehlermeldung",
+                     "Störung",
+                     "Modul",
+                     "Maske",
+                     "Verarbeitung abgebrochen",
+                     "Anwendungsfehler",
+                     "funktioniert nicht",
+                     "Fachanwendung – Störung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-storung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

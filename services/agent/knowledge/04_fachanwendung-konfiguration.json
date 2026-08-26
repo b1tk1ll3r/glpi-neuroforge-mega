@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-FACHANWENDUNG-KONFIGURATION-SELECT",
+    "title":  "Fachanwendung – Konfiguration",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Konfiguration. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Parameter, Vorlagen, Masken, Stammdaten, Nummernkreise, Workflows oder organisatorische Einstellungen einer Fachanwendung angepasst werden sollen. Typische Ticketformulierungen sind: „Neue Vorlage hinterlegen“; „Workflow anpassen“; „Stammdaten konfigurieren“; „Nummernkreis ändern“. Nicht auswählen, wenn nur ein einzelner Benutzer eine lokale Einstellung benötigt, eine neue umfangreiche Funktion gefordert wird oder die technische Serverplattform geändert werden muss. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Größere funktionale Erweiterungen gehören zu Neue Anforderung; technische Plattformparameter zu Infrastruktur und Backend.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Konfiguration“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Konfiguration"
+                   ],
+    "keywords":  [
+                     "Konfiguration",
+                     "Parameter",
+                     "Vorlage",
+                     "Stammdaten",
+                     "Workflow",
+                     "Maske anpassen",
+                     "Nummernkreis",
+                     "Einstellung Fachanwendung",
+                     "Fachanwendung – Konfiguration",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-konfiguration",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

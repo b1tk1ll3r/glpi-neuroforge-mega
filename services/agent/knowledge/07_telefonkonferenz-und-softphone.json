@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-TELEFONKONFERENZ-UND-SOFTPHONE-SELECT",
+    "title":  "Telefonkonferenz und Softphone",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Telefonkonferenz und Softphone. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Softphone, PC-Telefonie, Headset-Telefonie oder eine Telefonkonferenz nicht funktioniert, eingerichtet oder bedient werden muss. Typische Ticketformulierungen sind: „Softphone meldet nicht an“; „Telefonkonferenz einrichten“; „Kein Ton im PC-Telefon“; „Headset im Softphone nicht auswählbar“. Nicht auswählen, wenn ein physisches Festnetztelefon, eine Rufnummernverwaltung oder eine reine Videokonferenz betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei zentralen VoIP- oder Plattformstörungen Infrastruktur und Backend beteiligen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Telefonkonferenz und Softphone“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Telefonkonferenz und Softphone"
+                   ],
+    "keywords":  [
+                     "Softphone",
+                     "Telefonkonferenz",
+                     "PC-Telefonie",
+                     "VoIP-Client",
+                     "Headset",
+                     "Konferenznummer",
+                     "Audioanruf",
+                     "Telefonkonferenz und Softphone",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/telefonkonferenz-und-softphone",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

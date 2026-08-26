@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-MOBILFUNK-SELECT",
+    "title":  "Mobilfunk",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Mobilfunk. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn SIM-Karte, Mobilfunktarif, Mobilfunkvertrag, Empfang, Roaming, mobile Daten oder eine dienstliche Mobilfunkrufnummer betroffen sind. Typische Ticketformulierungen sind: „SIM-Karte gesperrt“; „Kein Mobilfunkempfang“; „Roaming freischalten“; „Mobilfunktarif ändern“; „Neue eSIM“. Nicht auswählen, wenn das Smartphone selbst defekt ist, MFA übertragen werden soll oder eine reine App-/Geräteeinrichtung ohne Mobilfunkbezug vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Kaufmännische Vertragsänderungen erfolgen in Abstimmung mit Beschaffung.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Mobilfunk“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Mobilfunk"
+                   ],
+    "keywords":  [
+                     "Mobilfunk",
+                     "SIM-Karte",
+                     "eSIM",
+                     "Roaming",
+                     "mobile Daten",
+                     "Mobilfunkvertrag",
+                     "Empfang",
+                     "PIN",
+                     "PUK",
+                     "Handynummer",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/mobilfunk",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

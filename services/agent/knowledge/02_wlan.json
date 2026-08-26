@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-WLAN-SELECT",
+    "title":  "WLAN",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e WLAN. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine drahtlose Netzwerkverbindung nicht hergestellt wird, häufig abbricht, zu schwach ist, ein WLAN-Bereich nicht versorgt wird oder ein SSID-/Authentifizierungsproblem besteht. Typische Ticketformulierungen sind: „WLAN verbindet nicht“; „Schlechter Empfang im Raum“; „SSID fehlt“; „WLAN bricht ständig ab“. Nicht auswählen, wenn Mobilfunkempfang, kabelgebundenes LAN oder ein allgemeines Internetproblem ohne WLAN-Bezug gemeint ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei einem einzelnen Gerät kann der Support vorprüfen; flächige Abdeckung und Access Points liegen bei Infrastruktur.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e WLAN“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e WLAN"
+                   ],
+    "keywords":  [
+                     "WLAN",
+                     "Wi-Fi",
+                     "SSID",
+                     "Funknetz",
+                     "Access Point",
+                     "schlechter Empfang",
+                     "keine Verbindung",
+                     "WLAN-Abdeckung",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/wlan",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-GRUPPENRICHTLINIEN-SELECT",
+    "title":  "Gruppenrichtlinien",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Gruppenrichtlinien. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn zentrale GPOs technisch erstellt, getestet, verteilt, analysiert oder korrigiert werden sollen und mehrere Systeme oder definierte Organisationseinheiten betreffen. Typische Ticketformulierungen sind: „Neue GPO verteilen“; „Richtlinie wird nicht übernommen“; „Zentrale Windows-Einstellung ändern“; „GPO-Fehler analysieren“. Nicht auswählen, wenn lediglich eine Gruppenmitgliedschaft geändert oder eine lokale Client-Einstellung repariert werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Die ähnliche Kategorie AD-Gruppen und Gruppenrichtlinien dient eher konkreten Benutzer-/Gruppenaufträgen; diese Kategorie dem Plattformbetrieb und größeren GPO-Arbeiten.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Gruppenrichtlinien“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Gruppenrichtlinien"
+                   ],
+    "keywords":  [
+                     "Gruppenrichtlinie",
+                     "GPO",
+                     "Group Policy",
+                     "gpupdate",
+                     "Richtlinie",
+                     "OU",
+                     "zentrale Einstellung",
+                     "Policy",
+                     "Gruppenrichtlinien",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/gruppenrichtlinien",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

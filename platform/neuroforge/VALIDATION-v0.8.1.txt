@@ -1,0 +1,26 @@
+NeuroForge v0.8.1 validation
+Date: 2026-08-18
+
+PASS  go test ./...
+PASS  go vet ./...
+PASS  go test -race ./internal/research ./internal/httpapi ./internal/store ./internal/brain
+PASS  OpenAPI YAML parses; info.version=0.8.1; goal pause/resume paths present
+PASS  Admin dashboard JavaScript syntax (node --check)
+PASS  static linux/amd64 builds: server, worker, benchmark
+PASS  server smoke: /livez, /readyz, /version=0.8.1 and graceful SIGTERM
+
+New v0.8.1 regression coverage:
+PASS  goal pause clears next_cycle_at and changes status to paused
+PASS  paused goal rejects manual learning cycle
+PASS  goal resume returns status to active
+PASS  goal delete removes goal while leaving learned memories untouched by design
+PASS  SearXNG File-result metadata classification
+PASS  remote DOCX fetch via Content-Type/Content-Disposition and document extraction
+PASS  generic application/octet-stream download can use SearXNG filename/mimetype hints
+PASS  end-to-end SearXNG DOCX result -> fetch -> document ingestion -> source record/chunks
+PASS  SSRF/private-target protection remains covered by existing research tests
+
+Notes:
+- PDF extraction requires pdftotext (Poppler) at runtime, as in v0.8.0.
+- Research network fetches retain configured timeout/size/redirect limits; LLM inference timeout behavior is unrelated.
+- SearXNG document ingestion occurs only when research learning and result fetching are enabled.

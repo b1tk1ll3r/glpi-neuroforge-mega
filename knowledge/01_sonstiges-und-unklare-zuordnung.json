@@ -1,0 +1,24 @@
+{
+    "id":  "KAT-SONSTIGES-UND-UNKLARE-ZUORDNUNG-SELECT",
+    "title":  "Sonstiges und unklare Zuordnung",
+    "text":  "Auswahlziel: Sonstiges und unklare Zuordnung \u003e Sonstiges und unklare Zuordnung. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, nur wenn das Ticket trotz ausreichender Beschreibung keiner vorhandenen Kategorie zuverlässig zugeordnet werden kann, mehrere völlig unterschiedliche Anliegen untrennbar vermischt oder der betroffene IT-Service nicht erkennbar ist. Typische Ticketformulierungen sind: „Unklarer IT-Fehler ohne erkennbaren Dienst“; „Mehrere nicht trennbare Anliegen“; „Betroffenes System nicht identifizierbar“. Nicht auswählen, wenn anhand von Anwendung, Gerät, Fehlermeldung, Standort oder gewünschter Leistung eine spezifische Kategorie gewählt werden kann. Diese Kategorie darf nicht allein wegen kurzer oder unvollständiger Formulierung bevorzugt werden. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Diese Auffangkategorie soll selten verwendet und regelmäßig ausgewertet werden. Vor Auswahl sind Hauptbegriffe und Kontext gegen alle spezifischen Kategorien zu prüfen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Sonstiges und unklare Zuordnung \u003e Sonstiges und unklare Zuordnung“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Sonstiges und unklare Zuordnung \u003e Sonstiges und unklare Zuordnung"
+                   ],
+    "keywords":  [
+                     "sonstiges",
+                     "unklar",
+                     "keine Zuordnung",
+                     "allgemeines IT-Problem",
+                     "nicht näher beschrieben",
+                     "divers",
+                     "Sonstiges und unklare Zuordnung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/sonstiges-und-unklare-zuordnung/sonstiges-und-unklare-zuordnung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

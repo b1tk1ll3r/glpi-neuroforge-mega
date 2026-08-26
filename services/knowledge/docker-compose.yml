@@ -1,0 +1,36 @@
+services:
+  kb-helpdesk:
+    build: .
+    container_name: kb-helpdesk
+    restart: unless-stopped
+    ports:
+      - "${KB_EDITOR_PORT:-8080}:8080"
+    environment:
+      APP_MODE: "${APP_MODE:-editor}"
+      APP_TITLE: "${APP_TITLE:-}"
+      APP_SUBTITLE: "${APP_SUBTITLE:-}"
+      AUTO_RELOAD_INTERVAL: "${AUTO_RELOAD_INTERVAL:-}"
+      DATA_DIR: /data/knowledge
+      BACKUP_DIR: /data/backups
+      STAGING_DIR: /data/staging
+      LISTEN_ADDR: :8080
+      BASIC_AUTH_USER: "${BASIC_AUTH_USER:-}"
+      BASIC_AUTH_PASSWORD: "${BASIC_AUTH_PASSWORD:-}"
+      AI_FALLBACK_ENABLED: "${AI_FALLBACK_ENABLED:-false}"
+      OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-}"
+      OLLAMA_TIMEOUT: "${OLLAMA_TIMEOUT:-10m}"
+      OLLAMA_MAX_CONCURRENT: "${OLLAMA_MAX_CONCURRENT:-1}"
+      OLLAMA_STAGING_AUTO_REPLY: "${OLLAMA_STAGING_AUTO_REPLY:-false}"
+      OLLAMA_STAGING_MIN_SCORE: "${OLLAMA_STAGING_MIN_SCORE:-0.78}"
+    volumes:
+      - "${KB_DATA_PATH:-./knowledge}:/data/knowledge:${KB_DATA_MOUNT_MODE:-rw}"
+      - "${KB_BACKUP_PATH:-./backups}:/data/backups:rw"
+      - "${KB_STAGING_PATH:-./staging}:/data/staging:rw"
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

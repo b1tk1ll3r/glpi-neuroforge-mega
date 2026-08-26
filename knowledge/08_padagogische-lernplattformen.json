@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-PADAGOGISCHE-LERNPLATTFORMEN-SELECT",
+    "title":  "Pädagogische Lernplattformen",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Pädagogische Lernplattformen. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn Lernmanagementsysteme, digitale Klassenräume, Kursräume, Unterrichtsplattformen oder deren schulische Nutzung und Zugänge betroffen sind. Typische Ticketformulierungen sind: „Kursraum nicht sichtbar“; „Lernplattform nicht erreichbar“; „Schüler kann Aufgabe nicht abgeben“; „Klasse in Plattform anlegen“. Nicht auswählen, wenn eine allgemeine Microsoft-Office-Funktion, reine Netzstörung oder Schulverwaltungsanwendung gemeint ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei zentralem Hosting- oder Netzwerkproblem wird an Infrastruktur übergeben; fachliche Nutzung bleibt bei Team Schulen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Pädagogische Lernplattformen“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Pädagogische Lernplattformen"
+                   ],
+    "keywords":  [
+                     "Lernplattform",
+                     "LMS",
+                     "Moodle",
+                     "digitaler Klassenraum",
+                     "Kurs",
+                     "Aufgabe",
+                     "Unterrichtsplattform",
+                     "Schülerzugang",
+                     "Pädagogische Lernplattformen",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/padagogische-lernplattformen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

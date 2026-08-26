@@ -1,0 +1,56 @@
+services:
+  neuroforge:
+    build:
+      context: .
+      target: server
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      NEUROFORGE_ADMIN_TOKEN: ${NEUROFORGE_ADMIN_TOKEN}
+      NEUROFORGE_APP_API_KEY: ${NEUROFORGE_APP_API_KEY}
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN}
+      NEUROFORGE_METRICS_TOKEN: ${NEUROFORGE_METRICS_TOKEN}
+      NEUROFORGE_CLUSTER_TOKEN: ${NEUROFORGE_CLUSTER_TOKEN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - neuroforge-data:/app/data
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/readyz"]
+      interval: 15s
+      timeout: 3s
+      retries: 4
+      start_period: 10s
+
+  worker:
+    build:
+      context: .
+      target: worker
+    command:
+      - -server
+      - http://neuroforge:8080
+      - -token
+      - ${NEUROFORGE_WORKER_TOKEN}
+      - -id
+      - worker-compose-1
+    depends_on:
+      neuroforge:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  neuroforge-data:

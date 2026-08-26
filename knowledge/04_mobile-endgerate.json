@@ -1,0 +1,29 @@
+{
+    "id":  "KAT-MOBILE-ENDGERATE-SELECT",
+    "title":  "Mobile Endgeräte",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e Mobile Endgeräte. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein dienstliches Smartphone oder Tablet eingerichtet, zurückgesetzt, ausgetauscht oder bei einem Geräte-, App-, Synchronisations- oder lokalen Bedienproblem unterstützt werden muss. Typische Ticketformulierungen sind: „Diensthandy lässt sich nicht entsperren“; „Tablet synchronisiert nicht“; „Smartphone einrichten“; „Mobiles Gerät zurücksetzen“. Nicht auswählen, wenn es um Mobilfunktarif, SIM-Karte oder Rufnummer geht; wenn MFA lediglich auf ein neues Gerät übertragen werden muss; wenn das Gerät neu beschafft werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: SIM- und Vertragsfragen gehören zu Telefonie und Kommunikation \u003e Mobilfunk. Sicherheitsrelevanter Verlust ist zusätzlich als Sicherheitsvorfall zu behandeln.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e Mobile Endgeräte“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e Mobile Endgeräte"
+                   ],
+    "keywords":  [
+                     "Smartphone",
+                     "Diensthandy",
+                     "Tablet",
+                     "Mobilgerät",
+                     "iPhone",
+                     "Android",
+                     "iPad",
+                     "Synchronisation",
+                     "Geräteeinrichtung",
+                     "Zurücksetzen",
+                     "Mobile Endgeräte",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/mobile-endgerate",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

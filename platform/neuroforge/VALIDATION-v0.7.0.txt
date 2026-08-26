@@ -1,0 +1,31 @@
+NeuroForge v0.7.0 validation
+Date: 2026-08-17
+
+PASS  go test ./...
+PASS  go vet ./...
+PASS  go test -race ./internal/store
+PASS  go test -race ./internal/brain
+PASS  go test -race ./internal/httpapi
+PASS  go test -race ./internal/vector
+PASS  Admin JavaScript syntax (node --check)
+PASS  OpenAPI 3.1 YAML parse; version 0.7.0; 60 paths
+PASS  Linux amd64 static builds: server, worker, benchmark
+PASS  Runtime release-binary smoke: /readyz, /admin security headers, learning-policy API, /metrics auth/export, graceful SIGTERM shutdown
+PASS  Admin token absent from runtime log
+PASS  Knowledge Explorer integration: /learn -> provenance summary -> explainable knowledge search
+PASS  Learning Policy: blocks explicit learn before provider call
+PASS  Learning Policy: duplicate suppression
+PASS  Learning Policy: strongly negative assistant response archival
+PASS  Secrets masked by default
+PASS  Knowledge Event persistence across restart
+PASS  Explainable SearchHit score decomposition
+PASS  Sequential PQ migration scanner: latest live vectors only; archived/deleted records excluded
+
+Operational caveats / deliberate boundaries:
+- TLS and per-client/IP rate limiting belong at a reverse proxy/ingress.
+- /readyz validates configured routes and cluster readiness; it intentionally does not perform network calls to Ollama/OpenAI on each probe.
+- Knowledge Graph is browser-bounded (max 250 nodes), not a renderer for the entire database.
+- Opening Knowledge Explorer summary may perform a metadata scan over the store; normal /metrics scrapes do not.
+- Existing pre-v0.7 memories do not gain invented provenance; they appear as legacy/unknown.
+- Cluster remains Raft-like rather than a claim of complete Raft consensus/log matching.
+- Disk-PQ remains an approximate candidate generator; returned candidates are exact-reranked against original vectors when available.

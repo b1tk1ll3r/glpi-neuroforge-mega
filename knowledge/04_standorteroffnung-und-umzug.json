@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-STANDORTEROFFNUNG-UND-UMZUG-SELECT",
+    "title":  "Standorteröffnung und Umzug",
+    "text":  "Auswahlziel: Projekte, Änderungen und neue Anforderungen \u003e Standorteröffnung und Umzug. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn eine neue Liegenschaft, Außenstelle, Schule oder ein größerer Gebäudebereich IT-seitig ausgestattet, angebunden oder vollständig umgezogen werden soll. Typische Ticketformulierungen sind: „Neue Außenstelle ausstatten“; „Verwaltungsbereich zieht um“; „Neues Gebäude ans Netz anbinden“; „Kompletter Standortwechsel“. Nicht auswählen, wenn nur ein einzelner Arbeitsplatz innerhalb eines Gebäudes umgesetzt oder eine bestehende Standortleitung gestört ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Die Leitung koordiniert; Infrastruktur, Support, Fachanwendungen, Telekommunikation und Beschaffung liefern Teilaufgaben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Projekte, Änderungen und neue Anforderungen \u003e Standorteröffnung und Umzug“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Projekte, Änderungen und neue Anforderungen \u003e Standorteröffnung und Umzug"
+                   ],
+    "keywords":  [
+                     "Standorteröffnung",
+                     "Standortumzug",
+                     "neue Liegenschaft",
+                     "Außenstelle",
+                     "Gebäudeumzug",
+                     "IT-Ausstattung Standort",
+                     "Umzugsprojekt",
+                     "Standorteröffnung und Umzug",
+                     "Projekte, Änderungen und neue Anforderungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/projekte-anderungen-und-neue-anforderungen/standorteroffnung-und-umzug",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

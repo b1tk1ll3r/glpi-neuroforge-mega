@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-MICROSOFT-WORD-SELECT",
+    "title":  "Microsoft Word",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Microsoft Word. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Microsoft Word bei Dokumentbearbeitung, Formatierung, Feldern, Inhaltsverzeichnissen, Dokumentenschutz oder programmspezifischen Funktionen fehlerhaft arbeitet oder Unterstützung benötigt wird. Typische Ticketformulierungen sind: „Word-Dokument lässt sich nicht bearbeiten“; „Formatierung springt“; „Inhaltsverzeichnis aktualisiert nicht“; „Word stürzt bei Dokument ab“. Nicht auswählen, wenn eine allgemeine Office-Installation fehlt, eine organisationsweite Vorlage geändert werden soll, ein Makro betroffen ist oder das Betriebssystem selbst fehlerhaft ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Vorlagen, Makros und Serienbriefe besitzen eigene Kategorien, wenn diese der eigentliche Kern des Tickets sind.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Microsoft Word“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Microsoft Word"
+                   ],
+    "keywords":  [
+                     "Word",
+                     "Microsoft Word",
+                     "DOCX",
+                     "Dokument",
+                     "Formatierung",
+                     "Inhaltsverzeichnis",
+                     "Serienbrief",
+                     "Textverarbeitung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/microsoft-word",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

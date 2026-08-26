@@ -1,0 +1,25 @@
+{
+    "id":  "KAT-DIENSTLICHES-SMARTPHONE-SELECT",
+    "title":  "Dienstliches Smartphone",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Dienstliches Smartphone. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein dienstliches Smartphone als Telekommunikationsgerät neu eingerichtet, getauscht, repariert oder für Telefonie, Kontakte und dienstliche Kommunikation konfiguriert werden muss. Typische Ticketformulierungen sind: „Diensthandy einrichten“; „Smartphone austauschen“; „Kontakte synchronisieren“; „Telefon-App funktioniert nicht“. Nicht auswählen, wenn ausschließlich SIM, Tarif oder Roaming betroffen ist; wenn ein Tablet ohne Telefoniefunktion oder ein MFA-Token im Mittelpunkt steht. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Allgemeine mobile Endgeräteprobleme können zunächst beim Support bleiben; Mobilfunkvertrag und SIM sind separat.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Dienstliches Smartphone“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Dienstliches Smartphone"
+                   ],
+    "keywords":  [
+                     "Dienstliches Smartphone",
+                     "Diensthandy",
+                     "Telefon-App",
+                     "Kontakte",
+                     "Smartphone einrichten",
+                     "Handytausch",
+                     "Mobiltelefon",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/dienstliches-smartphone",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

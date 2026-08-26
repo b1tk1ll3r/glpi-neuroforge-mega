@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-FACHANWENDUNG-NEUE-ANFORDERUNG-SELECT",
+    "title":  "Fachanwendung – Neue Anforderung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Neue Anforderung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn eine bestehende Fachanwendung funktional erweitert, ein neuer Prozess abgebildet, ein zusätzliches Modul eingeführt oder eine bislang nicht vorhandene fachliche Funktion umgesetzt werden soll. Typische Ticketformulierungen sind: „Neues Formular im Fachverfahren“; „Zusätzliches Modul benötigt“; „Prozess soll digital abgebildet werden“; „Funktionserweiterung anfragen“. Nicht auswählen, wenn lediglich eine vorhandene Funktion gestört ist, eine kleine Parametrierung ausreicht oder eine komplett neue Anwendung beschafft und eingeführt werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Umfang, Nutzen, betroffene Organisation und Priorität sollten dokumentiert werden; größere Vorhaben können in ein Projekt überführt werden.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Neue Anforderung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Neue Anforderung"
+                   ],
+    "keywords":  [
+                     "neue Anforderung",
+                     "Erweiterung",
+                     "Feature",
+                     "neue Funktion",
+                     "zusätzliches Modul",
+                     "Change Request",
+                     "Anpassungswunsch",
+                     "Prozess digitalisieren",
+                     "Fachanwendung – Neue Anforderung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-neue-anforderung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

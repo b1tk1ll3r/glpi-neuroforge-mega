@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-FACHANWENDUNG-BEDIENUNG-UND-BERATUNG-SELECT",
+    "title":  "Fachanwendung – Bedienung und Beratung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Bedienung und Beratung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn die Anwendung technisch funktioniert, aber Unterstützung bei Bedienung, Prozessschritten, Eingaben, fachlicher Nutzung oder Best-Practice benötigt wird. Typische Ticketformulierungen sind: „Wie erfasse ich einen Vorgang“; „Wo finde ich die Auswertung“; „Unterstützung bei Arbeitsschritt“; „Frage zur Bedienung des Fachverfahrens“. Nicht auswählen, wenn eine Fehlermeldung oder ein technischer Ausfall vorliegt; wenn eine neue Funktion entwickelt oder eine Berechtigung geändert werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Reine Standardfragen können im First-Level angenommen werden; fachliche Prozessberatung bleibt bei Fachanwendungen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Bedienung und Beratung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Bedienung und Beratung"
+                   ],
+    "keywords":  [
+                     "Bedienung",
+                     "Anleitung",
+                     "Wie kann ich",
+                     "Wo finde ich",
+                     "Beratung",
+                     "Nutzung",
+                     "Arbeitsschritt",
+                     "Fachverfahren Hilfe",
+                     "Anwenderfrage",
+                     "Fachanwendung – Bedienung und Beratung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-bedienung-und-beratung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

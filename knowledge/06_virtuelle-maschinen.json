@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-VIRTUELLE-MASCHINEN-SELECT",
+    "title":  "Virtuelle Maschinen",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Virtuelle Maschinen. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine konkrete virtuelle Maschine neu bereitgestellt, geändert, vergrößert, geklont, gestartet, wiederhergestellt oder bei einem VM-spezifischen Fehler bearbeitet werden soll. Typische Ticketformulierungen sind: „Neue VM bereitstellen“; „Virtuelle Maschine startet nicht“; „RAM oder CPU erhöhen“; „VM klonen“. Nicht auswählen, wenn der gesamte Hypervisor-Cluster betroffen ist, nur die Anwendung in der VM fehlerhaft ist oder ein Container benötigt wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Betriebssystem- und Anwendungsprobleme innerhalb der VM sind getrennt zu betrachten.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Virtuelle Maschinen“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Virtuelle Maschinen"
+                   ],
+    "keywords":  [
+                     "virtuelle Maschine",
+                     "VM",
+                     "vCPU",
+                     "virtueller Server",
+                     "VM bereitstellen",
+                     "VM startet nicht",
+                     "Snapshot",
+                     "Ressourcen erhöhen",
+                     "Virtuelle Maschinen",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/virtuelle-maschinen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

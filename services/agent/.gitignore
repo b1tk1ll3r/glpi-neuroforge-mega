@@ -1,0 +1,7 @@
+.env
+.env_local
+/data/*
+!/data/.gitkeep
+*.log
+*.zip
+/glpi-ai-agent

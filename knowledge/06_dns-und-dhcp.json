@@ -1,0 +1,29 @@
+{
+    "id":  "KAT-DNS-UND-DHCP-SELECT",
+    "title":  "DNS und DHCP",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e DNS und DHCP. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Namensauflösung, DNS-Einträge, IP-Adressvergabe, DHCP-Leases, Reservierungen oder damit verbundene zentrale Netzwerkfunktionen fehlerhaft sind oder geändert werden sollen. Typische Ticketformulierungen sind: „Hostname wird nicht aufgelöst“; „Falsche IP-Adresse“; „DHCP-Reservierung anlegen“; „DNS-Eintrag ändern“. Nicht auswählen, wenn lediglich ein Benutzer keine Internetverbindung hat, eine Firewallfreigabe benötigt wird oder eine Fachanwendung einen eigenen Namensfehler meldet. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Einzelne Symptome ohne technische Hinweise sollten zunächst unter LAN, WLAN oder Internetzugang eingeordnet werden.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e DNS und DHCP“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e DNS und DHCP"
+                   ],
+    "keywords":  [
+                     "DNS",
+                     "DHCP",
+                     "Namensauflösung",
+                     "IP-Adresse",
+                     "Lease",
+                     "Reservierung",
+                     "Hostname",
+                     "A-Record",
+                     "CNAME",
+                     "IP-Vergabe",
+                     "DNS und DHCP",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/dns-und-dhcp",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

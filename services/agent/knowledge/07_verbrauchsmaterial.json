@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-VERBRAUCHSMATERIAL-SELECT",
+    "title":  "Verbrauchsmaterial",
+    "text":  "Auswahlziel: Drucken, Scannen und Kopieren \u003e Verbrauchsmaterial. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn Toner, Trommel, Resttonerbehälter, Heftklammern oder anderes Verbrauchsmaterial für Drucker und Kopierer benötigt oder als leer gemeldet wird. Typische Ticketformulierungen sind: „Toner leer“; „Neue Trommel benötigt“; „Resttonerbehälter voll“; „Verbrauchsmaterial bestellen“. Nicht auswählen, wenn das Gerät trotz vorhandenem Material defekt ist oder eine allgemeine Hardwarebeschaffung ansteht. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bestellprozess und Lagerhaltung können je nach Organisation bei Support oder Beschaffung liegen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Drucken, Scannen und Kopieren \u003e Verbrauchsmaterial“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Drucken, Scannen und Kopieren \u003e Verbrauchsmaterial"
+                   ],
+    "keywords":  [
+                     "Toner",
+                     "Trommel",
+                     "Verbrauchsmaterial",
+                     "Resttoner",
+                     "Kartusche",
+                     "Druckerzubehör",
+                     "leer",
+                     "bestellen",
+                     "Drucken, Scannen und Kopieren"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/drucken-scannen-und-kopieren/verbrauchsmaterial",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

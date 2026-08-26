@@ -1,0 +1,30 @@
+{
+    "id":  "KAT-PC-UND-NOTEBOOK-SELECT",
+    "title":  "PC und Notebook",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e PC und Notebook. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein einzelner Arbeitsplatz-PC oder ein dienstliches Notebook nicht startet, abstürzt, sehr langsam ist, ungewöhnliche Geräusche macht, einen Hardwaredefekt zeigt oder lokal nicht nutzbar ist. Typische Ticketformulierungen sind: „Notebook startet nicht“; „PC friert ein“; „Laptop-Akku defekt“; „Arbeitsplatzrechner sehr langsam“; „Gerät zeigt Bluescreen“. Nicht auswählen, wenn mehrere Geräte gleichzeitig betroffen sind, ein zentraler Dienst ausfällt, ein neues Gerät beschafft werden soll oder ausschließlich Monitor, Dockingstation oder Zubehör betroffen sind. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei mehreren gleichzeitig betroffenen Geräten ist ein zentraler Infrastruktur- oder Sicherheitsbezug zu prüfen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e PC und Notebook“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e PC und Notebook"
+                   ],
+    "keywords":  [
+                     "PC",
+                     "Computer",
+                     "Notebook",
+                     "Laptop",
+                     "Arbeitsplatzrechner",
+                     "startet nicht",
+                     "Absturz",
+                     "Bluescreen",
+                     "langsam",
+                     "Akku",
+                     "Hardwaredefekt",
+                     "PC und Notebook",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/pc-und-notebook",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

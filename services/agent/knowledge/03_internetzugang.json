@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-INTERNETZUGANG-SELECT",
+    "title":  "Internetzugang",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e Internetzugang. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Webseiten oder externe Dienste allgemein nicht erreichbar sind, der Internetzugang eines Standorts oder mehrerer Benutzer ausfällt oder auffällig langsam ist. Typische Ticketformulierungen sind: „Kein Internet im Gebäude“; „Externe Webseiten nicht erreichbar“; „Internetzugang sehr langsam“; „Mehrere Nutzer offline“. Nicht auswählen, wenn nur eine einzelne Anwendung gestört ist, ein VPN-Tunnel nicht verbindet oder eine konkrete Adresse durch die Firewall freigeschaltet werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Einzelne blockierte Ziele können eine Firewall-Thematik sein; flächige Ausfälle sind zu priorisieren.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e Internetzugang“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e Internetzugang"
+                   ],
+    "keywords":  [
+                     "Internet",
+                     "Internetzugang",
+                     "Webseiten nicht erreichbar",
+                     "offline",
+                     "WAN",
+                     "Provider",
+                     "Internetausfall",
+                     "langsam",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/internetzugang",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

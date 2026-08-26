@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-STORAGE-SELECT",
+    "title":  "Storage",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Storage. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn zentrale Speicherplattformen, SAN, NAS, Volumes, LUNs, Kapazitäten, Performance oder Storage-Replikation betroffen sind. Typische Ticketformulierungen sind: „Storage-Kapazität erweitern“; „SAN meldet Fehler“; „Volume nicht verfügbar“; „Speicherperformance schlecht“. Nicht auswählen, wenn nur eine Dateifreigabe, eine lokale Festplatte oder der Speicherplatz einer einzelnen Anwendung betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Dateidienste und virtuelle Maschinen können Folgeprobleme zeigen, die Ursache bleibt jedoch Storage.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Storage“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Storage"
+                   ],
+    "keywords":  [
+                     "Storage",
+                     "SAN",
+                     "NAS",
+                     "LUN",
+                     "Volume",
+                     "Speicherplattform",
+                     "Kapazität",
+                     "IOPS",
+                     "Speicherarray",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/storage",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

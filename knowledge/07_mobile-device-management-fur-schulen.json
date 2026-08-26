@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-MOBILE-DEVICE-MANAGEMENT-FUR-SCHULEN-SELECT",
+    "title":  "Mobile-Device-Management für Schulen",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Mobile-Device-Management für Schulen. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn die zentrale Verwaltung schulischer mobiler Geräte, MDM-Profile, App-Verteilung, Gerätegruppen, Richtlinien oder Enrollment betroffen ist. Typische Ticketformulierungen sind: „MDM-Profil wird nicht installiert“; „App an Schülergeräte verteilen“; „Gerät aus MDM entfernen“; „Enrollment schlägt fehl“. Nicht auswählen, wenn nur ein einzelnes Gerät physisch defekt ist oder ein allgemeines kommunales Smartphone eingerichtet werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Plattformbetrieb kann mittelfristig an Infrastruktur und Backend übergehen; schulfachliche Gerätezuordnung bleibt zu klären.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Mobile-Device-Management für Schulen“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Mobile-Device-Management für Schulen"
+                   ],
+    "keywords":  [
+                     "MDM",
+                     "Mobile Device Management",
+                     "Enrollment",
+                     "Geräteprofil",
+                     "App-Verteilung",
+                     "Schülergeräte verwalten",
+                     "Gerätegruppe",
+                     "DEP",
+                     "Mobile-Device-Management für Schulen",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/mobile-device-management-fur-schulen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-SCHWACHSTELLE-SELECT",
+    "title":  "Schwachstelle",
+    "text":  "Auswahlziel: IT-Sicherheit und Datensicherung \u003e Schwachstelle. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine bekannte oder vermutete Sicherheitslücke, unsichere Konfiguration, CVE, offene Angriffsfläche oder fehlende Härtung gemeldet, bewertet oder behoben werden soll. Typische Ticketformulierungen sind: „CVE betrifft Server“; „Unsichere TLS-Konfiguration“; „Offener Dienst entdeckt“; „System muss gehärtet werden“. Nicht auswählen, wenn bereits ein Angriff oder Datenabfluss stattgefunden hat, nur ein normales Update geplant ist oder Malware gefunden wurde. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei aktiver Ausnutzung wird daraus ein Sicherheitsvorfall; bei reinem Patchbedarf kann Sicherheitsupdate ergänzend passen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „IT-Sicherheit und Datensicherung \u003e Schwachstelle“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "IT-Sicherheit und Datensicherung \u003e Schwachstelle"
+                   ],
+    "keywords":  [
+                     "Schwachstelle",
+                     "CVE",
+                     "Vulnerability",
+                     "Sicherheitslücke",
+                     "Härtung",
+                     "Hardening",
+                     "unsichere Konfiguration",
+                     "Exposure",
+                     "IT-Sicherheit und Datensicherung"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/it-sicherheit-und-datensicherung/schwachstelle",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

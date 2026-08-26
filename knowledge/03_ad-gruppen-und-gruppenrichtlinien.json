@@ -1,0 +1,29 @@
+{
+    "id":  "KAT-AD-GRUPPEN-UND-GRUPPENRICHTLINIEN-SELECT",
+    "title":  "AD-Gruppen und Gruppenrichtlinien",
+    "text":  "Auswahlziel: Benutzerkonten und Berechtigungen \u003e AD-Gruppen und Gruppenrichtlinien. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Mitgliedschaften in zentralen Active-Directory-Gruppen, Sicherheitsgruppen, Verteilergruppen mit AD-Bezug oder technische Gruppenrichtlinien geprüft, geändert oder neu eingerichtet werden sollen. Auch fehlerhafte Laufwerkszuordnungen oder zentrale Windows-Einstellungen durch GPO gehören hierher. Typische Ticketformulierungen sind: „Benutzer in AD-Gruppe aufnehmen“; „GPO wird nicht angewendet“; „Netzlaufwerk fehlt wegen Gruppenmitgliedschaft“; „Zentrale Windows-Richtlinie ändern“. Nicht auswählen, wenn es um eine fachliche Rolle innerhalb einer Anwendung, ein einzelnes vergessenes Kennwort oder eine lokale Einstellung an nur einem Arbeitsplatz ohne Richtlinienbezug geht. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei fachlichen Rollen ist Fachanwendungen zuständig; bei reinen Arbeitsplatzproblemen ohne zentralen Bezug zunächst der Support.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Benutzerkonten und Berechtigungen \u003e AD-Gruppen und Gruppenrichtlinien“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Benutzerkonten und Berechtigungen \u003e AD-Gruppen und Gruppenrichtlinien"
+                   ],
+    "keywords":  [
+                     "Active Directory",
+                     "AD-Gruppe",
+                     "Sicherheitsgruppe",
+                     "Gruppenmitgliedschaft",
+                     "GPO",
+                     "Gruppenrichtlinie",
+                     "Group Policy",
+                     "OU",
+                     "Laufwerkszuordnung",
+                     "zentrale Richtlinie",
+                     "AD-Gruppen und Gruppenrichtlinien",
+                     "Benutzerkonten und Berechtigungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/benutzerkonten-und-berechtigungen/ad-gruppen-und-gruppenrichtlinien",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,7 @@
+/backups/*
+!/backups/.gitkeep
+/knowledge/*
+!/knowledge/.gitkeep
+/kb-editor
+.env
+.DS_Store

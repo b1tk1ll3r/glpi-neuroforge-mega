@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-SCHULVERWALTUNGSANWENDUNGEN-SELECT",
+    "title":  "Schulverwaltungsanwendungen",
+    "text":  "Auswahlziel: Schulspezifische IT-Systeme \u003e Schulverwaltungsanwendungen. Primär zuständiges Team: Schulen. Diese Kategorie ist auszuwählen, wenn eine speziell in Schulen eingesetzte Verwaltungsanwendung für Stundenplan, Schülerverwaltung, Zeugnisse, Vertretung oder Schulorganisation gestört ist oder Unterstützung benötigt wird. Typische Ticketformulierungen sind: „Zeugnisprogramm zeigt Fehler“; „Stundenplananwendung funktioniert nicht“; „Schülerverwaltungssoftware gestört“; „Vertretungsplan synchronisiert nicht“. Nicht auswählen, wenn eine allgemeine kommunale Fachanwendung, Lernplattform oder reine Netzwerkstörung betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Fachanwendungs-Know-how kann mittelfristig an Fachanwendungen überführt werden; zentrale Plattformursachen an Infrastruktur.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Schulspezifische IT-Systeme \u003e Schulverwaltungsanwendungen“ zuzuordnen. Primär zuständig ist „Schulen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Schulspezifische IT-Systeme \u003e Schulverwaltungsanwendungen"
+                   ],
+    "keywords":  [
+                     "Schulverwaltungsanwendung",
+                     "Schülerverwaltung",
+                     "Zeugnisprogramm",
+                     "Stundenplan",
+                     "Vertretungsplan",
+                     "Schulsoftware",
+                     "Schulorganisation",
+                     "Schulverwaltungsanwendungen",
+                     "Schulspezifische IT-Systeme"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/schulspezifische-it-systeme/schulverwaltungsanwendungen",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

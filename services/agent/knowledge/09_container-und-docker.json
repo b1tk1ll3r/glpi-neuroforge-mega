@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-CONTAINER-UND-DOCKER-SELECT",
+    "title":  "Container und Docker",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Container und Docker. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn Docker-Hosts, Container, Images, Registries, Compose-Stacks oder containerbasierte Laufzeitumgebungen bereitgestellt, gewartet oder analysiert werden sollen. Typische Ticketformulierungen sind: „Docker-Container startet nicht“; „Image bereitstellen“; „Registry-Zugriff fehlerhaft“; „Compose-Stack deployen“. Nicht auswählen, wenn ein Kubernetes-Cluster betroffen ist, eine klassische VM benötigt wird oder nur die Fachanwendung im Container fachlich fehlerhaft ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei Sicherheitslücken in Images ist zusätzlich IT-Sicherheit relevant.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Container und Docker“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Container und Docker"
+                   ],
+    "keywords":  [
+                     "Docker",
+                     "Container",
+                     "Image",
+                     "Registry",
+                     "Docker Compose",
+                     "Container Runtime",
+                     "Container startet nicht",
+                     "Containerplattform",
+                     "Container und Docker",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/container-und-docker",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

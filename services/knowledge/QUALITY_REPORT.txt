@@ -1,0 +1,46 @@
+KB Helpdesk Editor / Search / Ollama / Staging Review Workflow
+Quality report
+Date: 2026-07-29
+
+Implemented review workflow
+---------------------------
+- Editor scope switch: Production / Staging
+- Staging count in UI and health endpoint
+- Staging search/filter with existing q, auto_reply, language, style and source filters
+- Staging article editing in form view and raw JSON view
+- Single promote: staging -> productive knowledge directory
+- Single delete: staging -> staging/.trash
+- Bulk promote/delete for selected staging articles
+- Promoted originals archived below staging/.approved for audit
+- Production import refuses duplicate IDs and existing target filenames
+- Unknown JSON fields are preserved on staging edits and promotion
+- Google/viewer mode blocks staging list/write/delete/promote APIs server-side
+- Ollama fallback continues to save only into staging
+
+Validation
+----------
+PASS  go test ./...
+PASS  go test -race ./...
+PASS  go vet ./...
+PASS  go build ./cmd/server
+PASS  node --check cmd/server/web/app.js
+PASS  node --check cmd/server/viewer/app.js
+PASS  docker-compose.yml YAML parse
+PASS  docker-compose.dual.yml YAML parse
+PASS  editor DOM selector/ID consistency check
+PASS  binary E2E: staging search -> update -> promote -> production -> .approved
+
+E2E assertions
+--------------
+- active staging count before promotion: 1
+- production count before promotion: 0
+- matching staging search results: 1
+- production files after promotion: 1
+- active staging files after promotion: 0
+- approved audit files after promotion: 1
+
+Docker note
+-----------
+The Docker CLI/daemon is not available in this execution environment, so an
+actual `docker build` was not executed. Docker Compose files were parsed as YAML,
+and the Go binary itself was exercised end-to-end.

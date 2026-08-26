@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-MICROSOFT-EXCEL-SELECT",
+    "title":  "Microsoft Excel",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Microsoft Excel. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Microsoft Excel bei Tabellen, Formeln, Pivot-Auswertungen, Datenimporten oder programmspezifischen Funktionen fehlerhaft arbeitet oder fachnahe Unterstützung benötigt wird. Typische Ticketformulierungen sind: „Excel-Formel funktioniert nicht“; „Datei öffnet fehlerhaft“; „Pivot-Tabelle aktualisiert nicht“; „Excel stürzt ab“. Nicht auswählen, wenn ein Add-in oder Makro die Ursache ist, eine Fachanwendung exportiert nicht korrekt oder die Datei nur wegen fehlender Berechtigung auf einer Ablage nicht geöffnet werden kann. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Makro- und Add-in-Probleme werden in der eigenen Office-Kategorie erfasst.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Microsoft Excel“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Microsoft Excel"
+                   ],
+    "keywords":  [
+                     "Excel",
+                     "Microsoft Excel",
+                     "XLSX",
+                     "Tabelle",
+                     "Formel",
+                     "Pivot",
+                     "Arbeitsmappe",
+                     "Tabellenkalkulation",
+                     "CSV",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/microsoft-excel",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

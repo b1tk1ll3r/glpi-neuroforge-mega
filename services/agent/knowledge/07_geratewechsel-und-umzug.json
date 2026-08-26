@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-GERATEWECHSEL-UND-UMZUG-SELECT",
+    "title":  "Gerätewechsel und Umzug",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e Gerätewechsel und Umzug. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn vorhandene IT-Arbeitsmittel bei Arbeitsplatzwechsel, Raumumzug, Stellenwechsel oder Gerätetausch umgesetzt, neu angeschlossen, migriert oder ausgetauscht werden müssen. Typische Ticketformulierungen sind: „Arbeitsplatz in anderes Büro umziehen“; „Notebook gegen Ersatzgerät tauschen“; „PC und Monitore umsetzen“; „Daten auf Austauschgerät übernehmen“. Nicht auswählen, wenn neue zusätzliche Hardware beschafft werden soll, ein kompletter Standort umzieht oder nur ein technischer Defekt ohne Umzug vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Größere Standortumzüge werden als Projekt beziehungsweise Standorteröffnung oder Umzug geplant.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e Gerätewechsel und Umzug“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e Gerätewechsel und Umzug"
+                   ],
+    "keywords":  [
+                     "Umzug",
+                     "Arbeitsplatzwechsel",
+                     "Gerätewechsel",
+                     "Gerätetausch",
+                     "Austauschgerät",
+                     "Bürowechsel",
+                     "Umsetzen",
+                     "Migration Arbeitsplatz",
+                     "Gerätewechsel und Umzug",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/geratewechsel-und-umzug",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

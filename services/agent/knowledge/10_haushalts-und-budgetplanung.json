@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-HAUSHALTS-UND-BUDGETPLANUNG-SELECT",
+    "title":  "Haushalts- und Budgetplanung",
+    "text":  "Auswahlziel: Beschaffung, Verträge und Lizenzen \u003e Haushalts- und Budgetplanung. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn IT-Budgets, Haushaltsansätze, Mittelbedarfe, Verpflichtungsermächtigungen, Kostenprognosen oder mehrjährige Finanzplanungen erstellt und abgestimmt werden sollen. Typische Ticketformulierungen sind: „Budget für nächstes Jahr planen“; „Mittelbedarf melden“; „Kostenprognose erstellen“; „Haushaltsansatz für IT-Projekt“. Nicht auswählen, wenn es um eine einzelne Bestellung, Rechnung oder technische Projektplanung ohne Budgetbezug geht. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Fachteams liefern Bedarfe und technische Mengen; Leitung und kaufmännische Stelle konsolidieren.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Beschaffung, Verträge und Lizenzen \u003e Haushalts- und Budgetplanung“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Beschaffung, Verträge und Lizenzen \u003e Haushalts- und Budgetplanung"
+                   ],
+    "keywords":  [
+                     "Haushalt",
+                     "Budget",
+                     "Mittelbedarf",
+                     "Finanzplanung",
+                     "Kostenprognose",
+                     "Haushaltsansatz",
+                     "Budgetplanung",
+                     "Investitionsplanung",
+                     "Haushalts- und Budgetplanung",
+                     "Beschaffung, Verträge und Lizenzen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/beschaffung-vertrage-und-lizenzen/haushalts-und-budgetplanung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

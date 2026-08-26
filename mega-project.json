@@ -1,0 +1,76 @@
+{
+  "name": "glpi-neuroforge-mega",
+  "architecture": "modular-monorepo",
+  "vector_migration_modes": [
+    "local",
+    "dual",
+    "neuroforge"
+  ],
+  "default_vector_mode": "dual",
+  "policy_owner": "glpi-ai-agent",
+  "semantic_backend": "neuroforge",
+  "vector_journal": "NFVJ2",
+  "vector_compression": "SQAR adaptive with raw/DEFLATE fallback",
+  "knowledge_authority": "knowledge JSON files",
+  "research_governance": "staging-only, human promotion required",
+  "control_center": "read-only unified graph observability/navigation; writes delegated to scoped component APIs",
+  "trust_boundaries": {
+    "agent_to_neuroforge": "app_api_key",
+    "operator_to_neuroforge": "admin_token",
+    "worker_to_neuroforge": "worker_token",
+    "research_to_kb_staging": "kb_integration_token",
+    "control_to_agent_graph": "control_read_token",
+    "control_to_neuroforge_graph": "app_api_key_read_only_endpoints"
+  },
+  "knowledge_export": {
+    "format": "Obsidian Markdown + YAML frontmatter + Wikilinks",
+    "graph": "Wiki/graph.json",
+    "schema": "Wiki/Schema.md",
+    "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
+  },
+  "version": "1.4.0",
+  "controlled_learning": {
+    "raw_chat_auto_learning": false,
+    "validated_outcomes": [
+      "accepted",
+      "corrected"
+    ],
+    "outcome_endpoint": "/api/v1/integrations/outcomes",
+    "research_evidence_trust": {
+      "web.search": 0.45,
+      "web.page": 0.6
+    },
+    "human_outcome_trust": 1.0,
+    "stale_run_guard": true,
+    "immutable_outcome_revisions": true,
+    "failed_sync_retry": true,
+    "outcome_search_endpoint": "/api/v1/integrations/outcomes/search",
+    "outcome_retrieval_secondary_evidence_only": true,
+    "superseded_outcomes_searchable": false,
+    "quality_replay_endpoint": "/api/quality/replay",
+    "quality_replay_read_only": true,
+    "provenance_source_secondary_index": true
+  },
+  "optional_research": {
+    "compose_profile": "research",
+    "service": "searxng",
+    "autonomy_default": false,
+    "research_default": false,
+    "separate_autonomy_switch": true
+  },
+  "unified_graph": {
+    "views": [
+      "runtime",
+      "ticket_evidence",
+      "learning_lineage",
+      "research_provenance",
+      "brain",
+      "engineering",
+      "change_impact"
+    ],
+    "engineering_source": "reproducible go-ast+compose snapshot",
+    "codebase_memory_mcp": "optional developer-only",
+    "control_agent_scope": "CONTROL_READ_TOKEN",
+    "node_budgets": true
+  }
+}

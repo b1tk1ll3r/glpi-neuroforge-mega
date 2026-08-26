@@ -1,0 +1,29 @@
+{
+    "id":  "KAT-FACHANWENDUNG-SCHNITTSTELLE-UND-DATENAUSTAUSCH-SELECT",
+    "title":  "Fachanwendung – Schnittstelle und Datenaustausch",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Schnittstelle und Datenaustausch. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Import, Export, Webservice, Dateiübergabe oder Datenaustausch zwischen einer Fachanwendung und einem anderen System fehlschlägt oder neu eingerichtet werden soll. Typische Ticketformulierungen sind: „Importdatei wird abgewiesen“; „Export kommt nicht im Zielsystem an“; „Schnittstelle liefert Fehler“; „Datenaustausch einrichten“. Nicht auswählen, wenn nur die Netzwerkverbindung eines Standorts gestört ist, ein allgemeiner Dateiablagefehler vorliegt oder eine rein manuelle Auswertung benötigt wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei Firewall- oder Netzwerkfreischaltungen arbeitet Fachanwendungen mit Infrastruktur und Backend zusammen; fachliche Datenformate bleiben bei Fachanwendungen.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Schnittstelle und Datenaustausch“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Schnittstelle und Datenaustausch"
+                   ],
+    "keywords":  [
+                     "Schnittstelle",
+                     "Datenaustausch",
+                     "Import",
+                     "Export",
+                     "Webservice",
+                     "API",
+                     "Dateiübergabe",
+                     "Interface",
+                     "Übertragung",
+                     "Fremdsystem",
+                     "Fachanwendung – Schnittstelle und Datenaustausch",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-schnittstelle-und-datenaustausch",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

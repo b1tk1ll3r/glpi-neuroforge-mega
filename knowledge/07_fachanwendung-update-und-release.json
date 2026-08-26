@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-FACHANWENDUNG-UPDATE-UND-RELEASE-SELECT",
+    "title":  "Fachanwendung – Update und Release",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Fachanwendung – Update und Release. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn ein Update, Patch, Releasewechsel oder Versionsupgrade einer Fachanwendung geplant, getestet, freigegeben oder nachbereitet werden soll. Typische Ticketformulierungen sind: „Neue Fachverfahrensversion testen“; „Release einspielen“; „Herstellerupdate planen“; „Patch der Anwendung freigeben“. Nicht auswählen, wenn nur ein Windows-Clientupdate scheitert, ein Sicherheitspatch der Serverplattform betroffen ist oder eine neue Anwendung erstmals eingeführt wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Technische Server- und Datenbankarbeiten werden mit Infrastruktur und Backend abgestimmt.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Fachanwendung – Update und Release“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Fachanwendung – Update und Release"
+                   ],
+    "keywords":  [
+                     "Update",
+                     "Release",
+                     "Version",
+                     "Patch",
+                     "Upgrade",
+                     "Herstellerupdate",
+                     "Testsystem",
+                     "Freigabe",
+                     "Fachanwendung aktualisieren",
+                     "Fachanwendung – Update und Release",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/fachanwendung-update-und-release",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-NEUE-IT-ANFORDERUNG-SELECT",
+    "title":  "Neue IT-Anforderung",
+    "text":  "Auswahlziel: Projekte, Änderungen und neue Anforderungen \u003e Neue IT-Anforderung. Primär zuständiges Team: Leitung und Finanzen / Beschaffung. Diese Kategorie ist auszuwählen, wenn ein bislang nicht vorhandener IT-Service, eine neue technische Fähigkeit oder ein organisationsübergreifender Bedarf zunächst bewertet, priorisiert und einem Fachteam zugeordnet werden soll. Typische Ticketformulierungen sind: „Neuen digitalen Dienst prüfen“; „Zusätzlichen IT-Service bereitstellen“; „Neue technische Lösung benötigt“; „Unklarer neuer IT-Bedarf“. Nicht auswählen, wenn die Lösung bereits eindeutig eine bestehende Fachanwendung betrifft, nur Hardware bestellt oder eine normale Störung gemeldet wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Diese Kategorie dient der qualifizierten Erstbewertung; danach erfolgt Übergabe an das zuständige Fachteam oder Projekt.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Projekte, Änderungen und neue Anforderungen \u003e Neue IT-Anforderung“ zuzuordnen. Primär zuständig ist „Leitung und Finanzen / Beschaffung“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Projekte, Änderungen und neue Anforderungen \u003e Neue IT-Anforderung"
+                   ],
+    "keywords":  [
+                     "neue IT-Anforderung",
+                     "neuer Service",
+                     "neue Lösung",
+                     "Bedarf",
+                     "Anforderung",
+                     "Idee",
+                     "Digitalisierung",
+                     "Prüfauftrag",
+                     "Neue IT-Anforderung",
+                     "Projekte, Änderungen und neue Anforderungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/projekte-anderungen-und-neue-anforderungen/neue-it-anforderung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

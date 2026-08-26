@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-DATENBANKEN-PLATTFORMBETRIEB-SELECT",
+    "title":  "Datenbanken – Plattformbetrieb",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Datenbanken – Plattformbetrieb. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn der zentrale Datenbankdienst, die Datenbankinstanz, Verfügbarkeit, Sicherung, Performance oder technische Administration von SQL-Plattformen betroffen ist. Typische Ticketformulierungen sind: „SQL-Server nicht erreichbar“; „Datenbankinstanz langsam“; „Backup der Datenbank fehlerhaft“; „Neue Datenbank technisch bereitstellen“. Nicht auswählen, wenn fachliche Daten korrigiert, Berichte angepasst oder anwendungsspezifische Tabelleninhalte verändert werden sollen. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Fachliches Datenmodell und Datenkorrekturen liegen bei Fachanwendungen; Plattformbetrieb bei Infrastruktur.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Datenbanken – Plattformbetrieb“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Datenbanken – Plattformbetrieb"
+                   ],
+    "keywords":  [
+                     "Datenbank",
+                     "SQL",
+                     "SQL Server",
+                     "PostgreSQL",
+                     "Oracle",
+                     "MySQL",
+                     "Instanz",
+                     "DB-Backup",
+                     "Datenbankperformance",
+                     "Datenbanken – Plattformbetrieb",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/datenbanken-plattformbetrieb",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-VIDEOKONFERENZ-SELECT",
+    "title":  "Videokonferenz",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Videokonferenz. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn Teilnahme, Kamera, Mikrofon, Lautsprecher, Bildschirmfreigabe oder Bedienung bei einer Videokonferenz am Arbeitsplatz nicht funktioniert. Typische Ticketformulierungen sind: „Kamera in Besprechung nicht verfügbar“; „Mikrofon wird nicht erkannt“; „Keine Tonwiedergabe in Videokonferenz“; „Bildschirmfreigabe klappt nicht“. Nicht auswählen, wenn ein zentrales Konferenzsystem, Netzwerkstandort oder eine Fachanwendung ohne Konferenzbezug betroffen ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei vielen gleichzeitig Betroffenen oder zentralem Dienstausfall an Infrastruktur beziehungsweise zuständige Plattformbetreuung übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Videokonferenz“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Videokonferenz"
+                   ],
+    "keywords":  [
+                     "Videokonferenz",
+                     "Kamera",
+                     "Mikrofon",
+                     "Besprechung",
+                     "Meeting",
+                     "Bildschirmfreigabe",
+                     "Teams-Konferenz",
+                     "Webex",
+                     "Zoom",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/videokonferenz",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,47 @@
+NeuroForge v0.8.0 validation
+Date: 2026-08-17
+
+Core / static analysis
+PASS  gofmt over cmd/ and internal/
+PASS  go test ./...
+PASS  go vet ./...
+PASS  go test -race ./internal/brain ./internal/httpapi ./internal/ingest ./internal/research ./internal/store ./internal/vector
+
+v0.8 source-grounded learning / research
+PASS  HTML text extraction strips script/style content and chunks text
+PASS  DOCX extraction from word/document.xml
+PASS  real PDF smoke extraction through pdftotext/Poppler on the validation host
+PASS  SearXNG client sends q + format=json + language and enforces result limit
+PASS  result-page fetch blocks private/loopback targets by default
+PASS  explicitly allowed private target fetch path extracts HTML text
+PASS  source records survive WAL/restart recovery
+PASS  independent-source corroboration raises confidence once per source
+PASS  Research can ingest SearXNG evidence even when manual explicit /learn is disabled
+PASS  HTTP E2E test: text ingestion + multipart document ingestion + SearXNG research learning
+PASS  stable source IDs prevent the same unchanged document/source from being counted repeatedly as new corroboration
+
+UI / API / observability
+PASS  Admin UI uses CSS + vanilla JavaScript only; JavaScript syntax checked with node --check
+PASS  responsive Canvas knowledge graph contains three LOD bands (aggregate / network / detail)
+PASS  OpenAPI parses as 3.1.0; info.version=0.8.0; 67 paths; 29 schemas
+PASS  /metrics exposes neuroforge_sources
+PASS  static server smoke: /livez, /readyz, /version, /admin and authenticated /metrics
+PASS  SIGTERM graceful shutdown on static Linux server
+
+Release binaries
+PASS  linux/amd64 server, worker and benchmark built with CGO_ENABLED=0
+PASS  all three Linux binaries reported statically linked
+
+Security-oriented checks implemented/tested
+PASS  web result fetching uses URL/IP validation and blocks loopback/private/link-local/unspecified targets unless explicitly allowed
+PASS  web-result requests do not use environment proxy routing in the guarded fetch path
+PASS  source/document/web evidence is marked as untrusted data in LLM prompts
+PASS  source URLs rendered by the admin UI are restricted to http/https links
+PASS  SearXNG auth-header config rejects non-printable/non-ASCII header values
+PASS  document ingestion applies configured body/document limits; PDF/DOCX expanded text reads are capped
+
+Packaging note
+- Docker/Podman is not installed in the validation environment, so the Docker image itself was not built here.
+- The Dockerfile was updated to install poppler-utils for PDF extraction; native pdftotext extraction was smoke-tested on the host.
+PASS  clean source ZIP unpack + go test ./... + go vet ./... + server/worker/bench rebuild + UI/OpenAPI validation
+PASS  final release SHA-256 manifest verified with sha256sum -c

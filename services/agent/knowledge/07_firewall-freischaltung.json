@@ -1,0 +1,29 @@
+{
+    "id":  "KAT-FIREWALL-FREISCHALTUNG-SELECT",
+    "title":  "Firewall-Freischaltung",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e Firewall-Freischaltung. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn eine konkrete Netzwerkkommunikation durch Firewallregeln erlaubt, geändert, zeitlich begrenzt oder geprüft werden soll, typischerweise mit Quelle, Ziel, Port und Protokoll. Typische Ticketformulierungen sind: „Port 443 zu Zielsystem freischalten“; „Firewall blockiert Anwendung“; „Kommunikation zwischen Netzen erlauben“; „Externer Dienst benötigt Zugriff“. Nicht auswählen, wenn ein allgemeiner Internetausfall, ein VPN-Berechtigungsantrag oder eine fachliche Schnittstellenkonfiguration ohne Firewallbezug vorliegt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Unklare pauschale Freischaltungen sind nicht ausreichend; Sicherheitsprüfung und Minimalprinzip gelten.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e Firewall-Freischaltung“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e Firewall-Freischaltung"
+                   ],
+    "keywords":  [
+                     "Firewall",
+                     "Freischaltung",
+                     "Port",
+                     "Quelle",
+                     "Ziel",
+                     "Protokoll",
+                     "Regel",
+                     "blockiert",
+                     "Netzwerkfreigabe",
+                     "Whitelist",
+                     "Firewall-Freischaltung",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/firewall-freischaltung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

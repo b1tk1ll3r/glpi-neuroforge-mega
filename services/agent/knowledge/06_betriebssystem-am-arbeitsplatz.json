@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-BETRIEBSSYSTEM-AM-ARBEITSPLATZ-SELECT",
+    "title":  "Betriebssystem am Arbeitsplatz",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e Betriebssystem am Arbeitsplatz. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn Windows oder ein anderes Client-Betriebssystem an einem einzelnen Arbeitsplatz lokale Fehler zeigt, Updates scheitern, Anmeldung am Gerät fehlerhaft ist oder Systemeinstellungen repariert werden müssen. Typische Ticketformulierungen sind: „Windows-Update schlägt fehl“; „Benutzerprofil defekt“; „Startmenü funktioniert nicht“; „Lokale Anmeldung fehlerhaft“. Nicht auswählen, wenn die Ursache eine zentrale Gruppenrichtlinie, das Active Directory, eine flächige Update-Störung oder ein Serverbetriebssystem ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Zentrale Richtlinien und mehrere gleichzeitig betroffene Clients werden an Infrastruktur und Backend übergeben.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e Betriebssystem am Arbeitsplatz“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e Betriebssystem am Arbeitsplatz"
+                   ],
+    "keywords":  [
+                     "Windows",
+                     "Betriebssystem",
+                     "Client",
+                     "Windows Update",
+                     "Benutzerprofil",
+                     "Startmenü",
+                     "lokale Anmeldung",
+                     "Systemfehler",
+                     "Treiberproblem",
+                     "Betriebssystem am Arbeitsplatz",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/betriebssystem-am-arbeitsplatz",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

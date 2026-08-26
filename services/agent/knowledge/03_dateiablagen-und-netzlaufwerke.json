@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-DATEIABLAGEN-UND-NETZLAUFWERKE-SELECT",
+    "title":  "Dateiablagen und Netzlaufwerke",
+    "text":  "Auswahlziel: Server, Backend und Plattformen \u003e Dateiablagen und Netzlaufwerke. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn zentrale Dateifreigaben, Netzlaufwerke, SMB-Ablagen oder Berechtigungsstrukturen nicht erreichbar sind, Speicherprobleme zeigen oder neu bereitgestellt werden sollen. Typische Ticketformulierungen sind: „Netzlaufwerk nicht erreichbar“; „Dateifreigabe anlegen“; „Ordnerberechtigung ändern“; „Speicherplatz auf Ablage voll“. Nicht auswählen, wenn nur eine lokale Datei beschädigt ist, eine Fachanwendung ihren Export nicht erzeugt oder lediglich eine Laufwerkszuordnung wegen fehlender AD-Gruppe fehlt. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei gruppenbasierter Berechtigung kann zusätzlich Benutzerkonten \u003e AD-Gruppen relevant sein.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Server, Backend und Plattformen \u003e Dateiablagen und Netzlaufwerke“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Server, Backend und Plattformen \u003e Dateiablagen und Netzlaufwerke"
+                   ],
+    "keywords":  [
+                     "Netzlaufwerk",
+                     "Dateifreigabe",
+                     "Fileserver",
+                     "SMB",
+                     "Ordnerberechtigung",
+                     "Laufwerk",
+                     "Ablage",
+                     "Speicherplatz",
+                     "Dateiablagen und Netzlaufwerke",
+                     "Server, Backend und Plattformen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/server-backend-und-plattformen/dateiablagen-und-netzlaufwerke",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

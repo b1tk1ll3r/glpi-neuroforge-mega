@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+gen() { openssl rand -hex 32; }
+cat <<OUT
+NEUROFORGE_ADMIN_TOKEN=$(gen)
+NEUROFORGE_APP_API_KEY=$(gen)
+NEUROFORGE_WORKER_TOKEN=$(gen)
+NEUROFORGE_METRICS_TOKEN=$(gen)
+KB_INTEGRATION_TOKEN=$(gen)
+CONTROL_READ_TOKEN=$(gen)
+SEARXNG_SECRET=$(gen)
+OUT

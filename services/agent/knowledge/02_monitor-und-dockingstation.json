@@ -1,0 +1,30 @@
+{
+    "id":  "KAT-MONITOR-UND-DOCKINGSTATION-SELECT",
+    "title":  "Monitor und Dockingstation",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e Monitor und Dockingstation. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn ein Monitor kein Bild zeigt, flackert, falsch erkannt wird oder eine Dockingstation Bild, Netzwerk, USB oder Stromversorgung nicht korrekt durchreicht. Typische Ticketformulierungen sind: „Zweiter Bildschirm bleibt schwarz“; „Dockingstation erkennt Netzwerk nicht“; „Monitor flackert“; „Notebook lädt am Dock nicht“. Nicht auswählen, wenn der gesamte PC nicht startet, ein flächiges Netzwerkproblem vorliegt oder ein neuer Monitor beziehungsweise eine neue Dockingstation beschafft werden soll. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Bei Netzwerkproblemen über ein Dock zunächst lokale Prüfung durch den Support; bei mehreren Betroffenen Übergabe an Infrastruktur.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e Monitor und Dockingstation“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e Monitor und Dockingstation"
+                   ],
+    "keywords":  [
+                     "Monitor",
+                     "Bildschirm",
+                     "Display",
+                     "Dockingstation",
+                     "Dock",
+                     "kein Bild",
+                     "flackert",
+                     "zweiter Bildschirm",
+                     "USB-C",
+                     "HDMI",
+                     "DisplayPort",
+                     "Monitor und Dockingstation",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/monitor-und-dockingstation",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-VPN-SELECT",
+    "title":  "VPN",
+    "text":  "Auswahlziel: Netzwerk und Verbindungen \u003e VPN. Primär zuständiges Team: Infrastruktur und Backend. Diese Kategorie ist auszuwählen, wenn ein bereits eingerichteter VPN-Tunnel technisch nicht aufgebaut wird, abbricht, keine internen Ziele erreicht oder eine Client- beziehungsweise Gateway-Fehlermeldung zeigt. Typische Ticketformulierungen sind: „VPN verbindet nicht“; „Tunnel bricht ab“; „Interne Laufwerke über VPN nicht erreichbar“; „VPN-Client meldet Fehler“. Nicht auswählen, wenn der VPN-Zugang erstmals beantragt oder berechtigt werden soll; dafür ist Benutzerkonten und Berechtigungen \u003e Remotezugriff und VPN vorgesehen. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Berechtigungsfragen und technische Störungen sind bewusst getrennt, um Fehlzuordnungen zu vermeiden.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Netzwerk und Verbindungen \u003e VPN“ zuzuordnen. Primär zuständig ist „Infrastruktur und Backend“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Netzwerk und Verbindungen \u003e VPN"
+                   ],
+    "keywords":  [
+                     "VPN",
+                     "Tunnel",
+                     "VPN-Client",
+                     "Remote Access",
+                     "Verbindung von außen",
+                     "Gateway",
+                     "VPN Fehler",
+                     "Homeoffice Verbindung",
+                     "Netzwerk und Verbindungen"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/netzwerk-und-verbindungen/vpn",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

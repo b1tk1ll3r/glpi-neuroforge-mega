@@ -1,0 +1,28 @@
+{
+    "id":  "KAT-RUCKGABE-UND-AUSSONDERUNG-SELECT",
+    "title":  "Rückgabe und Aussonderung",
+    "text":  "Auswahlziel: Arbeitsplatz und Endgeräte \u003e Rückgabe und Aussonderung. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn Geräte bei Austritt, Austausch oder Bestandsbereinigung zurückgegeben, inventarisch abgeglichen, datenschutzgerecht gelöscht, eingelagert, wiederverwendet oder ausgesondert werden sollen. Typische Ticketformulierungen sind: „Notebook bei Austritt zurückgeben“; „Altgerät aussondern“; „Datenträger vor Entsorgung löschen“; „Gerät ins Lager zurücknehmen“. Nicht auswählen, wenn ein Gerät lediglich defekt ist und weiter genutzt werden soll; wenn nur eine Rechnung oder Inventarnummer korrigiert wird. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Beschaffung wird beteiligt, wenn Inventarstatus, Verwertung oder kaufmännische Aussonderung zu ändern sind.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Arbeitsplatz und Endgeräte \u003e Rückgabe und Aussonderung“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Arbeitsplatz und Endgeräte \u003e Rückgabe und Aussonderung"
+                   ],
+    "keywords":  [
+                     "Rückgabe",
+                     "Aussonderung",
+                     "Altgerät",
+                     "Entsorgung",
+                     "Gerät zurückgeben",
+                     "Austritt",
+                     "Daten löschen",
+                     "Wiederverwendung",
+                     "Inventar",
+                     "Rückgabe und Aussonderung",
+                     "Arbeitsplatz und Endgeräte"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/arbeitsplatz-und-endgerate/ruckgabe-und-aussonderung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

@@ -1,0 +1,26 @@
+{
+    "id":  "KAT-OFFICE-AKTIVIERUNG-UND-LIZENZIERUNG-SELECT",
+    "title":  "Office-Aktivierung und Lizenzierung",
+    "text":  "Auswahlziel: Fachanwendungen und Microsoft Office \u003e Office-Aktivierung und Lizenzierung. Primär zuständiges Team: Fachanwendungen. Diese Kategorie ist auszuwählen, wenn Microsoft Office nicht aktiviert ist, eine Lizenz technisch nicht erkannt wird, ein Lizenzstatus fehlerhaft ist oder die korrekte Office-Edition zugeordnet werden muss. Typische Ticketformulierungen sind: „Office nicht aktiviert“; „Lizenz kann nicht überprüft werden“; „Produkt nicht lizenziert“; „Falsche Office-Edition“. Nicht auswählen, wenn neue Lizenzen gekauft, Verträge verlängert oder Rechnungen bearbeitet werden sollen; diese Vorgänge gehören zu Beschaffung, Verträge und Lizenzen. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Technische Lizenzzuordnung liegt bei Fachanwendungen; Einkauf und Vertragsverwaltung bei Leitung und Finanzen / Beschaffung.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Fachanwendungen und Microsoft Office \u003e Office-Aktivierung und Lizenzierung“ zuzuordnen. Primär zuständig ist „Fachanwendungen“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Fachanwendungen und Microsoft Office \u003e Office-Aktivierung und Lizenzierung"
+                   ],
+    "keywords":  [
+                     "Office Aktivierung",
+                     "Lizenzfehler",
+                     "Produkt nicht lizenziert",
+                     "Microsoft 365 Lizenz",
+                     "Office-Lizenz",
+                     "Aktivierung",
+                     "Lizenzstatus",
+                     "Office-Aktivierung und Lizenzierung",
+                     "Fachanwendungen und Microsoft Office"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/fachanwendungen-und-microsoft-office/office-aktivierung-und-lizenzierung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

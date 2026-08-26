@@ -1,0 +1,27 @@
+{
+    "id":  "KAT-RUFGRUPPE-UND-WEITERLEITUNG-SELECT",
+    "title":  "Rufgruppe und Weiterleitung",
+    "text":  "Auswahlziel: Telefonie und Kommunikation \u003e Rufgruppe und Weiterleitung. Primär zuständiges Team: Support und Telekommunikation. Diese Kategorie ist auszuwählen, wenn Rufgruppen, Sammelanschlüsse, Vertretungen, Anrufweiterleitungen, Zeitsteuerungen oder Erreichbarkeitsregeln eingerichtet oder geändert werden sollen. Typische Ticketformulierungen sind: „Rufumleitung für Urlaub“; „Mitarbeiter in Rufgruppe aufnehmen“; „Sammelruf ändern“; „Zeitsteuerung der Zentrale“. Nicht auswählen, wenn eine neue Rufnummer benötigt wird, das Telefon physisch defekt ist oder eine E-Mail-Weiterleitung gemeint ist. Für die Klassifizierung sind der konkret betroffene Dienst oder Gegenstand, die Fehlermeldung, die Anzahl betroffener Personen, der Standort sowie die Unterscheidung zwischen Störung, Berechtigung, Bestellung und Änderungswunsch besonders wichtig. Einzelne unspezifische Wörter wie „geht nicht“, „Problem“ oder „dringend“ reichen ohne Sachbezug nicht für diese Zuordnung aus. Abgrenzungsregel: Gewünschte Quell- und Zielnummer sowie Zeitraum müssen klar angegeben werden.",
+    "answer":  "Interne Klassifizierung: Das Ticket ist der Kategorie „Telefonie und Kommunikation \u003e Rufgruppe und Weiterleitung“ zuzuordnen. Primär zuständig ist „Support und Telekommunikation“. Vor der endgültigen Zuweisung sind die genannten Ausschlusskriterien und Schnittstellen zu prüfen.",
+    "auto_reply":  false,
+    "min_score":  0.7,
+    "categories":  [
+                       "Telefonie und Kommunikation \u003e Rufgruppe und Weiterleitung"
+                   ],
+    "keywords":  [
+                     "Rufgruppe",
+                     "Weiterleitung",
+                     "Rufumleitung",
+                     "Sammelruf",
+                     "Vertretung",
+                     "Anrufweiterleitung",
+                     "Zeitsteuerung",
+                     "Erreichbarkeit",
+                     "Rufgruppe und Weiterleitung",
+                     "Telefonie und Kommunikation"
+                 ],
+    "source":  "internal-category",
+    "source_uri":  "kb://internal-kb/glpi-kategorien/telefonie-und-kommunikation/rufgruppe-und-weiterleitung",
+    "language":  "de-DE",
+    "communication_style":  "formal"
+}

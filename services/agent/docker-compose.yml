@@ -1,0 +1,60 @@
+services:
+  agent-data-init:
+    build:
+      context: .
+      target: data-init
+    restart: "no"
+    user: "0:0"
+    volumes:
+      - agent-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+
+  agent:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Container-specific paths/hostnames override the native-friendly .env defaults.
+      DATA_DIR: /app/data
+      KNOWLEDGE_DIR: /app/knowledge
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      # Local CPU inference can take several minutes on the first request.
+      OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT:-10m}
+      OLLAMA_NUM_PREDICT: ${OLLAMA_NUM_PREDICT:-768}
+      OLLAMA_JSON_RETRIES: ${OLLAMA_JSON_RETRIES:-1}
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+      OLLAMA_THINK: ${OLLAMA_THINK:-false}
+      OLLAMA_MAX_CONCURRENT: ${OLLAMA_MAX_CONCURRENT:-1}
+      PRIORITY_ANALYSIS_TIMEOUT: ${PRIORITY_ANALYSIS_TIMEOUT:-45s}
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - agent-data:/app/data
+      - ./knowledge:/app/knowledge:ro
+    depends_on:
+      agent-data-init:
+        condition: service_completed_successfully
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    # GPU users can add the appropriate device/runtime stanza for their platform.
+
+volumes:
+  agent-data:
+  ollama-data:
