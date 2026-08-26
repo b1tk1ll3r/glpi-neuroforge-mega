@@ -104,14 +104,14 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure insecure registry for Docker daemon
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo mkdir -p /etc/docker
-          printf '{"insecure-registries":["%s"]}\n' "${REGISTRY}" | sudo tee /etc/docker/daemon.json >/dev/null
-          sudo systemctl restart docker
-          docker info
+      #- name: Configure insecure registry for Docker daemon
+      #  shell: bash
+      #  run: |
+      #    set -euo pipefail
+      #    sudo mkdir -p /etc/docker
+      #    printf '{"insecure-registries":["%s"]}\n' "${REGISTRY}" | sudo tee /etc/docker/daemon.json >/dev/null
+      #    sudo systemctl restart docker
+      #    docker info
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
