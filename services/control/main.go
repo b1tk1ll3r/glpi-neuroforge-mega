@@ -50,6 +50,7 @@ type server struct {
 	neuroforgeSearchK       string
 	failOpen                string
 	controlledLearning      string
+	goalLearning            string
 	outcomeLearning         string
 	outcomeRetrieval        string
 	outcomeSearchK          string
@@ -75,7 +76,7 @@ func main() {
 	if nfKeyRaw != "" {
 		nfAuth = "Bearer " + nfKeyRaw
 	}
-	s := &server{http: &http.Client{Timeout: 6 * time.Second}, agentURL: strings.TrimRight(agentURL, "/"), agentReadToken: strings.TrimSpace(os.Getenv("CONTROL_READ_TOKEN")), neuroforgeURL: strings.TrimRight(nfURL, "/"), neuroforgeKey: nfKeyRaw, codebaseMemoryURL: strings.TrimRight(strings.TrimSpace(os.Getenv("CODEBASE_MEMORY_URL")), "/"), codebaseMemoryPublicURL: strings.TrimRight(strings.TrimSpace(os.Getenv("PUBLIC_CODEBASE_MEMORY_URL")), "/"), vectorMode: env("KNOWLEDGE_VECTOR_BACKEND", "dual"), neuroforgeSearchK: env("NEUROFORGE_SEARCH_K", "128"), failOpen: env("NEUROFORGE_FAIL_OPEN", "true"), controlledLearning: env("NEUROFORGE_CONTROLLED_LEARNING", "true"), outcomeLearning: env("OUTCOME_LEARNING_ENABLED", "true"), outcomeRetrieval: env("OUTCOME_RETRIEVAL_ENABLED", "true"), outcomeSearchK: env("OUTCOME_RETRIEVAL_SEARCH_K", "6"), outcomeMinSimilarity: env("OUTCOME_RETRIEVAL_MIN_SIMILARITY", "0.58"), outcomeFailOpen: env("OUTCOME_RETRIEVAL_FAIL_OPEN", "true"), researchEnabled: env("NEUROFORGE_RESEARCH_ENABLED", "false"), searxngEnabled: env("NEUROFORGE_SEARXNG_ENABLED", "false"), autonomyEnabled: env("NEUROFORGE_AUTONOMY_ENABLED", "false")}
+	s := &server{http: &http.Client{Timeout: 6 * time.Second}, agentURL: strings.TrimRight(agentURL, "/"), agentReadToken: strings.TrimSpace(os.Getenv("CONTROL_READ_TOKEN")), neuroforgeURL: strings.TrimRight(nfURL, "/"), neuroforgeKey: nfKeyRaw, codebaseMemoryURL: strings.TrimRight(strings.TrimSpace(os.Getenv("CODEBASE_MEMORY_URL")), "/"), codebaseMemoryPublicURL: strings.TrimRight(strings.TrimSpace(os.Getenv("PUBLIC_CODEBASE_MEMORY_URL")), "/"), vectorMode: env("KNOWLEDGE_VECTOR_BACKEND", "dual"), neuroforgeSearchK: env("NEUROFORGE_SEARCH_K", "128"), failOpen: env("NEUROFORGE_FAIL_OPEN", "true"), controlledLearning: env("NEUROFORGE_CONTROLLED_LEARNING", "true"), goalLearning: env("NEUROFORGE_GOAL_LEARNING_ENABLED", "false"), outcomeLearning: env("OUTCOME_LEARNING_ENABLED", "true"), outcomeRetrieval: env("OUTCOME_RETRIEVAL_ENABLED", "true"), outcomeSearchK: env("OUTCOME_RETRIEVAL_SEARCH_K", "6"), outcomeMinSimilarity: env("OUTCOME_RETRIEVAL_MIN_SIMILARITY", "0.58"), outcomeFailOpen: env("OUTCOME_RETRIEVAL_FAIL_OPEN", "true"), researchEnabled: env("NEUROFORGE_RESEARCH_ENABLED", "false"), searxngEnabled: env("NEUROFORGE_SEARXNG_ENABLED", "false"), autonomyEnabled: env("NEUROFORGE_AUTONOMY_ENABLED", "false")}
 	s.targets = []target{
 		{ID: "agent", Name: "GLPI AI Agent", URL: agentURL, PublicURL: env("PUBLIC_AGENT_URL", "http://localhost:8080"), Path: "/readyz"},
 		{ID: "knowledge", Name: "Knowledgebase", URL: env("KNOWLEDGE_URL", "http://knowledge:8080"), PublicURL: env("PUBLIC_KNOWLEDGE_URL", "http://localhost:8081"), Path: "/api/health"},
@@ -123,7 +124,7 @@ func secure(next http.Handler) http.Handler {
 }
 
 func (s *server) handleConfig(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, 200, map[string]any{"vector_backend": s.vectorMode, "neuroforge_search_k": s.neuroforgeSearchK, "neuroforge_fail_open": s.failOpen, "controlled_learning": s.controlledLearning, "outcome_learning": s.outcomeLearning, "outcome_retrieval": s.outcomeRetrieval, "outcome_retrieval_search_k": s.outcomeSearchK, "outcome_retrieval_min_similarity": s.outcomeMinSimilarity, "outcome_retrieval_fail_open": s.outcomeFailOpen, "quality_replay": "available-on-agent", "research_enabled": s.researchEnabled, "searxng_enabled": s.searxngEnabled, "autonomy_enabled": s.autonomyEnabled, "control_plane": "read-only", "policy_owner": "glpi-agent", "unified_graph": true, "engineering_graph": "embedded-ast", "codebase_memory_url": s.codebaseMemoryPublicURL})
+	writeJSON(w, 200, map[string]any{"vector_backend": s.vectorMode, "neuroforge_search_k": s.neuroforgeSearchK, "neuroforge_fail_open": s.failOpen, "controlled_learning": s.controlledLearning, "goal_learning": s.goalLearning, "outcome_learning": s.outcomeLearning, "outcome_retrieval": s.outcomeRetrieval, "outcome_retrieval_search_k": s.outcomeSearchK, "outcome_retrieval_min_similarity": s.outcomeMinSimilarity, "outcome_retrieval_fail_open": s.outcomeFailOpen, "quality_replay": "available-on-agent", "research_enabled": s.researchEnabled, "searxng_enabled": s.searxngEnabled, "autonomy_enabled": s.autonomyEnabled, "control_plane": "read-only", "policy_owner": "glpi-agent", "unified_graph": true, "engineering_graph": "embedded-ast", "codebase_memory_url": s.codebaseMemoryPublicURL})
 }
 
 func (s *server) handleStatus(w http.ResponseWriter, r *http.Request) {

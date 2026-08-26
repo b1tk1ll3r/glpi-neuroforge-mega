@@ -1,7 +1,10 @@
 #!/bin/sh
 set -eu
+
 gen() { openssl rand -hex 32; }
+
 cat <<OUT
+# Mega service tokens
 NEUROFORGE_ADMIN_TOKEN=$(gen)
 NEUROFORGE_APP_API_KEY=$(gen)
 NEUROFORGE_WORKER_TOKEN=$(gen)
@@ -9,4 +12,9 @@ NEUROFORGE_METRICS_TOKEN=$(gen)
 KB_INTEGRATION_TOKEN=$(gen)
 CONTROL_READ_TOKEN=$(gen)
 SEARXNG_SECRET=$(gen)
+
+# Web/UI and optional webhook secrets
+WEB_PASSWORD=$(gen)
+BASIC_AUTH_PASSWORD=$(gen)
+WEBHOOK_SECRET=$(gen)
 OUT

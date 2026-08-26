@@ -47,6 +47,8 @@ Standardmäßig bindet der Stack nur an `127.0.0.1`:
 
 Vor dem ersten produktiven Start bleiben in `.env.example` alle automatischen GLPI-Aktionen deaktiviert und `DRY_RUN=true`.
 
+Die Repository-`.env.example` ist die **vollständige** Mega-Konfiguration und dokumentiert auch die weiterhin unterstützten Agent-Optionen aus älteren Installationen. Hinweise zur Migration und zu Compose-eigenen Containerwerten: [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md) und [`docs/ENV-MIGRATION-FROM-LEGACY.md`](docs/ENV-MIGRATION-FROM-LEGACY.md).
+
 ## Kontrollierter Vektor-Cutover
 
 `KNOWLEDGE_VECTOR_BACKEND` kennt drei Modi:
@@ -170,3 +172,14 @@ python3 scripts/quality-replay.py docs/QUALITY-REPLAY-example.json --url http://
 ## Bewusst begrenzte Autonomie
 
 Auch bei aktivierter Research-Autonomie veröffentlicht NeuroForge **nicht selbstständig** in die produktive Knowledgebase. Der technische Draft-Ingress ist vorhanden, aber der Übergang von einem konkreten Research-Run zu einem KB-Draft soll über einen expliziten Workflow/Job erfolgen. Das ist eine Governance-Entscheidung, kein fehlender Schreibweg.
+
+### Goal-Learning separat freigeben
+
+Controlled Learning deaktiviert Goal-Cycle-Lernen standardmäßig. Für bewusst freigegebene manuelle oder autonome Goal-Cycles:
+
+```env
+NEUROFORGE_CONTROLLED_LEARNING=true
+NEUROFORGE_GOAL_LEARNING_ENABLED=true
+```
+
+Damit bleibt rohes Chat-/Assistant-Lernen weiterhin deaktiviert.

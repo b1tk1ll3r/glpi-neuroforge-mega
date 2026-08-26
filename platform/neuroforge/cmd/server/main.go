@@ -144,6 +144,19 @@ func run() (retErr error) {
 			return fmt.Errorf("apply controlled learning bootstrap: %w", err)
 		}
 	}
+	// Goal-cycle learning is an independent trust boundary. Controlled learning
+	// keeps it disabled by default, but operators may explicitly enable it
+	// without re-enabling raw chat/input learning or memory imports. Apply this
+	// override after the controlled-learning bootstrap so the explicit setting
+	// wins on every restart.
+	if v, ok := envBool("NEUROFORGE_GOAL_LEARNING_ENABLED"); ok {
+		cfg := s.Config()
+		cfg.Brain.LearningPolicy.LearnGoalCycles = v
+		if err := s.UpdateConfig(cfg); err != nil {
+			return fmt.Errorf("apply goal learning environment bootstrap: %w", err)
+		}
+	}
+
 	if _, hasResearch := os.LookupEnv("NEUROFORGE_RESEARCH_ENABLED"); hasResearch {
 		cfg := s.Config()
 		if v, ok := envBool("NEUROFORGE_RESEARCH_ENABLED"); ok {

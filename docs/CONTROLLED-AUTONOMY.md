@@ -151,6 +151,7 @@ Research darf außerdem nicht direkt produktive Knowledge-Artikel veröffentlich
 
 ```text
 NEUROFORGE_CONTROLLED_LEARNING=true
+NEUROFORGE_GOAL_LEARNING_ENABLED=false
 OUTCOME_LEARNING_ENABLED=true
 OUTCOME_LEARNING_FAIL_OPEN=false
 NEUROFORGE_RESEARCH_ENABLED=false
@@ -159,3 +160,18 @@ NEUROFORGE_AUTONOMY_ENABLED=false
 ```
 
 Research anschließend gezielt aktivieren, beobachten und erst danach – falls gewünscht – Autonomy einschalten.
+
+
+## Goal-Learning als separate Freigabe (v1.4.1)
+
+`NEUROFORGE_CONTROLLED_LEARNING=true` deaktiviert weiterhin rohes Chat-/Assistant-Lernen.
+Goal-Cycles besitzen nun einen eigenen Schalter:
+
+```env
+NEUROFORGE_CONTROLLED_LEARNING=true
+NEUROFORGE_GOAL_LEARNING_ENABLED=true
+```
+
+Damit dürfen `RunGoalCycle` und autonome Goals semantische `goal-cycle`-Memories erzeugen,
+ohne `LearnChatInputs`, `LearnChatResponses` oder `AllowImports` wieder zu aktivieren.
+Für autonome Research-Goals sind zusätzlich die jeweiligen Research-/Autonomy-Schalter nötig.
