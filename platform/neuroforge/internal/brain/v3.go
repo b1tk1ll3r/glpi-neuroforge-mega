@@ -25,6 +25,11 @@ type AutonomyResult struct {
 }
 
 func (e *Engine) RunGoalCycle(ctx context.Context, goalID string) (core.LearningCycle, error) {
+	if !e.beginGoalCycle(goalID) {
+		return core.LearningCycle{}, ErrGoalCycleInProgress
+	}
+	defer e.endGoalCycle(goalID)
+
 	goal, ok := e.store.GetGoal(goalID)
 	if !ok {
 		return core.LearningCycle{}, errors.New("goal not found")
@@ -34,12 +39,66 @@ func (e *Engine) RunGoalCycle(ctx context.Context, goalID string) (core.Learning
 	}
 	cfg := e.store.Config()
 	lp := cfg.Brain.LearningPolicy
-	if !lp.Enabled || !lp.LearnGoalCycles {
-		return core.LearningCycle{}, errors.New("goal learning is disabled by learning policy")
-	}
+
+	// Research, measurable progress and the human-review staging bridge are a
+	// governance path of their own. They must not be blocked by the policy that
+	// controls whether a semantic goal-summary memory may be learned.
 	researchResult := e.researchGoal(ctx, goal)
+	e.refreshGoalResearchProgress(goal, goal.LastEvaluation)
+	e.maybePublishGoalDraft(ctx, goal, researchResult)
+
+	now := time.Now().UTC()
+	goal.LastCycleAt = now
+	interval := goal.IntervalMinutes
+	if interval <= 0 {
+		interval = cfg.Autonomy.DefaultGoalIntervalMinutes
+	}
+	if interval <= 0 {
+		interval = cfg.Autonomy.IntervalMinutes
+	}
+	goal.NextCycleAt = now.Add(time.Duration(maxIntV3(1, interval)) * time.Minute)
+	goal.ConsecutiveErrors = 0
+	goal.LastError = ""
+	if err := e.store.UpsertGoal(goal); err != nil {
+		return core.LearningCycle{}, err
+	}
+
+	researchQueries := []string{}
+	if strings.TrimSpace(researchResult.Query) != "" {
+		researchQueries = strings.Split(researchResult.Query, " | ")
+	}
+	cycle := core.LearningCycle{
+		ID:              store.NewID("cycle"),
+		GoalID:          goal.ID,
+		CostUSD:         researchResult.CostUSD,
+		CreatedAt:       now,
+		ResearchRunID:   researchResult.RunID,
+		ResearchQueries: researchQueries,
+		SourcesFound:    len(researchResult.Results),
+		SourcesIngested: len(researchResult.Sources),
+		ResearchErrors:  append([]string(nil), researchResult.Errors...),
+	}
+
+	if !lp.Enabled || !lp.LearnGoalCycles {
+		cycle.Observation = fmt.Sprintf("Research governance cycle completed: %s", goal.ProgressReason)
+		cycle.Prediction = deterministicPrediction(goal, nil, goal.LastEvaluation)
+		cycle.Evaluation = goal.LastEvaluation
+		cycle.Learning = "Goal-summary memory skipped by learning policy; research, progress and staging were processed independently."
+		goal.Prediction = cycle.Prediction
+		goal.NextAction = deterministicNextAction(goal, nil, goal.LastEvaluation)
+		if err := e.store.UpsertGoal(goal); err != nil {
+			return core.LearningCycle{}, err
+		}
+		if err := e.store.AddLearningCycle(cycle); err != nil {
+			return core.LearningCycle{}, err
+		}
+		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "goal.researched", Summary: "Goal research/progress cycle completed without semantic summary learning", Reason: "goal-summary learning disabled by policy", Actor: "goal-research", Metadata: map[string]string{"goal_id": goal.ID, "research_sources": fmt.Sprint(len(researchResult.Sources)), "research_results": fmt.Sprint(len(researchResult.Results)), "staging_id": goal.LastStagingDraftID}})
+		return cycle, nil
+	}
+
 	query := strings.TrimSpace(goal.Title + "\n" + goal.Description + "\nTarget: " + goal.Target)
 	emb, embedCost, err := e.embed(ctx, query)
+	cycle.CostUSD += embedCost
 	if err != nil {
 		return core.LearningCycle{}, err
 	}
@@ -54,7 +113,7 @@ func (e *Engine) RunGoalCycle(ctx context.Context, goalID string) (core.Learning
 	observation := summarizeObservation(evidenceHits, warnings)
 	prediction := deterministicPrediction(goal, evidenceHits, evaluation)
 	nextAction := deterministicNextAction(goal, evidenceHits, evaluation)
-	costUSD := embedCost + researchResult.CostUSD
+	costUSD := cycle.CostUSD
 	if cfg.Autonomy.UseLLM {
 		prompt := fmt.Sprintf("GOAL: %s\nDESCRIPTION: %s\nTARGET: %s\nPROGRESS: %.3f\nOBSERVATIONS:\n%s", goal.Title, goal.Description, goal.Target, goal.Progress, observation)
 		route := roleRoute(cfg.Routing.Goal, cfg.Autonomy.Provider, cfg.Autonomy.Model)
@@ -89,29 +148,16 @@ func (e *Engine) RunGoalCycle(ctx context.Context, goalID string) (core.Learning
 	goal.Prediction = prediction
 	goal.NextAction = nextAction
 	goal.LastEvaluation = evaluation
-	goal.LastCycleAt = time.Now().UTC()
-	interval := goal.IntervalMinutes
-	if interval <= 0 {
-		interval = cfg.Autonomy.DefaultGoalIntervalMinutes
-	}
-	if interval <= 0 {
-		interval = cfg.Autonomy.IntervalMinutes
-	}
-	goal.NextCycleAt = goal.LastCycleAt.Add(time.Duration(maxIntV3(1, interval)) * time.Minute)
-	goal.ConsecutiveErrors = 0
-	goal.LastError = ""
 	goal.MemoryIDs = appendUniqueV3(goal.MemoryIDs, mem.ID)
-	// Human-review staging is a one-way governance boundary. Publishing failures
-	// are visible on the goal but never invalidate the durable research/learning cycle.
-	e.maybePublishGoalDraft(ctx, goal, researchResult)
 	if err := e.store.UpsertGoal(goal); err != nil {
 		return core.LearningCycle{}, err
 	}
-	researchQueries := []string{}
-	if strings.TrimSpace(researchResult.Query) != "" {
-		researchQueries = strings.Split(researchResult.Query, " | ")
-	}
-	cycle := core.LearningCycle{ID: store.NewID("cycle"), GoalID: goal.ID, Observation: observation, Prediction: prediction, Evaluation: evaluation, Learning: learning, MemoryID: mem.ID, CostUSD: costUSD, CreatedAt: time.Now().UTC(), ResearchRunID: researchResult.RunID, ResearchQueries: researchQueries, SourcesFound: len(researchResult.Results), SourcesIngested: len(researchResult.Sources), ResearchErrors: append([]string(nil), researchResult.Errors...)}
+	cycle.Observation = observation
+	cycle.Prediction = prediction
+	cycle.Evaluation = evaluation
+	cycle.Learning = learning
+	cycle.MemoryID = mem.ID
+	cycle.CostUSD = costUSD
 	if err := e.store.AddLearningCycle(cycle); err != nil {
 		return core.LearningCycle{}, err
 	}

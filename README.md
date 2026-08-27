@@ -1,11 +1,11 @@
-# GLPI NeuroForge Mega v1.4.5
+# GLPI NeuroForge Mega v1.5.0
 
-> Release: **v1.4.5** · korrigierter Research-Goal-Fortschritt und echte NeuroForge→Knowledge-Staging-Pipeline mit Human Review.
+> Release: **v1.5.0** · Stop-the-Line-Hardening für Trust Boundaries, Registry-Deployment, Readiness und transaktionales Knowledge-Staging.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
 
-## Research → Human-Review-Staging (v1.4.5)
+## Research → Human-Review-Staging (v1.5.0)
 
 Autonome Research-Goals können ihre quellengebundene Evidenz jetzt tatsächlich in einen **KB-Staging-Entwurf** überführen. Die Bridge ist einseitig: NeuroForge darf ausschließlich `POST /api/integrations/staging` mit dem separaten `KB_INTEGRATION_TOKEN` verwenden; `auto_reply=false` wird serverseitig erzwungen und Produktivwissen bleibt menschlich freigabepflichtig.
 
@@ -43,8 +43,9 @@ cp .env.example .env
 ./scripts/generate-secrets.sh
 # Werte in .env übernehmen und GLPI-Zugangsdaten setzen.
 
-docker compose config
-docker compose up -d --build
+./scripts/preflight.sh
+docker compose pull
+docker compose up -d --remove-orphans
 ./scripts/status.sh
 ```
 
@@ -80,7 +81,7 @@ Im produktionsnahen Standard (`NEUROFORGE_CONTROLLED_LEARNING=true`) werden rohe
 Ticket -> KI-Vorschlag -> Techniker bestätigt/korrigiert -> auditiertes Outcome -> NeuroForge lernt
 ```
 
-Im Agent-Dashboard kann ein Antwortvorschlag als **„KI-Antwort bestätigen“** oder **„KI-Antwort korrigieren“** validiert werden. Jede Entscheidung wird lokal in `ticket-outcomes.json` mit Sync-Status gespeichert. Eine spätere Korrektur überschreibt die frühere Entscheidung nicht, sondern erzeugt eine neue Revision mit `supersedes_id`. Nur `accepted` und `corrected` dürfen den App-Key-geschützten NeuroForge-Endpunkt `/api/v1/integrations/outcomes` verwenden; NeuroForge weist die vertrauenswürdige Provenance serverseitig zu.
+Im Agent-Dashboard kann ein Antwortvorschlag als **„KI-Antwort bestätigen“** oder **„KI-Antwort korrigieren“** validiert werden. Jede Entscheidung wird lokal in `ticket-outcomes.json` mit Sync-Status gespeichert. Eine spätere Korrektur überschreibt die frühere Entscheidung nicht, sondern erzeugt eine neue Revision mit `supersedes_id`. Nur `accepted` und `corrected` dürfen den Integration-Token-geschützten NeuroForge-Endpunkt `/api/v1/integrations/outcomes` verwenden; NeuroForge weist die vertrauenswürdige Provenance serverseitig zu.
 
 Vor der Hochstufung verifiziert der Agent außerdem, dass sich der GLPI-Ticketzustand seit dem analysierten Run nicht geändert hat. Ein veralteter Run darf nicht als Trusted Outcome gelernt werden.
 

@@ -395,6 +395,8 @@ type Config struct {
 type Secrets struct {
 	OpenAIAPIKey      string            `json:"openai_api_key"`
 	AppAPIKey         string            `json:"app_api_key"`
+	IntegrationToken  string            `json:"integration_token,omitempty"`
+	ControlReadToken  string            `json:"control_read_token,omitempty"`
 	WorkerToken       string            `json:"worker_token"`
 	AdminToken        string            `json:"admin_token"`
 	MetricsToken      string            `json:"metrics_token,omitempty"`

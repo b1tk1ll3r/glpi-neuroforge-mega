@@ -3,7 +3,9 @@ WORKDIR /src
 COPY go.mod ./
 COPY cmd ./cmd
 COPY internal ./internal
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/kb-helpdesk ./cmd/server
+RUN go test ./... && \
+    go vet ./... && \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/kb-helpdesk ./cmd/server
 
 FROM alpine:3.24
 RUN apk add --no-cache ca-certificates tzdata

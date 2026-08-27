@@ -1,0 +1,30 @@
+# Local-development override. Production must use docker-compose.yml alone.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+services:
+  neuroforge:
+    build:
+      context: ./platform/neuroforge
+      target: server
+    pull_policy: never
+  neuroforge-worker:
+    build:
+      context: ./platform/neuroforge
+      target: worker
+    pull_policy: never
+  agent-data-init:
+    build:
+      context: ./services/agent
+      target: data-init
+    pull_policy: never
+  agent:
+    build:
+      context: ./services/agent
+    pull_policy: never
+  knowledge:
+    build:
+      context: ./services/knowledge
+    pull_policy: never
+  control:
+    build:
+      context: ./services/control
+    pull_policy: never

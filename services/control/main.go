@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
+	"crypto/subtle"
 	"embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -70,6 +74,11 @@ func env(k, d string) string {
 }
 
 func main() {
+	if err := validateControlSecrets(); err != nil {
+		log.Fatal(err)
+	}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 	agentURL := env("AGENT_URL", "http://agent:8080")
 	nfURL := env("NEUROFORGE_URL", "http://neuroforge:8080")
 	nfKeyRaw := strings.TrimSpace(os.Getenv("NEUROFORGE_API_KEY"))
@@ -109,9 +118,84 @@ func main() {
 		_, _ = w.Write(b)
 	})
 	addr := env("CONTROL_ADDR", ":8070")
-	srv := &http.Server{Addr: addr, Handler: secure(mux), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second}
+	srv := &http.Server{Addr: addr, Handler: secure(controlBasicAuth(mux)), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 10 * time.Second, WriteTimeout: 10 * time.Second, IdleTimeout: 60 * time.Second}
 	log.Printf("mega control listening on %s", addr)
-	log.Fatal(srv.ListenAndServe())
+	errCh := make(chan error, 1)
+	go func() {
+		err := srv.ListenAndServe()
+		if errors.Is(err, http.ErrServerClosed) {
+			err = nil
+		}
+		errCh <- err
+	}()
+	select {
+	case err := <-errCh:
+		if err != nil {
+			log.Printf("control HTTP server stopped unexpectedly: %v", err)
+		}
+	case <-ctx.Done():
+		log.Printf("control shutdown requested")
+	}
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("control graceful shutdown failed: %v", err)
+		_ = srv.Close()
+	}
+}
+
+func validateControlSecrets() error {
+	check := func(name string, min int) error {
+		v := strings.TrimSpace(os.Getenv(name))
+		if v == "" {
+			return nil
+		}
+		u := strings.ToUpper(v)
+		if strings.Contains(u, "CHANGE_ME") || strings.Contains(u, "CHANGEME") || strings.Contains(u, "PLACEHOLDER") {
+			return fmt.Errorf("%s still contains a placeholder", name)
+		}
+		if len(v) < min {
+			return fmt.Errorf("%s must be at least %d characters", name, min)
+		}
+		return nil
+	}
+	if err := check("NEUROFORGE_API_KEY", 24); err != nil {
+		return err
+	}
+	if err := check("CONTROL_READ_TOKEN", 24); err != nil {
+		return err
+	}
+	if err := check("CONTROL_BASIC_AUTH_PASSWORD", 12); err != nil {
+		return err
+	}
+	u, p := strings.TrimSpace(os.Getenv("CONTROL_BASIC_AUTH_USER")), strings.TrimSpace(os.Getenv("CONTROL_BASIC_AUTH_PASSWORD"))
+	if (u == "") != (p == "") {
+		return errors.New("CONTROL_BASIC_AUTH_USER and CONTROL_BASIC_AUTH_PASSWORD must both be set or both be empty")
+	}
+	return nil
+}
+
+func controlBasicAuth(next http.Handler) http.Handler {
+	user := strings.TrimSpace(os.Getenv("CONTROL_BASIC_AUTH_USER"))
+	pass := strings.TrimSpace(os.Getenv("CONTROL_BASIC_AUTH_PASSWORD"))
+	if user == "" && pass == "" {
+		return next
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		u, p, ok := r.BasicAuth()
+		userOK := subtle.ConstantTimeCompare([]byte(u), []byte(user)) == 1
+		passOK := subtle.ConstantTimeCompare([]byte(p), []byte(pass)) == 1
+		if !ok || !userOK || !passOK {
+			w.Header().Set("WWW-Authenticate", `Basic realm="NeuroForge Control", charset="UTF-8"`)
+			http.Error(w, "authentication required", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func secure(next http.Handler) http.Handler {

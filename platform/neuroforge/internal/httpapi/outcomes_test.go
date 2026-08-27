@@ -33,7 +33,7 @@ func TestValidatedOutcomeLearnsTrustedProvenance(t *testing.T) {
 
 	body := `{"outcome_id":"out-1","run_id":"run-1","ticket_id":42,"decision":"accepted","ticket_input":"VPN verbindet nicht","proposed_reply":"VPN Client neu starten","confirmed_reply":"VPN Client neu starten","category_id":5,"category_name":"VPN","knowledge_id":"kb-vpn","actor":"tech-a"}`
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/outcomes", strings.NewReader(body))
-	req.Header.Set("Authorization", "Bearer "+sec.AppAPIKey)
+	req.Header.Set("Authorization", "Bearer "+sec.IntegrationToken)
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	s.Handler().ServeHTTP(rr, req)
@@ -62,7 +62,7 @@ func TestValidatedOutcomeRejectsUnconfirmedDecision(t *testing.T) {
 	s, _ := newMetricsTestServer(t)
 	sec := s.store.Secrets()
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/outcomes", strings.NewReader(`{"outcome_id":"o","run_id":"r","ticket_id":1,"decision":"rejected","ticket_input":"x","confirmed_reply":"y","actor":"tech"}`))
-	req.Header.Set("Authorization", "Bearer "+sec.AppAPIKey)
+	req.Header.Set("Authorization", "Bearer "+sec.IntegrationToken)
 	req.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	s.Handler().ServeHTTP(rr, req)
@@ -101,7 +101,7 @@ func TestValidatedOutcomeCorrectionSupersedesPriorMemoryAndSearchesOnlyActiveRev
 	sec := s.store.Secrets()
 	post := func(body string) map[string]any {
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/outcomes", strings.NewReader(body))
-		req.Header.Set("Authorization", "Bearer "+sec.AppAPIKey)
+		req.Header.Set("Authorization", "Bearer "+sec.IntegrationToken)
 		req.Header.Set("Content-Type", "application/json")
 		rr := httptest.NewRecorder()
 		s.Handler().ServeHTTP(rr, req)
@@ -139,7 +139,7 @@ func TestValidatedOutcomeCorrectionSupersedesPriorMemoryAndSearchesOnlyActiveRev
 	}
 
 	search := httptest.NewRequest(http.MethodPost, "/api/v1/integrations/outcomes/search", strings.NewReader(`{"text":"Drucker korrigierte Loesung","k":10,"min_similarity":0}`))
-	search.Header.Set("Authorization", "Bearer "+sec.AppAPIKey)
+	search.Header.Set("Authorization", "Bearer "+sec.IntegrationToken)
 	search.Header.Set("Content-Type", "application/json")
 	rr := httptest.NewRecorder()
 	s.Handler().ServeHTTP(rr, search)

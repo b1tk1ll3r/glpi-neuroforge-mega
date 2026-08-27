@@ -169,7 +169,7 @@ func (e *Engine) collectGoalDraftEvidence(goalID string, limit int) []draftEvide
 	if limit <= 0 {
 		limit = 12
 	}
-	runs := e.store.ResearchRunsSnapshot(goalID, 20)
+	runs := e.store.ResearchRunsSnapshot(goalID, 200)
 	ids := map[string]struct{}{}
 	out := make([]draftEvidence, 0, limit)
 	for _, run := range runs {
@@ -201,7 +201,58 @@ func (e *Engine) collectGoalDraftEvidence(goalID string, limit int) []draftEvide
 			}
 		}
 	}
+	// Research-run telemetry is bounded. Supplement it with durable provenance so
+	// older source-backed evidence remains eligible after the run history window
+	// rolls over. Newest memories are preferred.
+	memories := e.store.MemoriesSnapshot()
+	for i := len(memories) - 1; i >= 0 && len(out) < limit; i-- {
+		m := memories[i]
+		if m.Status != core.MemoryActive || m.Provenance.GoalID != goalID || m.Provenance.Source == "goal-cycle" || m.Provenance.SourceID == "" {
+			continue
+		}
+		if _, ok := ids[m.ID]; ok {
+			continue
+		}
+		var src *core.KnowledgeSource
+		if source, ok := e.store.GetSource(m.Provenance.SourceID); ok {
+			src = source
+		}
+		if src == nil {
+			continue
+		}
+		ids[m.ID] = struct{}{}
+		out = append(out, draftEvidence{Memory: m, Source: src})
+	}
 	return out
+}
+
+// CheckStagingPublisher verifies both reachability and the configured integration
+// credential without creating a draft. Knowledge exposes a dedicated auth-checked
+// health endpoint for this purpose.
+func (e *Engine) CheckStagingPublisher(ctx context.Context) error {
+	cfg := e.stagingConfig()
+	if !cfg.Enabled {
+		return nil
+	}
+	if strings.TrimSpace(cfg.URL) == "" || strings.TrimSpace(cfg.Token) == "" {
+		return errors.New("staging publisher enabled but URL/token is missing")
+	}
+	healthURL := strings.TrimRight(cfg.URL, "/") + "/health"
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, healthURL, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Authorization", "Bearer "+cfg.Token)
+	resp, err := e.http.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	raw, _ := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return fmt.Errorf("knowledge staging health HTTP %d: %s", resp.StatusCode, strings.TrimSpace(string(raw)))
+	}
+	return nil
 }
 
 func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evidence []draftEvidence) (stagingDraftPayload, error) {

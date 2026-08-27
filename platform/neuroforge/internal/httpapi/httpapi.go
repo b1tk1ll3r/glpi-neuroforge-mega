@@ -6,9 +6,11 @@ import (
 	"embed"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -25,13 +27,14 @@ import (
 var webFS embed.FS
 
 type Server struct {
-	store    *store.Store
-	brain    *brain.Engine
-	router   *provider.Router
-	cost     *cost.Manager
-	mux      *http.ServeMux
-	metrics  *metricsRegistry
-	inflight atomic.Int64
+	store               *store.Store
+	brain               *brain.Engine
+	router              *provider.Router
+	cost                *cost.Manager
+	mux                 *http.ServeMux
+	metrics             *metricsRegistry
+	inflight            atomic.Int64
+	readinessOllamaLive bool
 }
 
 func New(s *store.Store, b *brain.Engine, r *provider.Router, c *cost.Manager) *Server {
@@ -39,6 +42,8 @@ func New(s *store.Store, b *brain.Engine, r *provider.Router, c *cost.Manager) *
 	x.routes()
 	return x
 }
+
+func (s *Server) SetReadinessOllamaLive(enabled bool) { s.readinessOllamaLive = enabled }
 func (s *Server) Handler() http.Handler {
 	var h http.Handler = s.mux
 	h = s.requestLimits(h)
@@ -61,7 +66,7 @@ func (s *Server) routes() {
 	s.mux.Handle("POST /api/v1/search/vector", s.appAuth(http.HandlerFunc(s.searchVector)))
 	s.mux.Handle("POST /api/v1/memory/import", s.appAuth(http.HandlerFunc(s.importMemory)))
 	s.mux.Handle("POST /api/v1/feedback", s.appAuth(http.HandlerFunc(s.feedback)))
-	s.mux.Handle("GET /api/v1/stats", s.appAuth(http.HandlerFunc(s.stats)))
+	s.mux.Handle("GET /api/v1/stats", s.controlReadAuth(http.HandlerFunc(s.stats)))
 	s.mux.Handle("GET /api/v1/goals", s.appAuth(http.HandlerFunc(s.goalsList)))
 	s.mux.Handle("POST /api/v1/goals", s.appAuth(http.HandlerFunc(s.goalsCreate)))
 	s.mux.Handle("GET /api/v1/goals/{id}", s.appAuth(http.HandlerFunc(s.goalsGet)))
@@ -79,14 +84,14 @@ func (s *Server) routes() {
 	s.mux.Handle("GET /api/v1/sources", s.appAuth(http.HandlerFunc(s.sourcesList)))
 	s.mux.Handle("GET /api/v1/sources/{id}", s.appAuth(http.HandlerFunc(s.sourceGet)))
 	s.mux.Handle("POST /api/v1/research", s.appAuth(http.HandlerFunc(s.researchSearch)))
-	s.mux.Handle("POST /api/v1/integrations/knowledge/upsert", s.appAuth(http.HandlerFunc(s.integrationKnowledgeUpsert)))
-	s.mux.Handle("DELETE /api/v1/integrations/knowledge/{namespace}/{document_id}", s.appAuth(http.HandlerFunc(s.integrationKnowledgeDelete)))
-	s.mux.Handle("POST /api/v1/integrations/knowledge/search", s.appAuth(http.HandlerFunc(s.integrationKnowledgeSearch)))
-	s.mux.Handle("POST /api/v1/integrations/events", s.appAuth(http.HandlerFunc(s.integrationEvent)))
-	s.mux.Handle("POST /api/v1/integrations/outcomes", s.appAuth(http.HandlerFunc(s.integrationValidatedOutcome)))
-	s.mux.Handle("POST /api/v1/integrations/outcomes/search", s.appAuth(http.HandlerFunc(s.integrationValidatedOutcomeSearch)))
-	s.mux.Handle("GET /api/v1/integrations/graph/research", s.appAuth(http.HandlerFunc(s.integrationResearchGraph)))
-	s.mux.Handle("GET /api/v1/integrations/graph/brain", s.appAuth(http.HandlerFunc(s.integrationBrainGraph)))
+	s.mux.Handle("POST /api/v1/integrations/knowledge/upsert", s.integrationAuth(http.HandlerFunc(s.integrationKnowledgeUpsert)))
+	s.mux.Handle("DELETE /api/v1/integrations/knowledge/{namespace}/{document_id}", s.integrationAuth(http.HandlerFunc(s.integrationKnowledgeDelete)))
+	s.mux.Handle("POST /api/v1/integrations/knowledge/search", s.integrationAuth(http.HandlerFunc(s.integrationKnowledgeSearch)))
+	s.mux.Handle("POST /api/v1/integrations/events", s.integrationAuth(http.HandlerFunc(s.integrationEvent)))
+	s.mux.Handle("POST /api/v1/integrations/outcomes", s.integrationAuth(http.HandlerFunc(s.integrationValidatedOutcome)))
+	s.mux.Handle("POST /api/v1/integrations/outcomes/search", s.integrationAuth(http.HandlerFunc(s.integrationValidatedOutcomeSearch)))
+	s.mux.Handle("GET /api/v1/integrations/graph/research", s.controlReadAuth(http.HandlerFunc(s.integrationResearchGraph)))
+	s.mux.Handle("GET /api/v1/integrations/graph/brain", s.controlReadAuth(http.HandlerFunc(s.integrationBrainGraph)))
 
 	s.mux.Handle("POST /internal/v1/cluster/request-vote", s.clusterAuth(http.HandlerFunc(s.clusterRequestVote)))
 	s.mux.Handle("POST /internal/v1/cluster/heartbeat", s.clusterAuth(http.HandlerFunc(s.clusterHeartbeat)))
@@ -232,6 +237,33 @@ func (s *Server) appAuth(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+func (s *Server) integrationAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sec := s.store.Secrets()
+		adminOK := secureEqual(r.Header.Get("X-Admin-Token"), sec.AdminToken)
+		integrationOK := secureEqual(bearer(r), sec.IntegrationToken)
+		if !adminOK && !integrationOK {
+			s.err(w, http.StatusUnauthorized, errors.New("invalid integration token or admin token"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (s *Server) controlReadAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sec := s.store.Secrets()
+		adminOK := secureEqual(r.Header.Get("X-Admin-Token"), sec.AdminToken)
+		controlOK := secureEqual(bearer(r), sec.ControlReadToken)
+		appOK := secureEqual(bearer(r), sec.AppAPIKey)
+		if !adminOK && !controlOK && !appOK {
+			s.err(w, http.StatusUnauthorized, errors.New("invalid control/app read token or admin token"))
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (s *Server) workerAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !secureEqual(bearer(r), s.store.Secrets().WorkerToken) {
@@ -571,7 +603,7 @@ func (s *Server) adminPutModelRouting(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) adminSecretsStatus(w http.ResponseWriter, r *http.Request) {
 	sec := s.store.Secrets()
-	s.json(w, 200, map[string]any{"openai_configured": sec.OpenAIAPIKey != "", "app_key_configured": sec.AppAPIKey != "", "worker_token_configured": sec.WorkerToken != "", "metrics_token_configured": sec.MetricsToken != "", "shard_tokens": len(sec.ShardAPIToken), "cluster_token_configured": sec.ClusterToken != ""})
+	s.json(w, 200, map[string]any{"openai_configured": sec.OpenAIAPIKey != "", "app_key_configured": sec.AppAPIKey != "", "integration_token_configured": sec.IntegrationToken != "", "control_read_token_configured": sec.ControlReadToken != "", "worker_token_configured": sec.WorkerToken != "", "metrics_token_configured": sec.MetricsToken != "", "shard_tokens": len(sec.ShardAPIToken), "cluster_token_configured": sec.ClusterToken != ""})
 }
 func maskedSecret(v string) string {
 	if v == "" {
@@ -586,34 +618,60 @@ func (s *Server) adminGetSecrets(w http.ResponseWriter, r *http.Request) {
 	sec := s.store.Secrets()
 	reveal := r.URL.Query().Get("reveal") == "1" && s.store.Config().Security.AllowSecretReveal
 	if reveal {
-		s.json(w, 200, map[string]any{"revealed": true, "app_api_key": sec.AppAPIKey, "worker_token": sec.WorkerToken, "metrics_token": sec.MetricsToken, "shard_api_tokens": sec.ShardAPIToken, "cluster_token": sec.ClusterToken})
+		s.json(w, 200, map[string]any{"revealed": true, "app_api_key": sec.AppAPIKey, "integration_token": sec.IntegrationToken, "control_read_token": sec.ControlReadToken, "worker_token": sec.WorkerToken, "metrics_token": sec.MetricsToken, "shard_api_tokens": sec.ShardAPIToken, "cluster_token": sec.ClusterToken})
 		return
 	}
 	maskedShards := map[string]string{}
 	for k, v := range sec.ShardAPIToken {
 		maskedShards[k] = maskedSecret(v)
 	}
-	s.json(w, 200, map[string]any{"revealed": false, "reveal_allowed": s.store.Config().Security.AllowSecretReveal, "app_api_key": maskedSecret(sec.AppAPIKey), "worker_token": maskedSecret(sec.WorkerToken), "metrics_token": maskedSecret(sec.MetricsToken), "shard_api_tokens": maskedShards, "cluster_token": maskedSecret(sec.ClusterToken)})
+	s.json(w, 200, map[string]any{"revealed": false, "reveal_allowed": s.store.Config().Security.AllowSecretReveal, "app_api_key": maskedSecret(sec.AppAPIKey), "integration_token": maskedSecret(sec.IntegrationToken), "control_read_token": maskedSecret(sec.ControlReadToken), "worker_token": maskedSecret(sec.WorkerToken), "metrics_token": maskedSecret(sec.MetricsToken), "shard_api_tokens": maskedShards, "cluster_token": maskedSecret(sec.ClusterToken)})
 }
 func (s *Server) adminPutSecrets(w http.ResponseWriter, r *http.Request) {
 	var q struct {
-		OpenAIAPIKey  string            `json:"openai_api_key,omitempty"`
-		AppAPIKey     string            `json:"app_api_key,omitempty"`
-		WorkerToken   string            `json:"worker_token,omitempty"`
-		MetricsToken  string            `json:"metrics_token,omitempty"`
-		ShardAPIToken map[string]string `json:"shard_api_tokens,omitempty"`
-		ClusterToken  string            `json:"cluster_token,omitempty"`
+		OpenAIAPIKey     string            `json:"openai_api_key,omitempty"`
+		AppAPIKey        string            `json:"app_api_key,omitempty"`
+		IntegrationToken string            `json:"integration_token,omitempty"`
+		ControlReadToken string            `json:"control_read_token,omitempty"`
+		WorkerToken      string            `json:"worker_token,omitempty"`
+		MetricsToken     string            `json:"metrics_token,omitempty"`
+		ShardAPIToken    map[string]string `json:"shard_api_tokens,omitempty"`
+		ClusterToken     string            `json:"cluster_token,omitempty"`
 	}
 	if err := decode(r, &q); err != nil {
 		s.err(w, 400, err)
 		return
 	}
 	sec := s.store.Secrets()
+	envLocked := func(name string) bool {
+		_, ok := os.LookupEnv(name)
+		return ok && strings.TrimSpace(os.Getenv(name)) != ""
+	}
+	for name, value := range map[string]string{
+		"OPENAI_API_KEY":                q.OpenAIAPIKey,
+		"NEUROFORGE_APP_API_KEY":        q.AppAPIKey,
+		"NEUROFORGE_INTEGRATION_TOKEN":  q.IntegrationToken,
+		"NEUROFORGE_CONTROL_READ_TOKEN": q.ControlReadToken,
+		"NEUROFORGE_WORKER_TOKEN":       q.WorkerToken,
+		"NEUROFORGE_METRICS_TOKEN":      q.MetricsToken,
+		"NEUROFORGE_CLUSTER_TOKEN":      q.ClusterToken,
+	} {
+		if value != "" && envLocked(name) {
+			s.err(w, http.StatusConflict, fmt.Errorf("%s is environment-managed and cannot be changed through the admin API", name))
+			return
+		}
+	}
 	if q.OpenAIAPIKey != "" {
 		sec.OpenAIAPIKey = q.OpenAIAPIKey
 	}
 	if q.AppAPIKey != "" {
 		sec.AppAPIKey = q.AppAPIKey
+	}
+	if q.IntegrationToken != "" {
+		sec.IntegrationToken = q.IntegrationToken
+	}
+	if q.ControlReadToken != "" {
+		sec.ControlReadToken = q.ControlReadToken
 	}
 	if q.WorkerToken != "" {
 		sec.WorkerToken = q.WorkerToken
@@ -737,6 +795,67 @@ func (s *Server) livez(w http.ResponseWriter, r *http.Request) {
 	s.json(w, http.StatusOK, map[string]any{"ok": true, "status": "alive", "time": time.Now().UTC(), "version": "0.8.2"})
 }
 
+func configuredModelAvailable(models map[string]bool, configured string) bool {
+	configured = strings.TrimSpace(configured)
+	if configured == "" {
+		return false
+	}
+	if models[configured] {
+		return true
+	}
+	if !strings.Contains(configured, ":") && models[configured+":latest"] {
+		return true
+	}
+	return false
+}
+
+func checkConfiguredOllamaModels(ctx context.Context, cfg core.Config) (bool, any) {
+	type tagsResponse struct {
+		Models []struct {
+			Name string `json:"name"`
+		} `json:"models"`
+	}
+	details := map[string]any{}
+	anyEnabled := false
+	for _, node := range cfg.Ollama {
+		if !node.Enabled || strings.TrimSpace(node.BaseURL) == "" {
+			continue
+		}
+		anyEnabled = true
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, strings.TrimRight(node.BaseURL, "/")+"/api/tags", nil)
+		if err != nil {
+			details[node.ID] = err.Error()
+			continue
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			details[node.ID] = err.Error()
+			continue
+		}
+		var tags tagsResponse
+		decodeErr := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&tags)
+		resp.Body.Close()
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 || decodeErr != nil {
+			details[node.ID] = fmt.Sprintf("HTTP %d / invalid tags response", resp.StatusCode)
+			continue
+		}
+		models := map[string]bool{}
+		for _, model := range tags.Models {
+			models[strings.TrimSpace(model.Name)] = true
+		}
+		chatOK := configuredModelAvailable(models, node.ChatModel)
+		embedOK := configuredModelAvailable(models, node.EmbeddingModel)
+		details[node.ID] = map[string]any{"reachable": true, "chat_model": node.ChatModel, "chat_present": chatOK, "embedding_model": node.EmbeddingModel, "embedding_present": embedOK}
+		if chatOK && embedOK {
+			return true, details
+		}
+	}
+	if !anyEnabled {
+		return false, map[string]any{"error": "no enabled Ollama node configured"}
+	}
+	return false, details
+}
+
 func (s *Server) readyz(w http.ResponseWriter, r *http.Request) {
 	cfg := s.store.Config()
 	sec := s.store.Secrets()
@@ -764,7 +883,26 @@ func (s *Server) readyz(w http.ResponseWriter, r *http.Request) {
 	components["embedding_route_configured"] = embedReady
 	clusterReady := !cfg.Cluster.Enabled || obs.ClusterLeaderID != ""
 	components["cluster"] = clusterReady
-	ready := configOK && chatReady && embedReady && clusterReady && (!cfg.API.RequireKey || sec.AppAPIKey != "")
+	ollamaLiveReady := true
+	if s.readinessOllamaLive {
+		ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+		var detail any
+		ollamaLiveReady, detail = checkConfiguredOllamaModels(ctx, cfg)
+		cancel()
+		components["ollama_live_models"] = detail
+	}
+	stagingReady := true
+	if s.brain != nil {
+		ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
+		if err := s.brain.CheckStagingPublisher(ctx); err != nil {
+			stagingReady = false
+			components["kb_staging"] = err.Error()
+		} else {
+			components["kb_staging"] = true
+		}
+		cancel()
+	}
+	ready := configOK && chatReady && embedReady && clusterReady && ollamaLiveReady && stagingReady && (!cfg.API.RequireKey || sec.AppAPIKey != "")
 	status := http.StatusOK
 	if !ready {
 		status = http.StatusServiceUnavailable

@@ -38,17 +38,17 @@ type relinkResult struct {
 
 func main() {
 	server := flag.String("server", "http://localhost:8080", "NeuroForge server")
-	token := flag.String("token", os.Getenv("NEUROFORGE_WORKER_TOKEN"), "worker token")
 	id := flag.String("id", hostname(), "worker id")
 	interval := flag.Duration("interval", 2*time.Second, "poll interval")
 	flag.Parse()
-	if *token == "" {
-		log.Fatal("worker token required (-token or NEUROFORGE_WORKER_TOKEN)")
+	token := strings.TrimSpace(os.Getenv("NEUROFORGE_WORKER_TOKEN"))
+	if token == "" {
+		log.Fatal("NEUROFORGE_WORKER_TOKEN is required")
 	}
 	client := &http.Client{Timeout: 180 * time.Second}
 	log.Printf("worker %s polling %s", *id, *server)
 	for {
-		job, err := claim(client, *server, *token, *id)
+		job, err := claim(client, *server, token, *id)
 		if err != nil {
 			log.Printf("claim: %v", err)
 			time.Sleep(*interval)
@@ -59,7 +59,7 @@ func main() {
 			continue
 		}
 		res, jobErr := run(job)
-		if err := complete(client, *server, *token, *id, job.ID, res, jobErr); err != nil {
+		if err := complete(client, *server, token, *id, job.ID, res, jobErr); err != nil {
 			log.Printf("complete %s: %v", job.ID, err)
 		} else {
 			log.Printf("job %s %s done", job.ID, job.Type)

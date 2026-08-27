@@ -1,4 +1,4 @@
-# Environment configuration (v1.4.x)
+# Environment configuration (v1.5.0)
 
 The repository-level `.env.example` is the canonical configuration template for the Mega stack.
 It intentionally includes the complete GLPI Agent configuration plus NeuroForge, controlled-learning,
@@ -14,8 +14,8 @@ The old variables are still supported, but container-internal values are now own
 - `KNOWLEDGE_DIR=/app/knowledge`
 - `OLLAMA_URL=http://ollama:11434`
 - `NEUROFORGE_URL=http://neuroforge:8080`
-- `NEUROFORGE_API_KEY` is derived from `NEUROFORGE_APP_API_KEY`
-- Brain-activity endpoints are wired internally by Compose
+- `NEUROFORGE_API_KEY` is derived from `NEUROFORGE_INTEGRATION_TOKEN`
+- Brain-activity endpoints are wired internally by Compose and use `NEUROFORGE_INTEGRATION_TOKEN`
 
 The host-facing ports are configured separately with `AGENT_HOST_PORT`, `KNOWLEDGE_HOST_PORT`,
 `CONTROL_HOST_PORT`, `NEUROFORGE_HOST_PORT`, `OLLAMA_HOST_PORT` and `SEARXNG_HOST_PORT`.
@@ -64,7 +64,7 @@ Never commit `.env`. The tracked file must remain `.env.example` only.
 If credentials were pasted into issue trackers, chats, CI logs, shell history or screenshots,
 rotate them before production use.
 
-## Research → Knowledge Staging (v1.4.5+)
+## Research → Knowledge Staging (v1.5.0+)
 
 The autonomous research bridge is controlled independently from Research and Goal Learning:
 
@@ -79,3 +79,7 @@ NEUROFORGE_KB_STAGING_MAX_EVIDENCE=12
 `NEUROFORGE_KB_STAGING_URL` and `NEUROFORGE_KB_STAGING_TOKEN` are container-internal values owned by the root Compose file. The token is derived from the existing `KB_INTEGRATION_TOKEN`; do not duplicate it under a second operator-managed secret name.
 
 This bridge can only create/update **human-review staging**. The Knowledge service enforces `auto_reply=false` and does not expose production promotion through this integration token.
+
+## Production secret isolation
+
+The production Compose does not use `env_file`. Agent and Knowledge receive only explicit runtime variables. NeuroForge Admin/Worker/Metrics, Knowledge editor and Control Center credentials are therefore not broadly inherited by unrelated containers. Local source builds use the separate `docker-compose.dev.yml` override.

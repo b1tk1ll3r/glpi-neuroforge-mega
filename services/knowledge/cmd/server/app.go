@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -72,6 +73,7 @@ func (a *app) routes() http.Handler {
 	mux.HandleFunc("GET /api/staging", a.handleStagingList)
 	mux.HandleFunc("GET /api/staging/{key}", a.handleStagingGet)
 	mux.HandleFunc("POST /api/integrations/staging", a.handleIntegrationStaging)
+	mux.HandleFunc("GET /api/integrations/staging/health", a.handleIntegrationStagingHealth)
 
 	if a.config.Writable {
 		mux.HandleFunc("PUT /api/items/{key}", a.handlePut)
@@ -93,7 +95,30 @@ func (a *app) routes() http.Handler {
 
 	static := http.FileServer(http.FS(a.web))
 	mux.Handle("GET /", static)
-	return securityHeaders(mux)
+	return securityHeaders(browserWriteSameOrigin(mux))
+}
+
+func browserWriteSameOrigin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet || r.Method == http.MethodHead || r.Method == http.MethodOptions || r.URL.Path == "/api/integrations/staging" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		fetchSite := strings.ToLower(strings.TrimSpace(r.Header.Get("Sec-Fetch-Site")))
+		if fetchSite != "" && fetchSite != "same-origin" && fetchSite != "none" {
+			writeError(w, http.StatusForbidden, "cross-origin browser write blocked")
+			return
+		}
+		origin := strings.TrimSpace(r.Header.Get("Origin"))
+		if origin != "" {
+			u, err := url.Parse(origin)
+			if err != nil || !strings.EqualFold(u.Host, r.Host) {
+				writeError(w, http.StatusForbidden, "cross-origin browser write blocked")
+				return
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func securityHeaders(next http.Handler) http.Handler {
@@ -263,6 +288,19 @@ func integrationBearerAuthorized(r *http.Request) (bool, bool) {
 	}
 	provided := strings.TrimSpace(strings.TrimPrefix(got, prefix))
 	return true, subtle.ConstantTimeCompare([]byte(provided), []byte(expected)) == 1
+}
+
+func (a *app) handleIntegrationStagingHealth(w http.ResponseWriter, r *http.Request) {
+	enabled, authorized := integrationBearerAuthorized(r)
+	if !enabled || a.staging == nil {
+		writeError(w, http.StatusServiceUnavailable, "KB staging integration is disabled")
+		return
+	}
+	if !authorized {
+		writeError(w, http.StatusUnauthorized, "invalid integration token")
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"ok": true, "staging": true, "writable": a.config.Writable})
 }
 
 // handleIntegrationStaging is a one-way governance boundary: machine-generated
@@ -485,7 +523,11 @@ func (a *app) promoteStaging(key string) (map[string]any, error) {
 	}
 	archive, err := a.staging.ArchiveApproved(key)
 	if err != nil {
-		return nil, fmt.Errorf("Produktivdatei wurde erstellt (%s), aber Staging konnte nicht als freigegeben archiviert werden: %w", summary.RelPath, err)
+		rollbackErr := a.store.RollbackImported(summary)
+		if rollbackErr != nil {
+			return nil, fmt.Errorf("staging archive failed after production import (%s); rollback also failed: archive=%v rollback=%v", summary.RelPath, err, rollbackErr)
+		}
+		return nil, fmt.Errorf("staging archive failed; production import %s was rolled back: %w", summary.RelPath, err)
 	}
 	return map[string]any{"ok": true, "production": summary, "staging_key": key, "staging_archive": archive}, nil
 }

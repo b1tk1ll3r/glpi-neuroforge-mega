@@ -3,7 +3,9 @@ WORKDIR /src
 COPY go.mod ./
 COPY cmd ./cmd
 COPY internal ./internal
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/glpi-ai-agent ./cmd/agent
+RUN go test ./... && \
+    go vet ./... && \
+    CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /out/glpi-ai-agent ./cmd/agent
 
 # One-shot helper used by docker compose to prepare the persistent volume for
 # the distroless non-root runtime user (UID/GID 65532).
@@ -16,5 +18,6 @@ COPY --from=build /out/glpi-ai-agent /app/glpi-ai-agent
 COPY knowledge /app/knowledge
 VOLUME ["/app/data"]
 EXPOSE 8080
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=4 CMD ["/app/glpi-ai-agent", "healthcheck"]
 USER 65532:65532
 ENTRYPOINT ["/app/glpi-ai-agent"]

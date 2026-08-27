@@ -459,3 +459,93 @@ func TestIntegrationDraftWithStableKeyUpdatesInsteadOfDuplicating(t *testing.T) 
 		t.Fatalf("draft not refreshed: %#v", got.Document)
 	}
 }
+
+func TestBrowserWriteSameOriginGuardRejectsCrossSiteWrite(t *testing.T) {
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	web, err := fs.Sub(webFS, "web")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := newApp(s, web, appConfig{Mode: "editor", Writable: true}).routes()
+	req := httptest.NewRequest(http.MethodPost, "/api/bulk", bytes.NewBufferString(`{"keys":[],"dry_run":true}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Sec-Fetch-Site", "cross-site")
+	req.Header.Set("Origin", "https://evil.invalid")
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestPromotionRollsBackProductionWhenStagingArchiveFails(t *testing.T) {
+	knowledgeDir := t.TempDir()
+	stagingDir := t.TempDir()
+	t.Setenv("BACKUP_DIR", filepath.Join(t.TempDir(), "backups"))
+	s, err := store.New(knowledgeDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := staging.New(stagingDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	draft, err := st.Save("rollback", "test", staging.Draft{Title: "Rollback", Text: "Symptom", Answer: "Lösung"}, false, .8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Force ArchiveApproved to fail after ImportDocument by occupying the archive
+	// directory path with a regular file.
+	if err := os.WriteFile(filepath.Join(stagingDir, ".approved"), []byte("block"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	web, err := fs.Sub(webFS, "web")
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := newApp(s, web, appConfig{Mode: "editor", Writable: true}).withStaging(st)
+	if _, err := a.promoteStaging(draft.Key); err == nil || !strings.Contains(err.Error(), "rolled back") {
+		t.Fatalf("promotion error=%v", err)
+	}
+	if s.Count() != 0 {
+		t.Fatalf("production count=%d, want rollback to zero", s.Count())
+	}
+	if _, err := st.Get(draft.Key); err != nil {
+		t.Fatalf("staging draft should remain for retry: %v", err)
+	}
+}
+
+func TestIntegrationStagingHealthBypassesUIBasicAuthButRequiresBearer(t *testing.T) {
+	t.Setenv("BASIC_AUTH_USER", "editor")
+	t.Setenv("BASIC_AUTH_PASSWORD", "knowledge-password-123456")
+	t.Setenv("KB_INTEGRATION_TOKEN", "integration-token-12345678901234567890")
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := staging.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	web, err := fs.Sub(webFS, "web")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := optionalBasicAuth(newApp(s, web, appConfig{Mode: "editor", Writable: true}).withStaging(st).routes())
+
+	unauth := httptest.NewRecorder()
+	h.ServeHTTP(unauth, httptest.NewRequest(http.MethodGet, "/api/integrations/staging/health", nil))
+	if unauth.Code != http.StatusUnauthorized || strings.Contains(unauth.Body.String(), "authentication required") {
+		t.Fatalf("request should reach bearer guard, status=%d body=%s", unauth.Code, unauth.Body.String())
+	}
+	req := httptest.NewRequest(http.MethodGet, "/api/integrations/staging/health", nil)
+	req.Header.Set("Authorization", "Bearer integration-token-12345678901234567890")
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, req)
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
+	}
+}

@@ -1,17 +1,21 @@
 package main
 
 import (
+	"context"
 	"crypto/subtle"
 	"embed"
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"kb-editor/internal/aifallback"
@@ -28,6 +32,12 @@ func main() {
 	flag.StringVar(&dataDir, "data", envOr("DATA_DIR", "./data/knowledge"), "directory containing JSON knowledge files")
 	flag.StringVar(&listen, "listen", envOr("LISTEN_ADDR", ":8080"), "HTTP listen address")
 	flag.Parse()
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := validateRuntimeSecrets(); err != nil {
+		log.Fatal(err)
+	}
 
 	cfg, staticDir, err := configFromEnv()
 	if err != nil {
@@ -58,7 +68,7 @@ func main() {
 		log.Fatal(err)
 	}
 	if reloadInterval > 0 {
-		go startAutoReload(s, reloadInterval)
+		go startAutoReload(ctx, s, reloadInterval)
 	}
 
 	sub, err := fs.Sub(webFS, staticDir)
@@ -95,9 +105,58 @@ func main() {
 	if u := os.Getenv("BASIC_AUTH_USER"); u != "" {
 		log.Printf("Basic authentication enabled for user %q", u)
 	}
-	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatal(err)
+	errCh := make(chan error, 1)
+	go func() {
+		err := srv.ListenAndServe()
+		if errors.Is(err, http.ErrServerClosed) {
+			err = nil
+		}
+		errCh <- err
+	}()
+	select {
+	case err := <-errCh:
+		if err != nil {
+			log.Printf("KB HTTP server stopped unexpectedly: %v", err)
+		}
+	case <-ctx.Done():
+		log.Printf("KB shutdown requested")
 	}
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("KB graceful shutdown failed: %v", err)
+		_ = srv.Close()
+	}
+}
+
+func validateRuntimeSecrets() error {
+	check := func(name string, min int) error {
+		v := strings.TrimSpace(os.Getenv(name))
+		if v == "" {
+			return nil
+		}
+		upper := strings.ToUpper(v)
+		if strings.Contains(upper, "CHANGE_ME") || strings.Contains(upper, "CHANGEME") || strings.Contains(upper, "PLACEHOLDER") {
+			return fmt.Errorf("%s still contains a placeholder", name)
+		}
+		if len(v) < min {
+			return fmt.Errorf("%s must be at least %d characters", name, min)
+		}
+		return nil
+	}
+	for _, item := range []struct {
+		name string
+		min  int
+	}{
+		{"KB_INTEGRATION_TOKEN", 24},
+		{"BASIC_AUTH_PASSWORD", 12},
+		{"BRAIN_ACTIVITY_API_KEY", 24},
+	} {
+		if err := check(item.name, item.min); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func configFromEnv() (appConfig, string, error) {
@@ -143,12 +202,17 @@ func autoReloadInterval(mode string) (time.Duration, error) {
 	return d, nil
 }
 
-func startAutoReload(s *store.Store, interval time.Duration) {
+func startAutoReload(ctx context.Context, s *store.Store, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
-	for range ticker.C {
-		if err := s.Reload(); err != nil {
-			log.Printf("automatic index reload failed: %v", err)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := s.Reload(); err != nil {
+				log.Printf("automatic index reload failed: %v", err)
+			}
 		}
 	}
 }
@@ -254,7 +318,7 @@ func optionalBasicAuth(next http.Handler) http.Handler {
 		log.Fatal("BASIC_AUTH_USER and BASIC_AUTH_PASSWORD must either both be set or both be empty")
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if (r.Method == http.MethodGet && r.URL.Path == "/api/health") || (r.Method == http.MethodPost && r.URL.Path == "/api/integrations/staging") {
+		if (r.Method == http.MethodGet && (r.URL.Path == "/api/health" || r.URL.Path == "/api/integrations/staging/health")) || (r.Method == http.MethodPost && r.URL.Path == "/api/integrations/staging") {
 			next.ServeHTTP(w, r)
 			return
 		}

@@ -150,3 +150,68 @@ func TestGoalProgressDoesNotRegressWhenResearchAuditRunsAreTrimmed(t *testing.T)
 		t.Fatalf("counters regressed: %#v", g)
 	}
 }
+
+func TestResearchProgressAndStagingRunWhenGoalSummaryLearningDisabled(t *testing.T) {
+	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
+			"title": "Vendor evidence", "url": "https://example.com/vendor", "content": "A supported driver package resolves the documented device issue.", "engine": "test", "score": 0.9,
+		}}})
+	}))
+	defer searx.Close()
+	stagingCalls := 0
+	kb := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		stagingCalls++
+		if r.Header.Get("Authorization") != "Bearer staging-token-123456789012345678901234" {
+			t.Fatalf("bad staging auth")
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"staging": map[string]any{"key": "KB-STAGING-GOAL", "meta": map[string]any{"integration_action": "created"}}})
+	}))
+	defer kb.Close()
+
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/embed" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float32{{1, 0, 0, 0}}, "prompt_eval_count": 1})
+			return
+		}
+		http.NotFound(w, r)
+	})
+	cfg := s.Config()
+	cfg.Research.Enabled = true
+	cfg.Research.SearXNG.Enabled = true
+	cfg.Research.SearXNG.BaseURL = searx.URL
+	cfg.Research.Goal.Enabled = true
+	cfg.Research.WebFetch.Enabled = false
+	cfg.Brain.LearningPolicy.Enabled = true
+	cfg.Brain.LearningPolicy.LearnGoalCycles = false
+	cfg.Autonomy.UseLLM = false
+	cfg.Brain.ExternalRelinkWorker = false
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "staging-token-123456789012345678901234", MinEvidence: 1, MinSources: 1, MaxEvidence: 4})
+	goal := core.Goal{Title: "Driver research", Description: "collect sourced driver evidence", Target: "1 quellengebundener Wissenseintrag", Status: core.GoalActive, Priority: 80, ResearchEnabled: true}
+	if err := s.UpsertGoal(&goal); err != nil {
+		t.Fatal(err)
+	}
+
+	cycle, err := e.RunGoalCycle(context.Background(), goal.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cycle.MemoryID != "" {
+		t.Fatalf("goal-summary memory should be disabled, got %q", cycle.MemoryID)
+	}
+	updated, ok := s.GetGoal(goal.ID)
+	if !ok {
+		t.Fatal("goal missing")
+	}
+	if updated.ResearchEvidence < 1 || updated.Progress <= 0 {
+		t.Fatalf("research progress not updated: %#v", updated)
+	}
+	if stagingCalls < 1 || updated.LastStagingDraftID != "KB-STAGING-GOAL" {
+		t.Fatalf("staging not published: calls=%d goal=%#v", stagingCalls, updated)
+	}
+	if strings.Contains(strings.ToLower(updated.LastError), "learning policy") {
+		t.Fatalf("legacy learning-policy error survived: %q", updated.LastError)
+	}
+}

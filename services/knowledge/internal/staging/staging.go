@@ -377,6 +377,24 @@ func (s *Store) archive(key, bucket string) (string, error) {
 	if err := os.Rename(path, dst); err != nil {
 		return "", fmt.Errorf("move staging file to %s: %w", bucket, err)
 	}
+	rollbackRename := func(cause error) error {
+		if err := os.Rename(dst, path); err != nil {
+			return fmt.Errorf("%v; staging archive rollback failed: %w", cause, err)
+		}
+		if err := syncDir(s.dir); err != nil {
+			return fmt.Errorf("%v; staging rollback source sync failed: %w", cause, err)
+		}
+		if err := syncDir(archiveDir); err != nil {
+			return fmt.Errorf("%v; staging rollback archive sync failed: %w", cause, err)
+		}
+		return cause
+	}
+	if err := syncDir(s.dir); err != nil {
+		return "", rollbackRename(fmt.Errorf("sync staging directory: %w", err))
+	}
+	if err := syncDir(archiveDir); err != nil {
+		return "", rollbackRename(fmt.Errorf("sync staging archive: %w", err))
+	}
 	return dst, nil
 }
 
@@ -433,7 +451,16 @@ func atomicWrite(path string, payload []byte, mode os.FileMode) error {
 	if err := os.Rename(tmpName, path); err != nil {
 		return err
 	}
-	return nil
+	return syncDir(filepath.Dir(path))
+}
+
+func syncDir(dir string) error {
+	f, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return f.Sync()
 }
 
 func summarize(result Result) Summary {

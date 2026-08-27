@@ -34,10 +34,30 @@ type Engine struct {
 	electionRunning   bool
 	stagingMu         sync.RWMutex
 	staging           StagingPublisherConfig
+	goalCycleMu       sync.Mutex
+	goalCycles        map[string]struct{}
 }
 
+var ErrGoalCycleInProgress = errors.New("goal cycle already in progress")
+
 func New(s *store.Store, r *provider.Router, c *cost.Manager) *Engine {
-	return &Engine{store: s, router: r, cost: c, http: &http.Client{Timeout: 10 * time.Second}}
+	return &Engine{store: s, router: r, cost: c, http: &http.Client{Timeout: 10 * time.Second}, goalCycles: map[string]struct{}{}}
+}
+
+func (e *Engine) beginGoalCycle(goalID string) bool {
+	e.goalCycleMu.Lock()
+	defer e.goalCycleMu.Unlock()
+	if _, ok := e.goalCycles[goalID]; ok {
+		return false
+	}
+	e.goalCycles[goalID] = struct{}{}
+	return true
+}
+
+func (e *Engine) endGoalCycle(goalID string) {
+	e.goalCycleMu.Lock()
+	delete(e.goalCycles, goalID)
+	e.goalCycleMu.Unlock()
 }
 
 type ChatRequest struct {

@@ -2,7 +2,7 @@
 
 ## Ergebnis der Prüfung
 
-Die 110 Variablennamen der bisherigen Agent-Konfiguration werden im aktuellen v1.4.x-Agenten
+Die 110 Variablennamen der bisherigen Agent-Konfiguration werden im aktuellen v1.5.0-Agenten
 weiterhin verwendet. Das Problem lag nicht in entfernten Agent-Funktionen, sondern in der zu kurzen
 Top-Level-`.env.example` des Mega-Projekts: 86 dieser 110 bisherigen Variablen waren dort nicht
 explizit dokumentiert.
@@ -20,7 +20,7 @@ Diese Werte sollten im Mega-Stack nicht zur Host-Konfiguration benutzt werden:
 | `KNOWLEDGE_DIR` | `/app/knowledge` | `KB_DATA_PATH` |
 | `OLLAMA_URL` | `http://ollama:11434` | Compose-Service `ollama` |
 | `NEUROFORGE_URL` | `http://neuroforge:8080` | Compose-Service `neuroforge` |
-| `NEUROFORGE_API_KEY` | aus `NEUROFORGE_APP_API_KEY` | `NEUROFORGE_APP_API_KEY` |
+| `NEUROFORGE_API_KEY` | aus `NEUROFORGE_INTEGRATION_TOKEN` | `NEUROFORGE_INTEGRATION_TOKEN` |
 | `BRAIN_ACTIVITY_URL` | NeuroForge Event API | intern verdrahtet |
 
 Compose überschreibt `HTTP_ADDR` jetzt explizit. Dadurch kann eine alte Standalone-Konfiguration
@@ -50,7 +50,7 @@ Diese Unterschiede sind nicht automatisch falsch, müssen aber bewusst entschied
 
 Neu gegenüber der bisherigen Agent-Only-Konfiguration sind insbesondere:
 
-- NeuroForge Admin/App/Worker/Metrics Tokens
+- getrennte NeuroForge Admin/App/Integration/Control-Read/Worker/Metrics Tokens
 - `KNOWLEDGE_VECTOR_BACKEND=local|dual|neuroforge`
 - NeuroForge Namespace/Search/Failure Policy
 - Controlled Learning
@@ -60,7 +60,7 @@ Neu gegenüber der bisherigen Agent-Only-Konfiguration sind insbesondere:
 - getrennte Autonomy-Aktivierung
 - Knowledge Integration Token
 - scoped `CONTROL_READ_TOKEN`
-- Control Center / NeuroForge / Knowledge Host Ports
+- Control-Center-Basic-Auth sowie Control Center / NeuroForge / Knowledge Host Ports
 - optionale Codebase-Memory-UI
 
 ## Empfohlene Migration

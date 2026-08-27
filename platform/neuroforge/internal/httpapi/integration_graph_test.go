@@ -11,16 +11,16 @@ import (
 	"neuroforge/internal/core"
 )
 
-func appGraphRequest(t *testing.T, s *Server, path string) *httptest.ResponseRecorder {
+func controlGraphRequest(t *testing.T, s *Server, path string) *httptest.ResponseRecorder {
 	t.Helper()
 	req := httptest.NewRequest(http.MethodGet, path, nil)
-	req.Header.Set("Authorization", "Bearer "+s.store.Secrets().AppAPIKey)
+	req.Header.Set("Authorization", "Bearer "+s.store.Secrets().ControlReadToken)
 	rr := httptest.NewRecorder()
 	s.Handler().ServeHTTP(rr, req)
 	return rr
 }
 
-func TestIntegrationGraphEndpointsRequireAppKey(t *testing.T) {
+func TestIntegrationGraphEndpointsRequireControlReadAuth(t *testing.T) {
 	s, _ := newMetricsTestServer(t)
 	for _, path := range []string{"/api/v1/integrations/graph/brain", "/api/v1/integrations/graph/research"} {
 		req := httptest.NewRequest(http.MethodGet, path, nil)
@@ -38,7 +38,7 @@ func TestIntegrationBrainGraphIsBoundedAndRedacted(t *testing.T) {
 	if err := s.store.AddMemory(m); err != nil {
 		t.Fatal(err)
 	}
-	rr := appGraphRequest(t, s, "/api/v1/integrations/graph/brain?max_nodes=50")
+	rr := controlGraphRequest(t, s, "/api/v1/integrations/graph/brain?max_nodes=50")
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
 	}
@@ -72,7 +72,7 @@ func TestIntegrationResearchGraphShowsProvenanceChain(t *testing.T) {
 	if _, err := s.store.FinishResearchRun(run.ID, "completed", ""); err != nil {
 		t.Fatal(err)
 	}
-	rr := appGraphRequest(t, s, "/api/v1/integrations/graph/research?runs=2&max_events=50")
+	rr := controlGraphRequest(t, s, "/api/v1/integrations/graph/research?runs=2&max_events=50")
 	if rr.Code != http.StatusOK {
 		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
 	}

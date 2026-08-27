@@ -515,3 +515,40 @@ func TestValidateGLPIKBAutoReplyUncategorizedRequiresArticleAllowlist(t *testing
 		t.Fatalf("expected uncategorized auto reply with explicit article allowlist to validate: %v", err)
 	}
 }
+
+func TestLoadReadsAIContentLabelEnabled(t *testing.T) {
+	for key, value := range map[string]string{
+		"GLPI_URL":                 "https://glpi.internal.example",
+		"GLPI_CLIENT_ID":           "client-id",
+		"GLPI_CLIENT_SECRET":       "real-secret-value",
+		"GLPI_USERNAME":            "svc-agent",
+		"GLPI_PASSWORD":            "real-password-value",
+		"WEB_ALLOW_ANONYMOUS":      "true",
+		"AI_CONTENT_LABEL_ENABLED": "false",
+	} {
+		t.Setenv(key, value)
+	}
+	c, err := Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.AIContentLabelEnabled {
+		t.Fatal("AI_CONTENT_LABEL_ENABLED=false was not loaded")
+	}
+}
+
+func TestValidateNeuroForgeAPIKeyForRemoteVectorBackend(t *testing.T) {
+	c := validConfig()
+	c.KnowledgeVectorBackend = "dual"
+	c.NeuroForgeURL = "http://neuroforge:8090"
+	c.NeuroForgeSearchK = 128
+	c.NeuroForgeTimeout = 5 * time.Second
+	c.NeuroForgeAPIKey = "CHANGE_ME_NEUROFORGE_API_KEY"
+	if err := c.Validate(); err == nil {
+		t.Fatal("expected placeholder NEUROFORGE_API_KEY to be rejected")
+	}
+	c.NeuroForgeAPIKey = "integration-token-0123456789abcdef"
+	if err := c.Validate(); err != nil {
+		t.Fatalf("expected strong NEUROFORGE_API_KEY to validate: %v", err)
+	}
+}

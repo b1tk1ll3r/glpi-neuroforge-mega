@@ -3,7 +3,9 @@ WORKDIR /src
 COPY go.mod ./
 COPY cmd ./cmd
 COPY internal ./internal
-RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/neuroforge ./cmd/server && \
+RUN go test ./... && \
+    go vet ./... && \
+    CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/neuroforge ./cmd/server && \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/neuroforge-worker ./cmd/worker && \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/neuroforge-bench ./cmd/bench
 

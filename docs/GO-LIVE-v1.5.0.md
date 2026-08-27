@@ -1,0 +1,27 @@
+# Go-Live Gate – v1.5.0
+
+## Registry und Start
+
+Auf dem Produktionshost wird **nicht gebaut**. Voraussetzung ist ein freigegebener, unveränderlicher `IMAGE_TAG` in `.env`.
+
+```sh
+./scripts/preflight.sh
+docker compose pull
+docker compose up -d --remove-orphans
+docker compose ps
+```
+
+Alternativ führt `./scripts/go-live.sh` genau diesen Ablauf ohne `make` aus. `IMAGE_TAG=latest`, Placeholder-Secrets, wiederverwendete Trust-Boundary-Tokens, `build:` oder `env_file:` im Produktions-Compose brechen den Preflight ab.
+
+## Pflicht-Smoke-Test auf dem echten Host
+
+1. Ollama enthält Chat- **und** Embedding-Modell (`gemma3`/konfiguriert und `embeddinggemma`/konfiguriert); NeuroForge `/readyz` muss 200 liefern.
+2. Knowledge `/api/health` und Agent `/readyz` liefern 200; Control `/healthz` bleibt ohne Login erreichbar, alle Betriebs-/Graphseiten verlangen Control-Basic-Auth.
+3. Agent kann mit dem Integration-Token Knowledge-Integration/Outcome-Pfade nutzen; der Control-Read-Token kann diese Schreibpfade nicht nutzen.
+4. Einen Research-Goal manuell ausführen. Fortschritt und ein Staging-Draft müssen auch dann entstehen können, wenn `NEUROFORGE_GOAL_LEARNING_ENABLED=false` ist.
+5. Einen zweiten parallelen Cycle desselben Goals auslösen; er muss `409 Conflict` erhalten.
+6. Staging-Draft im Knowledge-Editor prüfen und promoten. Der Produktionsartikel erscheint genau einmal und der Draft wird archiviert.
+7. NeuroForge stoppen: Knowledge und Control müssen weiterlaufen; Agent verhält sich entsprechend `KNOWLEDGE_VECTOR_BACKEND`/`NEUROFORGE_FAIL_OPEN`.
+8. Vor GLPI-Schreibfreigabe einen vollständigen Ticketdurchlauf in `DRY_RUN=true` prüfen. Erst danach die gewünschten Automationen einzeln aktivieren.
+
+Docker, eine echte GLPI-Instanz, SearXNG und Ollama stehen in der Build-/Review-Umgebung nicht zur Verfügung; dieser Host-Smoke-Test ist deshalb ein bewusstes externes Release-Gate und darf nicht als lokal bestanden markiert werden.

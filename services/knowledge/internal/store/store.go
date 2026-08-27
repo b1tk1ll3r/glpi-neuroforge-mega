@@ -686,6 +686,10 @@ func (s *Store) ImportDocument(doc map[string]any, preferredBase string) (Summar
 		_ = os.Remove(tmpName)
 		return Summary{}, err
 	}
+	if err := syncDir(s.dataDir); err != nil {
+		_ = os.Remove(path)
+		return Summary{}, err
+	}
 	rec, err := s.readRecord(path)
 	if err != nil {
 		_ = os.Remove(path)
@@ -695,6 +699,47 @@ func (s *Store) ImportDocument(doc map[string]any, preferredBase string) (Summar
 	s.order = append(s.order, rec.Key)
 	s.resortLocked()
 	return summarize(rec), nil
+}
+
+// RollbackImported removes exactly the production record created by ImportDocument.
+// The checksum guard prevents rollback from deleting a file that was changed after
+// import. It is used to keep staging promotion transactional.
+func (s *Store) RollbackImported(summary Summary) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	rec, ok := s.records[summary.Key]
+	if !ok {
+		return os.ErrNotExist
+	}
+	if summary.Checksum == "" || rec.Checksum != summary.Checksum {
+		return fmt.Errorf("refusing rollback: production record %s changed after import", summary.RelPath)
+	}
+	if err := os.Remove(rec.Path); err != nil {
+		return err
+	}
+	// The namespace mutation already happened once Remove succeeded. Reflect it
+	// in memory even when the durability fsync below reports an I/O error;
+	// otherwise this process would serve a record whose file no longer exists.
+	delete(s.records, summary.Key)
+	for i, key := range s.order {
+		if key == summary.Key {
+			s.order = append(s.order[:i], s.order[i+1:]...)
+			break
+		}
+	}
+	if err := syncDir(s.dataDir); err != nil {
+		return fmt.Errorf("sync production directory after rollback: %w", err)
+	}
+	return nil
+}
+
+func syncDir(dir string) error {
+	f, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return f.Sync()
 }
 
 func safeFilenameBase(value string) string {
@@ -945,6 +990,9 @@ func (s *Store) writeRecord(rec *record, doc map[string]any) (*record, error) {
 	}
 	if err := os.Rename(tmpName, rec.Path); err != nil {
 		_ = os.Remove(tmpName)
+		return nil, err
+	}
+	if err := syncDir(filepath.Dir(rec.Path)); err != nil {
 		return nil, err
 	}
 	return s.readRecord(rec.Path)

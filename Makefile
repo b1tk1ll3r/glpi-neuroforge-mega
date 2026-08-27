@@ -1,6 +1,6 @@
 SHELL := /bin/sh
 
-.PHONY: test vet build up research-up down logs status ps engineering-graph engineering-graph-check
+.PHONY: test vet build dev-up up preflight release-gate research-up down logs status ps engineering-graph engineering-graph-check
 
 test:
 	cd platform/neuroforge && go test ./...
@@ -15,10 +15,21 @@ vet:
 	cd services/control && go vet ./...
 
 build:
-	docker compose build
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml build
+
+dev-up:
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+
+preflight:
+	./scripts/preflight.sh
+
+release-gate:
+	./scripts/release-gate.sh
 
 up:
-	docker compose up -d --build
+	./scripts/preflight.sh
+	docker compose pull
+	docker compose up -d --remove-orphans
 
 research-up:
 	./scripts/research-up.sh

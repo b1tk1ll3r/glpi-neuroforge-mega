@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"neuroforge/internal/brain"
 	"neuroforge/internal/core"
 )
 
@@ -91,7 +92,11 @@ func (s *Server) goalResume(w http.ResponseWriter, r *http.Request) {
 func (s *Server) goalCycle(w http.ResponseWriter, r *http.Request) {
 	cycle, err := s.brain.RunGoalCycle(r.Context(), r.PathValue("id"))
 	if err != nil {
-		s.err(w, 400, err)
+		if errors.Is(err, brain.ErrGoalCycleInProgress) {
+			s.err(w, http.StatusConflict, err)
+			return
+		}
+		s.err(w, http.StatusBadRequest, err)
 		return
 	}
 	s.json(w, 200, cycle)

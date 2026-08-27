@@ -68,3 +68,60 @@ func TestReadinessEndpoint(t *testing.T) {
 		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
 	}
 }
+
+func TestReadinessLiveOllamaRequiresChatAndEmbeddingModels(t *testing.T) {
+	models := []string{"gemma3:latest"}
+	ollama := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/tags" {
+			http.NotFound(w, r)
+			return
+		}
+		items := make([]map[string]string, 0, len(models))
+		for _, name := range models {
+			items = append(items, map[string]string{"name": name})
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"models": items})
+	}))
+	defer ollama.Close()
+
+	s, _ := newMetricsTestServer(t)
+	cfg := s.store.Config()
+	cfg.Ollama[0].BaseURL = ollama.URL
+	cfg.Ollama[0].ChatModel = "gemma3"
+	cfg.Ollama[0].EmbeddingModel = "embeddinggemma"
+	if err := s.store.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	s.SetReadinessOllamaLive(true)
+
+	req := httptest.NewRequest(http.MethodGet, "/readyz", nil)
+	rr := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusServiceUnavailable {
+		t.Fatalf("missing embedding model: status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	if !strings.Contains(rr.Body.String(), `"embedding_present":false`) {
+		t.Fatalf("readiness does not expose missing embedding model: %s", rr.Body.String())
+	}
+
+	models = append(models, "embeddinggemma:latest")
+	rr = httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/readyz", nil))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("both models present: status=%d body=%s", rr.Code, rr.Body.String())
+	}
+}
+
+func TestEnvironmentManagedSecretCannotBeRotatedThroughAdminAPI(t *testing.T) {
+	s, _ := newMetricsTestServer(t)
+	t.Setenv("NEUROFORGE_APP_API_KEY", "environment-owned-app-key-1234567890")
+	admin := s.store.Secrets().AdminToken
+	req := httptest.NewRequest(http.MethodPut, "/admin/api/secrets", strings.NewReader(`{"app_api_key":"different-runtime-value-1234567890"}`))
+	req.Header.Set("X-Admin-Token", admin)
+	req.Header.Set("Content-Type", "application/json")
+	rr := httptest.NewRecorder()
+	s.Handler().ServeHTTP(rr, req)
+	if rr.Code != http.StatusConflict {
+		t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
+	}
+}

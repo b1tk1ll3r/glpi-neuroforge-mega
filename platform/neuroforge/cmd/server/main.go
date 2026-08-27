@@ -47,6 +47,41 @@ func envInt(name string) (int, bool) {
 	return v, true
 }
 
+func validateManagedSecret(name, value string, minLen int) error {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	upper := strings.ToUpper(value)
+	if strings.Contains(upper, "CHANGE_ME") || strings.Contains(upper, "CHANGEME") || strings.Contains(upper, "PLACEHOLDER") {
+		return fmt.Errorf("%s still contains a placeholder", name)
+	}
+	if len(value) < minLen {
+		return fmt.Errorf("%s must be at least %d characters", name, minLen)
+	}
+	return nil
+}
+
+func validateManagedSecretsFromEnv() error {
+	for _, item := range []struct {
+		name string
+		min  int
+	}{
+		{"NEUROFORGE_ADMIN_TOKEN", 24},
+		{"NEUROFORGE_APP_API_KEY", 24},
+		{"NEUROFORGE_INTEGRATION_TOKEN", 24},
+		{"NEUROFORGE_CONTROL_READ_TOKEN", 24},
+		{"NEUROFORGE_WORKER_TOKEN", 24},
+		{"NEUROFORGE_METRICS_TOKEN", 24},
+		{"NEUROFORGE_CLUSTER_TOKEN", 24},
+	} {
+		if err := validateManagedSecret(item.name, os.Getenv(item.name), item.min); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func maxIntMain(a, b int) int {
 	if a > b {
 		return a
@@ -66,6 +101,10 @@ func run() (retErr error) {
 	listen := flag.String("listen", "", "listen address override")
 	flag.Parse()
 
+	if err := validateManagedSecretsFromEnv(); err != nil {
+		return err
+	}
+
 	s, err := store.New(*data)
 	if err != nil {
 		return err
@@ -79,12 +118,14 @@ func run() (retErr error) {
 	sec := s.Secrets()
 	changed := false
 	for name, dst := range map[string]*string{
-		"OPENAI_API_KEY":           &sec.OpenAIAPIKey,
-		"NEUROFORGE_ADMIN_TOKEN":   &sec.AdminToken,
-		"NEUROFORGE_APP_API_KEY":   &sec.AppAPIKey,
-		"NEUROFORGE_WORKER_TOKEN":  &sec.WorkerToken,
-		"NEUROFORGE_METRICS_TOKEN": &sec.MetricsToken,
-		"NEUROFORGE_CLUSTER_TOKEN": &sec.ClusterToken,
+		"OPENAI_API_KEY":                &sec.OpenAIAPIKey,
+		"NEUROFORGE_ADMIN_TOKEN":        &sec.AdminToken,
+		"NEUROFORGE_APP_API_KEY":        &sec.AppAPIKey,
+		"NEUROFORGE_INTEGRATION_TOKEN":  &sec.IntegrationToken,
+		"NEUROFORGE_CONTROL_READ_TOKEN": &sec.ControlReadToken,
+		"NEUROFORGE_WORKER_TOKEN":       &sec.WorkerToken,
+		"NEUROFORGE_METRICS_TOKEN":      &sec.MetricsToken,
+		"NEUROFORGE_CLUSTER_TOKEN":      &sec.ClusterToken,
 	} {
 		if v := os.Getenv(name); v != "" {
 			*dst = v
@@ -230,6 +271,9 @@ func run() (retErr error) {
 	defer stopMaintenance()
 	go b.RunV6Maintenance(maintenanceCtx)
 	api := httpapi.New(s, b, r, c)
+	if v, ok := envBool("NEUROFORGE_READINESS_OLLAMA_LIVE"); ok {
+		api.SetReadinessOllamaLive(v)
+	}
 	cfg := s.Config()
 	addr := cfg.Listen
 	if *listen != "" {

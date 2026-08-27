@@ -325,6 +325,7 @@ func Load() (Config, error) {
 		CommunicationSalutation:                env("COMMUNICATION_SALUTATION", "Guten Tag,"),
 		CommunicationClosing:                   env("COMMUNICATION_CLOSING", "Mit freundlichen Grüßen"),
 		CommunicationSignature:                 env("COMMUNICATION_SIGNATURE", "IT-Service"),
+		AIContentLabelEnabled:                  envBool("AI_CONTENT_LABEL_ENABLED", true),
 		AutoCategory:                           envBool("AUTO_CATEGORY", true),
 		AutoReply:                              envBool("AUTO_REPLY", false),
 		PriorityEnabled:                        envBool("PRIORITY_ENABLED", true),
@@ -651,6 +652,12 @@ func (c Config) Validate() error {
 		return fmt.Errorf("KNOWLEDGE_VECTOR_BACKEND must be one of: local, dual, neuroforge (got %q)", c.KnowledgeVectorBackend)
 	}
 	if c.KnowledgeVectorBackend == "dual" || c.KnowledgeVectorBackend == "neuroforge" {
+		if len(c.NeuroForgeAPIKey) < 24 {
+			return errors.New("NEUROFORGE_API_KEY must contain at least 24 characters for dual/neuroforge mode")
+		}
+		if isPlaceholder(c.NeuroForgeAPIKey) {
+			return errors.New("NEUROFORGE_API_KEY still contains a CHANGE_ME placeholder")
+		}
 		u, err := url.Parse(c.NeuroForgeURL)
 		if err != nil || u.Scheme == "" || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
 			return errors.New("NEUROFORGE_URL must be an absolute http(s) URL")

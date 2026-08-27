@@ -3,9 +3,11 @@ package brain
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"neuroforge/internal/core"
 )
@@ -110,5 +112,59 @@ func TestGoalResearchPersistsTransparentTrace(t *testing.T) {
 		if !seen[typ] {
 			t.Fatalf("missing research trace event %q; seen=%v", typ, seen)
 		}
+	}
+}
+
+func TestGoalCycleSingleFlightRejectsConcurrentRun(t *testing.T) {
+	started := make(chan struct{}, 1)
+	release := make(chan struct{})
+	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case started <- struct{}{}:
+		default:
+		}
+		<-release
+		_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{}})
+	}))
+	defer searx.Close()
+
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/embed" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float32{{1, 0, 0, 0}}})
+			return
+		}
+		http.NotFound(w, r)
+	})
+	cfg := s.Config()
+	cfg.Research.Enabled = true
+	cfg.Research.SearXNG.Enabled = true
+	cfg.Research.SearXNG.BaseURL = searx.URL
+	cfg.Research.Goal.Enabled = true
+	cfg.Research.WebFetch.Enabled = false
+	cfg.Brain.LearningPolicy.LearnGoalCycles = false
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	goal := core.Goal{Title: "single flight", Description: "concurrency guard", Status: core.GoalActive, Priority: 70, ResearchEnabled: true}
+	if err := s.UpsertGoal(&goal); err != nil {
+		t.Fatal(err)
+	}
+
+	firstDone := make(chan error, 1)
+	go func() {
+		_, err := e.RunGoalCycle(context.Background(), goal.ID)
+		firstDone <- err
+	}()
+	select {
+	case <-started:
+	case <-time.After(2 * time.Second):
+		t.Fatal("first goal cycle did not enter research")
+	}
+	if _, err := e.RunGoalCycle(context.Background(), goal.ID); !errors.Is(err, ErrGoalCycleInProgress) {
+		t.Fatalf("second cycle error=%v, want %v", err, ErrGoalCycleInProgress)
+	}
+	close(release)
+	if err := <-firstDone; err != nil {
+		t.Fatalf("first cycle failed: %v", err)
 	}
 }

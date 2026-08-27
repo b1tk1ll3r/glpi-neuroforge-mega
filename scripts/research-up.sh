@@ -15,5 +15,5 @@ export SEARXNG_SECRET=$secret
 cd "$ROOT"
 NEUROFORGE_RESEARCH_ENABLED=true \
 NEUROFORGE_SEARXNG_ENABLED=true \
-docker compose --profile research up -d searxng neuroforge neuroforge-worker
+docker compose --profile research up -d ollama knowledge searxng neuroforge neuroforge-worker
 printf '%s\n' 'SearXNG + NeuroForge research are running. Autonomy remains controlled by NEUROFORGE_AUTONOMY_ENABLED.'

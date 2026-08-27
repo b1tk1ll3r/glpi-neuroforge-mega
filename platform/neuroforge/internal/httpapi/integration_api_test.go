@@ -24,7 +24,7 @@ func integrationRequest(t *testing.T, s *Server, method, path, token, body strin
 
 func TestIntegrationKnowledgeLifecycleAndNamespaceIsolation(t *testing.T) {
 	s, _ := newMetricsTestServer(t)
-	key := s.store.Secrets().AppAPIKey
+	key := s.store.Secrets().IntegrationToken
 
 	unauth := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/knowledge/upsert", "", `{"namespace":"agent","document_id":"KB-1","chunks":[{"index":0,"text":"vpn","vector":[1,0],"content_hash":"a"}]}`)
 	if unauth.Code != http.StatusUnauthorized {
@@ -105,5 +105,29 @@ func TestIntegrationKnowledgeLifecycleAndNamespaceIsolation(t *testing.T) {
 	}
 	if strings.Contains(search.Body.String(), "KB-1") {
 		t.Fatalf("deleted document still searchable: %s", search.Body.String())
+	}
+}
+
+func TestScopedTokensCannotCrossTrustBoundaries(t *testing.T) {
+	s, _ := newMetricsTestServer(t)
+	sec := s.store.Secrets()
+
+	// The general App key is deliberately insufficient for integration writes.
+	if rr := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/events", sec.AppAPIKey, `{"type":"test","source":"agent","message":"x"}`); rr.Code != http.StatusUnauthorized {
+		t.Fatalf("app key wrote integration event: status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	// Control is read-only and cannot write integration events or generic learn.
+	if rr := integrationRequest(t, s, http.MethodPost, "/api/v1/integrations/events", sec.ControlReadToken, `{"type":"test","source":"control","message":"x"}`); rr.Code != http.StatusUnauthorized {
+		t.Fatalf("control token wrote integration event: status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	if rr := integrationRequest(t, s, http.MethodPost, "/api/v1/learn", sec.ControlReadToken, `{"text":"must not learn"}`); rr.Code != http.StatusUnauthorized {
+		t.Fatalf("control token reached /learn: status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	// Integration credentials are not generic app credentials either.
+	if rr := integrationRequest(t, s, http.MethodPost, "/api/v1/learn", sec.IntegrationToken, `{"text":"must not learn"}`); rr.Code != http.StatusUnauthorized {
+		t.Fatalf("integration token reached /learn: status=%d body=%s", rr.Code, rr.Body.String())
+	}
+	if rr := integrationRequest(t, s, http.MethodGet, "/api/v1/stats", sec.ControlReadToken, ""); rr.Code != http.StatusOK {
+		t.Fatalf("control token cannot read stats: status=%d body=%s", rr.Code, rr.Body.String())
 	}
 }

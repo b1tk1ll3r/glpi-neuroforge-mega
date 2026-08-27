@@ -177,6 +177,12 @@ func New(dir string) (*Store, error) {
 	if s.secrets.AppAPIKey == "" {
 		s.secrets.AppAPIKey = randomID(24)
 	}
+	if s.secrets.IntegrationToken == "" {
+		s.secrets.IntegrationToken = randomID(24)
+	}
+	if s.secrets.ControlReadToken == "" {
+		s.secrets.ControlReadToken = randomID(24)
+	}
 	if s.secrets.WorkerToken == "" {
 		s.secrets.WorkerToken = randomID(24)
 	}

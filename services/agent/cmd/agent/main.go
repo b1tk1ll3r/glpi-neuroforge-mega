@@ -27,6 +27,10 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "healthcheck" {
+		runHealthcheck()
+		return
+	}
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("configuration invalid", "error", err)
@@ -202,6 +206,22 @@ func main() {
 	defer c()
 	_ = srv.Shutdown(shutdownCtx)
 	slog.Info("shutdown complete")
+}
+
+func runHealthcheck() {
+	client := &http.Client{Timeout: 2 * time.Second}
+	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8080/healthz", nil)
+	if err != nil {
+		os.Exit(1)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		os.Exit(1)
+	}
 }
 
 func waitForOllamaPool(ctx context.Context, client *ollama.Client, retryInterval time.Duration) error {
