@@ -165,6 +165,12 @@ func run() (retErr error) {
 		if model := os.Getenv("NEUROFORGE_OLLAMA_EMBEDDING_MODEL"); model != "" {
 			cfg.Ollama[0].EmbeddingModel = model
 		}
+		if v, ok := envInt("NEUROFORGE_OLLAMA_NUM_CTX"); ok && v >= 0 {
+			cfg.Ollama[0].NumCtx = v
+		}
+		if v, ok := envInt("NEUROFORGE_OLLAMA_NUM_PREDICT"); ok && v >= 0 {
+			cfg.Ollama[0].NumPredict = v
+		}
 		if err := s.UpdateConfig(cfg); err != nil {
 			return fmt.Errorf("apply NeuroForge Ollama environment bootstrap: %w", err)
 		}
@@ -297,9 +303,30 @@ func run() (retErr error) {
 	if v, ok := envBool("NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR"); ok {
 		stagingCfg.VerificationRepair = v
 	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_SYNTHESIS_MAX_TOKENS"); ok {
+		stagingCfg.SynthesisMaxOutputTokens = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_EVIDENCE_PROMPT_MAX_CHARS"); ok {
+		stagingCfg.EvidencePromptMaxChars = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MIN_ARTICLE_CHARS"); ok {
+		stagingCfg.MinArticleChars = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_TARGET_ARTICLE_CHARS"); ok {
+		stagingCfg.TargetArticleChars = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MAX_ARTICLE_CHARS"); ok {
+		stagingCfg.MaxArticleChars = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MIN_ANSWER_CHARS"); ok {
+		stagingCfg.MinAnswerChars = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MAX_ANSWER_CHARS"); ok {
+		stagingCfg.MaxAnswerChars = v
+	}
 	b.ConfigureStagingPublisher(stagingCfg)
 	if stagingCfg.Enabled {
-		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d, synthesis=%s, authority_required=%t, claim_verify=%t)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0), firstNonEmptyMain(stagingCfg.SynthesisMode, "llm"), stagingCfg.RequireAuthoritativeSource, stagingCfg.VerifyClaims)
+		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d, synthesis=%s, authority_required=%t, claim_verify=%t, synthesis_tokens=%d, article_chars=%d/%d/%d, evidence_prompt_chars=%d)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0), firstNonEmptyMain(stagingCfg.SynthesisMode, "llm"), stagingCfg.RequireAuthoritativeSource, stagingCfg.VerifyClaims, maxIntMain(stagingCfg.SynthesisMaxOutputTokens, 2600), maxIntMain(stagingCfg.MinArticleChars, 3500), maxIntMain(stagingCfg.TargetArticleChars, 6500), maxIntMain(stagingCfg.MaxArticleChars, 10000), maxIntMain(stagingCfg.EvidencePromptMaxChars, 14000))
 	}
 	if err := b.ReconcileGoalProgress(); err != nil {
 		return fmt.Errorf("reconcile persisted goal research progress: %w", err)

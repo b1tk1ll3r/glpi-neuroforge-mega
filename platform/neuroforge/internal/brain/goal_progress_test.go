@@ -422,7 +422,7 @@ func TestStagingSynthesisRetriesMalformedStructuredOutputOnce(t *testing.T) {
 		}
 		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": content}, "prompt_eval_count": 2, "eval_count": 2})
 	})
-	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, SynthesisMode: "llm"})
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, SynthesisMode: "llm", MinArticleChars: 1, TargetArticleChars: 1, MaxArticleChars: 10000, MinAnswerChars: 1, MaxAnswerChars: 10000})
 	cfg := s.Config()
 	cfg.Autonomy.Provider = "ollama"
 	cfg.Autonomy.Model = cfg.Ollama[0].ChatModel
@@ -443,6 +443,106 @@ func TestStagingSynthesisRetriesMalformedStructuredOutputOnce(t *testing.T) {
 	}
 }
 
+func TestStagingArticleDepthExpandsShortDraftAndUsesConfiguredBudget(t *testing.T) {
+	chatCalls := 0
+	var seenNumPredict []float64
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/chat" {
+			http.NotFound(w, r)
+			return
+		}
+		chatCalls++
+		var req map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Fatal(err)
+		}
+		if req["format"] != "json" {
+			t.Fatalf("structured staging call did not request JSON mode: %#v", req["format"])
+		}
+		if opts, _ := req["options"].(map[string]any); opts != nil {
+			if n, ok := opts["num_predict"].(float64); ok {
+				seenNumPredict = append(seenNumPredict, n)
+			}
+		}
+		text := "Kurzer FortiClient SSLVPN Fehler 7200 Entwurf."
+		answer := "Prüfen Sie die FortiClient- und FortiGate-Konfiguration für den Fehler 7200."
+		if chatCalls == 2 {
+			text = strings.Repeat("FortiClient SSLVPN Fehler 7200 wird anhand der bereitgestellten Fortinet-Evidence diagnostiziert. Die beschriebenen Prüfungen bleiben auf quellenbelegte Konfiguration, Authentifizierung und Systemzustand begrenzt. ", 8)
+			answer = "Prüfen Sie beim FortiClient SSLVPN Fehler 7200 zunächst die quellenbelegten Authentifizierungs- und SSL-VPN-Einstellungen, anschließend den FortiGate-Systemzustand und dokumentieren Sie die Diagnoseergebnisse für die weitere Eingrenzung."
+		}
+		content, _ := json.Marshal(map[string]any{
+			"title":      "FortiClient SSLVPN Fehler 7200",
+			"text":       text,
+			"answer":     answer,
+			"categories": []string{"VPN"},
+			"keywords":   []string{"FortiClient", "SSLVPN", "7200"},
+		})
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": string(content)}, "prompt_eval_count": 10, "eval_count": 11})
+	})
+	cfg := s.Config()
+	cfg.Autonomy.Provider = "ollama"
+	cfg.Autonomy.Model = cfg.Ollama[0].ChatModel
+	cfg.Ollama[0].NumPredict = 0
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{
+		Enabled: true, SynthesisMode: "llm", VerifyClaims: false,
+		SynthesisMaxOutputTokens: 2300, EvidencePromptMaxChars: 2000,
+		MinArticleChars: 500, TargetArticleChars: 900, MaxArticleChars: 3000,
+		MinAnswerChars: 80, MaxAnswerChars: 600,
+	})
+	goal := &core.Goal{ID: "goal-forti", Title: "FortiClient SSLVPN 7200", Description: "Supportartikel zum Fehler 7200"}
+	evidence := []draftEvidence{{
+		Memory: core.Memory{ID: "m1", Text: strings.Repeat("FortiClient SSLVPN error 7200 evidence from Fortinet. ", 80), Confidence: .9, Provenance: core.MemoryProvenance{Source: "web.page", SourceID: "f1"}},
+		Source: &core.KnowledgeSource{ID: "f1", Title: "Fortinet Technical Tip 7200", URI: "https://community.fortinet.com/fortigate/7200", Trust: .9},
+	}}
+	got, err := e.synthesizeGoalDraft(context.Background(), goal, evidence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if chatCalls != 2 {
+		t.Fatalf("chat calls=%d want 2 (synthesis + depth expansion)", chatCalls)
+	}
+	for _, n := range seenNumPredict {
+		if n != 2300 {
+			t.Fatalf("num_predict=%v want 2300", n)
+		}
+	}
+	if got.Quality == nil || got.Quality.Article == nil || !got.Quality.Article.ExpansionApplied {
+		t.Fatalf("missing article-depth audit: %#v", got.Quality)
+	}
+	if got.Quality.Article.TextChars < 500 || got.Quality.Article.AnswerChars < 80 {
+		t.Fatalf("article bounds not enforced: %#v", got.Quality.Article)
+	}
+	if got.Quality.Article.EvidencePromptChars > 2600 {
+		t.Fatalf("evidence prompt budget unexpectedly large: %#v", got.Quality.Article)
+	}
+}
+
+func TestPromptEvidenceTextsDistributesContextBudgetAcrossEvidence(t *testing.T) {
+	evidence := make([]draftEvidence, 4)
+	for i := range evidence {
+		evidence[i].Memory.Text = strings.Repeat(fmt.Sprintf("E%d evidence ", i+1), 300)
+	}
+	cfg := StagingPublisherConfig{EvidencePromptMaxChars: 1200}
+	texts := promptEvidenceTexts(cfg, evidence)
+	if len(texts) != 4 {
+		t.Fatalf("texts=%d want 4", len(texts))
+	}
+	total := 0
+	for i, text := range texts {
+		n := len([]rune(text))
+		total += n
+		if n == 0 {
+			t.Fatalf("evidence %d lost all prompt context", i+1)
+		}
+	}
+	if total > 1200 {
+		t.Fatalf("prompt evidence chars=%d want <=1200", total)
+	}
+}
+
 func TestSourceAuthorityTreatsPrimaryDocsAndVendorCommunityDifferently(t *testing.T) {
 	cfg := StagingPublisherConfig{}
 	primary := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/repair-a-windows-image"})
@@ -453,9 +553,13 @@ func TestSourceAuthorityTreatsPrimaryDocsAndVendorCommunityDifferently(t *testin
 	if qna.Authoritative || qna.Authority != "vendor-community" {
 		t.Fatalf("Microsoft Q&A must not count as primary documentation: %#v", qna)
 	}
-	fortinet := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://community.fortinet.com/t5/FortiGate/Technical-Tip/ta-p/219912"})
+	fortinet := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://community.fortinet.com/fortigate-3/technical-tip-credential-or-ssl-vpn-configuration-is-wrong-7200-219912"})
 	if !fortinet.Authoritative {
-		t.Fatalf("first-party Fortinet knowledge content should count as authoritative: %#v", fortinet)
+		t.Fatalf("first-party Fortinet technical-tip content should count as authoritative: %#v", fortinet)
+	}
+	fortinetForum := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://community.fortinet.com/support-forum-92/solved-credential-or-ssl-vpn-configuration-is-wrong-7200-7654"})
+	if fortinetForum.Authoritative || fortinetForum.Authority != "vendor-community" {
+		t.Fatalf("Fortinet support-forum content must not count as authoritative: %#v", fortinetForum)
 	}
 }
 
@@ -591,7 +695,7 @@ func TestClaimVerificationRepairsUnsupportedDISMOrder(t *testing.T) {
 	if err := s.UpdateConfig(cfg); err != nil {
 		t.Fatal(err)
 	}
-	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, SynthesisMode: "llm", VerifyClaims: true, MinClaimCoverage: 1, RequireAuthoritativeActions: true, VerificationRepair: true})
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, SynthesisMode: "llm", VerifyClaims: true, MinClaimCoverage: 1, RequireAuthoritativeActions: true, VerificationRepair: true, MinArticleChars: 1, TargetArticleChars: 1, MaxArticleChars: 10000, MinAnswerChars: 1, MaxAnswerChars: 10000})
 	goal := &core.Goal{ID: "goal-dism", Title: "Windows 11 DISM Fehler 0x800f081f", Description: "Reparaturreihenfolge fuer DISM Fehler 0x800f081f"}
 	evidence := []draftEvidence{{
 		Memory: core.Memory{ID: "m1", Text: "For Windows error 0x800f081f, run DISM /Online /Cleanup-Image /RestoreHealth first. After DISM completes, run sfc /scannow.", Confidence: .9, Provenance: core.MemoryProvenance{Source: "web.page", SourceID: "ms"}},
@@ -606,6 +710,81 @@ func TestClaimVerificationRepairsUnsupportedDISMOrder(t *testing.T) {
 	}
 	if !strings.Contains(got.Answer, "zuerst DISM") || got.Quality == nil || got.Quality.Verification == nil || !got.Quality.Verification.RepairApplied {
 		t.Fatalf("draft was not grounded/reverified: %#v", got)
+	}
+}
+
+func TestClaimVerificationBatchesAllLongArticleStatements(t *testing.T) {
+	chatCalls := 0
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/chat" {
+			http.NotFound(w, r)
+			return
+		}
+		chatCalls++
+		var req struct {
+			Messages []struct {
+				Content string `json:"content"`
+			} `json:"messages"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Fatal(err)
+		}
+		if len(req.Messages) == 0 {
+			t.Fatal("missing messages")
+		}
+		input := req.Messages[len(req.Messages)-1].Content
+		var statements []map[string]any
+		inStatements := false
+		for _, line := range strings.Split(input, "\n") {
+			if strings.HasPrefix(line, "DRAFT STATEMENTS") {
+				inStatements = true
+				continue
+			}
+			if strings.HasPrefix(line, "SOURCE EVIDENCE:") {
+				break
+			}
+			if !inStatements || !strings.HasPrefix(line, "S") {
+				continue
+			}
+			fields := strings.Fields(line)
+			if len(fields) == 0 {
+				continue
+			}
+			id := fields[0]
+			statements = append(statements, map[string]any{"id": id, "status": "supported", "evidence_ids": []string{"E1"}, "reason": "supported by authoritative evidence"})
+		}
+		content, _ := json.Marshal(map[string]any{"verdict": "pass", "statements": statements, "contradictions": []string{}})
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": string(content)}, "prompt_eval_count": 2, "eval_count": 2})
+	})
+	cfg := s.Config()
+	cfg.Autonomy.Provider = "ollama"
+	cfg.Autonomy.Model = cfg.Ollama[0].ChatModel
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{MaxVerificationStatements: 16, MinClaimCoverage: 1, RequireAuthoritativeActions: true, EvidencePromptMaxChars: 4000})
+	var lines []string
+	for i := 0; i < 40; i++ {
+		lines = append(lines, fmt.Sprintf("Diagnosehinweis %02d zum FortiClient SSLVPN Fehler 7200 ist durch die bereitgestellte Fortinet-Evidence belegt.", i+1))
+	}
+	draft := stagingDraftPayload{
+		Title:  "FortiClient SSLVPN 7200",
+		Answer: "Prüfen Sie den Fehler 7200 anhand der dokumentierten Fortinet-Diagnoseschritte und validieren Sie die Konfiguration vor Änderungen.",
+		Text:   strings.Join(lines, "\n"),
+	}
+	evidence := []draftEvidence{{
+		Memory: core.Memory{ID: "m1", Text: strings.Repeat("FortiClient SSLVPN Fehler 7200 Diagnose und Konfiguration. ", 100), Confidence: .9, Provenance: core.MemoryProvenance{SourceID: "f1"}},
+		Source: &core.KnowledgeSource{ID: "f1", URI: "https://community.fortinet.com/fortigate-3/technical-tip-credential-or-ssl-vpn-configuration-is-wrong-7200-219912", Trust: .9},
+	}}
+	report, err := e.verifyDraftClaims(context.Background(), &core.Goal{Title: "FortiClient SSLVPN 7200"}, evidence, draft)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if chatCalls != 3 {
+		t.Fatalf("verification calls=%d want 3 batches", chatCalls)
+	}
+	if len(report.Statements) != 41 || report.Coverage != 1 {
+		t.Fatalf("incomplete batched verification: statements=%d coverage=%v", len(report.Statements), report.Coverage)
 	}
 }
 

@@ -33,7 +33,7 @@ services:
     cap_drop:
     - ALL
   neuroforge:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.6}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
     command:
     - -data
     - /app/data
@@ -52,6 +52,8 @@ services:
       NEUROFORGE_OLLAMA_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
       NEUROFORGE_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
       NEUROFORGE_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+      NEUROFORGE_OLLAMA_NUM_CTX: ${NEUROFORGE_OLLAMA_NUM_CTX:-8192}
+      NEUROFORGE_OLLAMA_NUM_PREDICT: ${NEUROFORGE_OLLAMA_NUM_PREDICT:-0}
       NEUROFORGE_READINESS_OLLAMA_LIVE: ${NEUROFORGE_READINESS_OLLAMA_LIVE:-true}
       NEUROFORGE_CONTROLLED_LEARNING: ${NEUROFORGE_CONTROLLED_LEARNING:-true}
       NEUROFORGE_GOAL_LEARNING_ENABLED: ${NEUROFORGE_GOAL_LEARNING_ENABLED:-false}
@@ -77,8 +79,15 @@ services:
       NEUROFORGE_KB_STAGING_VERIFY_CLAIMS: ${NEUROFORGE_KB_STAGING_VERIFY_CLAIMS:-true}
       NEUROFORGE_KB_STAGING_MIN_CLAIM_COVERAGE: ${NEUROFORGE_KB_STAGING_MIN_CLAIM_COVERAGE:-1.0}
       NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_ACTIONS: ${NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_ACTIONS:-true}
-      NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS: ${NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS:-24}
+      NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS: ${NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS:-32}
       NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR: ${NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR:-true}
+      NEUROFORGE_KB_STAGING_SYNTHESIS_MAX_TOKENS: ${NEUROFORGE_KB_STAGING_SYNTHESIS_MAX_TOKENS:-2600}
+      NEUROFORGE_KB_STAGING_EVIDENCE_PROMPT_MAX_CHARS: ${NEUROFORGE_KB_STAGING_EVIDENCE_PROMPT_MAX_CHARS:-14000}
+      NEUROFORGE_KB_STAGING_MIN_ARTICLE_CHARS: ${NEUROFORGE_KB_STAGING_MIN_ARTICLE_CHARS:-3500}
+      NEUROFORGE_KB_STAGING_TARGET_ARTICLE_CHARS: ${NEUROFORGE_KB_STAGING_TARGET_ARTICLE_CHARS:-6500}
+      NEUROFORGE_KB_STAGING_MAX_ARTICLE_CHARS: ${NEUROFORGE_KB_STAGING_MAX_ARTICLE_CHARS:-10000}
+      NEUROFORGE_KB_STAGING_MIN_ANSWER_CHARS: ${NEUROFORGE_KB_STAGING_MIN_ANSWER_CHARS:-160}
+      NEUROFORGE_KB_STAGING_MAX_ANSWER_CHARS: ${NEUROFORGE_KB_STAGING_MAX_ANSWER_CHARS:-1200}
     ports:
     - 127.0.0.1:${NEUROFORGE_HOST_PORT:-8090}:8080
     volumes:
@@ -107,7 +116,7 @@ services:
       start_period: 15s
     stop_grace_period: 35s
   neuroforge-worker:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.6}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
     command:
     - -server
     - http://neuroforge:8080
@@ -127,7 +136,7 @@ services:
     cap_drop:
     - ALL
   agent-data-init:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.6}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
     restart: 'no'
     user: 0:0
     volumes:
@@ -140,7 +149,7 @@ services:
     - CHOWN
     - FOWNER
   agent:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.6}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
     restart: unless-stopped
     environment:
       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
@@ -361,7 +370,7 @@ services:
       start_period: 10s
     stop_grace_period: 20s
   knowledge:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.6}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
     restart: unless-stopped
     environment:
       APP_MODE: ${KB_APP_MODE:-editor}
@@ -402,7 +411,7 @@ services:
     - ALL
     stop_grace_period: 35s
   control:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.6}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
     restart: unless-stopped
     environment:
       CONTROL_ADDR: :8070

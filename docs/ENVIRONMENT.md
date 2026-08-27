@@ -81,8 +81,15 @@ NEUROFORGE_KB_STAGING_AUTHORITATIVE_DOMAINS=
 NEUROFORGE_KB_STAGING_VERIFY_CLAIMS=true
 NEUROFORGE_KB_STAGING_MIN_CLAIM_COVERAGE=1.0
 NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_ACTIONS=true
-NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS=24
+NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS=32
 NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR=true
+NEUROFORGE_KB_STAGING_SYNTHESIS_MAX_TOKENS=2600
+NEUROFORGE_KB_STAGING_EVIDENCE_PROMPT_MAX_CHARS=14000
+NEUROFORGE_KB_STAGING_MIN_ARTICLE_CHARS=3500
+NEUROFORGE_KB_STAGING_TARGET_ARTICLE_CHARS=6500
+NEUROFORGE_KB_STAGING_MAX_ARTICLE_CHARS=10000
+NEUROFORGE_KB_STAGING_MIN_ANSWER_CHARS=160
+NEUROFORGE_KB_STAGING_MAX_ANSWER_CHARS=1200
 ```
 
 `NEUROFORGE_KB_STAGING_URL` and `NEUROFORGE_KB_STAGING_TOKEN` are container-internal values owned by the root Compose file. The token is derived from the existing `KB_INTEGRATION_TOKEN`; do not duplicate it under a second operator-managed secret name.
@@ -104,3 +111,13 @@ Before an LLM-synthesized research article reaches human-review staging, NeuroFo
 The verifier is fail-closed. Unsupported or contradicted statements prevent publication. With `NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR=true`, one evidence-only rewrite is attempted and the complete draft is then verified again. The repair may remove unsupported content but may not add outside knowledge. Source authority, claim-level evidence IDs, coverage, contradictions and whether a repair occurred are persisted in the staging JSON for human audit.
 
 Microsoft Q&A (`learn.microsoft.com/.../answers/...`) is intentionally treated as vendor-community rather than primary documentation. Operator-specific first-party domains can be added with `NEUROFORGE_KB_STAGING_AUTHORITATIVE_DOMAINS`.
+
+### Article depth gate (v1.5.9)
+
+`text` is the canonical full knowledge article. `answer` is intentionally a shorter operational summary for downstream reply use. Production defaults require the full article to contain at least 3,500 characters and target about 6,500 characters without exceeding 10,000. If the first grounded synthesis is shorter or otherwise outside the configured bounds, NeuroForge performs one evidence-only article-depth rewrite. It may reorganize and expand supported detail but may not add outside knowledge or filler. The rewritten draft is then identifier- and claim-verified again.
+
+The synthesis call, syntax repair and grounding rewrite use `NEUROFORGE_KB_STAGING_SYNTHESIS_MAX_TOKENS` rather than the old hard-coded 1,200/1,400 token limits. `NEUROFORGE_KB_STAGING_EVIDENCE_PROMPT_MAX_CHARS` fairly budgets evidence text across selected sources so the local-model context still has room for a full article. With the Mega Compose, keep `NEUROFORGE_OLLAMA_NUM_PREDICT=0` so the call-specific staging budget is not overridden by a lower persisted Ollama value.
+
+Claim verification checks all material article statements in batches of `NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS`; the value is a batch size, not a total verification cap. A hard safety ceiling of 128 material statements remains. Staging persists `article_quality` with actual article/answer lengths, configured bounds, evidence count, prompt size, expansion status and synthesis token usage.
+
+Fortinet `support-forum` pages are treated as vendor-community evidence rather than authoritative primary documentation. Editorial `technical-tip` and `troubleshooting-tip` pages remain eligible as authoritative first-party material.

@@ -56,3 +56,8 @@ Bei Windows-/Vendor-Artikeln dürfen normale Slash-Komposita oder URL-Pfade kein
 ## v1.5.8 Staging-Revalidation Zusatzgate
 
 Nach einem Upgrade auf v1.5.8 aktive Goals mindestens einen Scheduler-Cycle durchlaufen lassen. Ein Artikelziel darf erst dann als erfüllt gelten, wenn der Goal-State `staging_draft_validated=true` und `staging_quality_gate_version=staging-v3` meldet. Persistierte Fehler aus älteren Gates dürfen nicht als aktueller Fehlerstatus interpretiert werden.
+
+
+## v1.5.9 Article-Depth Zusatzgate
+
+Nach dem Upgrade muss ein aktiver Research-Draft `staging_quality_gate_version=staging-v4` erreichen. Im Staging-RAW-JSON `article_quality` prüfen: `text_chars` muss mindestens `NEUROFORGE_KB_STAGING_MIN_ARTICLE_CHARS` erfüllen, die kompakte `answer`-Zusammenfassung muss innerhalb ihrer Grenzen bleiben und `claim_verification` muss bei aktivierter Verifikation vollständig bestehen. `NEUROFORGE_OLLAMA_NUM_PREDICT=0` ist der empfohlene Mega-Default, damit das Staging-Call-Budget nicht von einem alten globalen `num_predict` abgeschnitten wird.

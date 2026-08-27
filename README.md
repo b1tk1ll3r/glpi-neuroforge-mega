@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.8
+# GLPI NeuroForge Mega v1.5.9
 
-> Release: **v1.5.8** · Staging-Revalidation-Hardening: persistierte Quality-Fehler werden versionsbewusst neu geprüft; nur ein unter dem aktuellen Gate validierter Draft erfüllt ein Artikelziel.
+> Release: **v1.5.9** · Article-Depth-Hardening: quellengebundene Staging-Drafts erhalten ein eigenes Context-/Output-Budget, Mindesttiefe und eine messbare Vollartikel-Qualitätsprüfung; `answer` bleibt bewusst die kompakte operative Zusammenfassung.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
@@ -155,6 +155,14 @@ Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Orig
 
 Staging-Synthese, Claim-Verifikation und Grounding-Rewrite fordern bei Ollama jetzt provider-nativ `format: "json"` an. Zusätzlich validiert NeuroForge die erwarteten JSON-Schemata strikt, lehnt unbekannte Felder ab und repariert ausschließlich syntaktisch eindeutig ungültige Backslash-Escapes innerhalb von JSON-Strings (z. B. Windows-/Registry-Pfade). Gültige JSON-Escapes und Daten außerhalb von Strings werden nicht verändert. Andere Syntaxfehler bleiben fail-closed bzw. durchlaufen höchstens den bereits begrenzten syntax-only Repair-Pass.
 
+
+### Article Depth & Evidence Utilization Hardening (v1.5.9)
+
+Der Staging-Synthesizer unterscheidet jetzt explizit zwischen dem **vollständigen Knowledge-Artikel** (`text`) und der **kompakten operativen Zusammenfassung** (`answer`). Für produktive Research-Drafts gelten standardmäßig 3.500 Zeichen Mindesttiefe, ca. 6.500 Zeichen Zielumfang und 10.000 Zeichen Obergrenze. Ein zu kurzer Entwurf durchläuft genau einen evidence-only Expansion-Pass; er darf dabei keine neuen Fakten ergänzen und wird anschließend wie jeder andere Draft erneut durch Identifier- und Claim-Grounding geprüft.
+
+Die Synthese besitzt ein eigenes Output-Budget (2.600 Tokens). Syntax- und Grounding-Rewrites verwenden dasselbe Budget, damit ein zuvor ausführlicher Artikel nicht durch einen 1.200/1.400-Token-Repair wieder verkürzt wird. Das Evidence-Promptbudget wird fair über die ausgewählten Quellen verteilt und standardmäßig auf 14.000 Evidence-Zeichen begrenzt, sodass auch bei typischen 8k-Kontextfenstern genügend Raum für einen ausführlichen Output bleibt. `NEUROFORGE_OLLAMA_NUM_PREDICT=0` lässt das jeweilige Call-Budget wirksam werden.
+
+Im Staging-JSON wird `article_quality` persistiert (`text_chars`, `answer_chars`, Zielgrenzen, Evidence-Promptgröße, Expansion-Status und verbrauchte Synthese-Tokens). Fortinet-Supportforen gelten jetzt nur noch als Vendor-Community; redaktionelle Fortinet Technical-/Troubleshooting-Tips bleiben autoritative First-Party-Evidence. Das Quality-Gate wurde auf `staging-v4` angehoben, sodass bestehende Drafts einmal mit der neuen Artikeltiefe revalidiert werden.
 
 ### Staging Revalidation Hardening (v1.5.8)
 
