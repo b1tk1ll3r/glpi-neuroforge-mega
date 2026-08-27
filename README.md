@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.6
+# GLPI NeuroForge Mega v1.5.7
 
-> Release: **v1.5.6** · Structured-Output-Hardening: provider-natives JSON, strikte Schemaprüfung und deterministische Behandlung fehlerhafter Backslash-Escapes zusätzlich zu den v1.5.5 Production-Grounding-Gates.
+> Release: **v1.5.7** · Identifier-Grounding-Hardening: Slash-Komposita und URL-Pfade werden nicht mehr als CLI-Switches fehlklassifiziert; echte code-markierte Command-Switches bleiben source-verifiziert.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
@@ -154,6 +154,10 @@ Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Orig
 ### Structured Output Hardening (v1.5.6)
 
 Staging-Synthese, Claim-Verifikation und Grounding-Rewrite fordern bei Ollama jetzt provider-nativ `format: "json"` an. Zusätzlich validiert NeuroForge die erwarteten JSON-Schemata strikt, lehnt unbekannte Felder ab und repariert ausschließlich syntaktisch eindeutig ungültige Backslash-Escapes innerhalb von JSON-Strings (z. B. Windows-/Registry-Pfade). Gültige JSON-Escapes und Daten außerhalb von Strings werden nicht verändert. Andere Syntaxfehler bleiben fail-closed bzw. durchlaufen höchstens den bereits begrenzten syntax-only Repair-Pass.
+
+### Identifier Grounding Hardening (v1.5.7)
+
+Der deterministische Identifier-Guard unterscheidet Slash-prefixed CLI-Switches jetzt von normaler Prosa. Konstruktionen wie `BIOS-/UEFI-Konfiguration`, `Web-/Portal-Konfiguration` und URL-Pfade blockieren Staging nicht mehr als vermeintlich erfundene Command-Switches. Slash-Switches werden nur noch aus explizit als Code markierten Markdown-Spans/Fences extrahiert; dort bleiben erfundene Optionen wie `DISM /MagicRepair` weiterhin fail-closed source-verifiziert. Fehlercodes, CVEs, KB-Nummern und Versionsnummern werden unverändert global geprüft.
 
 ## Obsidian / llm-wiki Export
 

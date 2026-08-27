@@ -1,0 +1,190 @@
+diff --git a/.env.example b/.env.example
+index 712f8d1..daf61f7 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,5 +1,5 @@
+ ###############################################################################
+-# GLPI NEUROFORGE MEGA v1.5.6 - VOLLSTÄNDIGE .ENV.example
++# GLPI NEUROFORGE MEGA v1.5.7 - VOLLSTÄNDIGE .ENV.example
+ #
+ # Diese Datei ist die zentrale Konfiguration für docker compose.
+ # Sie enthält:
+@@ -29,7 +29,7 @@
+ # 01. MEGA STACK - RELEASE / HOST PORTS / PFADE
+ ###############################################################################
+ # Immutable Registry-Tag der sechs Projekt-Images. "latest" ist produktiv verboten.
+-IMAGE_TAG=1.5.6
++IMAGE_TAG=1.5.7
+ 
+ CONTROL_HOST_PORT=8070
+ AGENT_HOST_PORT=8080
+diff --git a/README.md b/README.md
+index a17a5ed..9bfff20 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+-# GLPI NeuroForge Mega v1.5.6
++# GLPI NeuroForge Mega v1.5.7
+ 
+-> Release: **v1.5.6** · Structured-Output-Hardening: provider-natives JSON, strikte Schemaprüfung und deterministische Behandlung fehlerhafter Backslash-Escapes zusätzlich zu den v1.5.5 Production-Grounding-Gates.
++> Release: **v1.5.7** · Identifier-Grounding-Hardening: Slash-Komposita und URL-Pfade werden nicht mehr als CLI-Switches fehlklassifiziert; echte code-markierte Command-Switches bleiben source-verifiziert.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+@@ -155,6 +155,10 @@ Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Orig
+ 
+ Staging-Synthese, Claim-Verifikation und Grounding-Rewrite fordern bei Ollama jetzt provider-nativ `format: "json"` an. Zusätzlich validiert NeuroForge die erwarteten JSON-Schemata strikt, lehnt unbekannte Felder ab und repariert ausschließlich syntaktisch eindeutig ungültige Backslash-Escapes innerhalb von JSON-Strings (z. B. Windows-/Registry-Pfade). Gültige JSON-Escapes und Daten außerhalb von Strings werden nicht verändert. Andere Syntaxfehler bleiben fail-closed bzw. durchlaufen höchstens den bereits begrenzten syntax-only Repair-Pass.
+ 
++### Identifier Grounding Hardening (v1.5.7)
++
++Der deterministische Identifier-Guard unterscheidet Slash-prefixed CLI-Switches jetzt von normaler Prosa. Konstruktionen wie `BIOS-/UEFI-Konfiguration`, `Web-/Portal-Konfiguration` und URL-Pfade blockieren Staging nicht mehr als vermeintlich erfundene Command-Switches. Slash-Switches werden nur noch aus explizit als Code markierten Markdown-Spans/Fences extrahiert; dort bleiben erfundene Optionen wie `DISM /MagicRepair` weiterhin fail-closed source-verifiziert. Fehlercodes, CVEs, KB-Nummern und Versionsnummern werden unverändert global geprüft.
++
+ ## Obsidian / llm-wiki Export
+ 
+ Die Wissensbasis kann in zwei Sichten als Obsidian-kompatibler Vault exportiert werden:
+diff --git a/VERSION b/VERSION
+index eac1e0a..f01291b 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.5.6
++1.5.7
+diff --git a/docs/GO-LIVE-v1.5.0.md b/docs/GO-LIVE-v1.5.0.md
+index 5633a21..ce05239 100644
+--- a/docs/GO-LIVE-v1.5.0.md
++++ b/docs/GO-LIVE-v1.5.0.md
+@@ -46,3 +46,8 @@ Für einen realen Research→Staging-Smoke-Test zusätzlich verifizieren:
+ 2. Staging-Synthese und Claim-Verifikation bleiben bei nicht reparierbarem JSON fail-closed.
+ 3. Der resultierende Draft enthält weiterhin `human_review_required=true` und `auto_reply=false`.
+ 4. Source-Authority und Claim-Verifikation aus v1.5.5 bleiben bestanden; JSON-Robustheit darf diese Gates nicht umgehen.
++
++
++## v1.5.7 Identifier-Grounding Zusatzgate
++
++Bei Windows-/Vendor-Artikeln dürfen normale Slash-Komposita oder URL-Pfade kein `source-unverified identifiers` auslösen. Echte CLI-Switches in Code-Spans/Fences bleiben source-verifiziert. Vor Go-Live mindestens einen Goal-Lauf mit `BIOS-/UEFI`-ähnlicher Prosa und einen Lauf mit einem belegten Slash-Command prüfen.
+diff --git a/platform/neuroforge/internal/brain/goal_progress_test.go b/platform/neuroforge/internal/brain/goal_progress_test.go
+index b5970fa..63f4ad2 100644
+--- a/platform/neuroforge/internal/brain/goal_progress_test.go
++++ b/platform/neuroforge/internal/brain/goal_progress_test.go
+@@ -525,6 +525,43 @@ func TestCriticalIdentifierGuardRejectsInventedVersion(t *testing.T) {
+ 	}
+ }
+ 
++func TestCriticalIdentifierGuardIgnoresSlashCompoundsAndURLPaths(t *testing.T) {
++	draft := stagingDraftPayload{
++		Title:  "BitLocker Wiederherstellung",
++		Text:   "Nach einer TPM-, BIOS-/UEFI- oder Hardwareänderung kann die Wiederherstellung erforderlich sein. Prüfen Sie die Web-/Portal-Konfiguration und dokumentieren Sie Interaktionsbereiche/-Tags.",
++		Answer: "Öffnen Sie die Herstellerdokumentation unter https://example.test/docs/portal-konfiguration/uefi-recovery.",
++	}
++	evidence := []draftEvidence{{Memory: core.Memory{Text: "BitLocker recovery can be triggered after TPM, BIOS, UEFI, or hardware changes."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/recovery-overview"}}}
++	if err := validateDraftCriticalIdentifiers(draft, evidence); err != nil {
++		t.Fatalf("slash compounds and URL paths must not be treated as CLI identifiers: %v", err)
++	}
++}
++
++func TestCriticalIdentifierGuardRejectsInventedSlashSwitchInCode(t *testing.T) {
++	draft := stagingDraftPayload{
++		Title:  "DISM Reparatur",
++		Text:   "Verwenden Sie nur dokumentierte Reparaturoptionen.",
++		Answer: "Führen Sie `DISM /Online /Cleanup-Image /MagicRepair` aus.",
++	}
++	evidence := []draftEvidence{{Memory: core.Memory{Text: "Run DISM /Online /Cleanup-Image /RestoreHealth to repair the image."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/windows-hardware/manufacture/desktop/repair-a-windows-image"}}}
++	err := validateDraftCriticalIdentifiers(draft, evidence)
++	if err == nil || !strings.Contains(strings.ToLower(err.Error()), "/magicrepair") {
++		t.Fatalf("invented slash switch in code must be rejected, got %v", err)
++	}
++}
++
++func TestCriticalIdentifierGuardAcceptsSourcedSlashSwitchInCode(t *testing.T) {
++	draft := stagingDraftPayload{
++		Title:  "DISM Reparatur",
++		Text:   "Verwenden Sie nur dokumentierte Reparaturoptionen.",
++		Answer: "Führen Sie `DISM /Online /Cleanup-Image /RestoreHealth` aus.",
++	}
++	evidence := []draftEvidence{{Memory: core.Memory{Text: "Run DISM /Online /Cleanup-Image /RestoreHealth to repair the image."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/windows-hardware/manufacture/desktop/repair-a-windows-image"}}}
++	if err := validateDraftCriticalIdentifiers(draft, evidence); err != nil {
++		t.Fatalf("sourced slash switches in code must pass: %v", err)
++	}
++}
++
+ func TestClaimVerificationRepairsUnsupportedDISMOrder(t *testing.T) {
+ 	chatCalls := 0
+ 	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+diff --git a/platform/neuroforge/internal/brain/staging_quality.go b/platform/neuroforge/internal/brain/staging_quality.go
+index 08810a8..e137c1a 100644
+--- a/platform/neuroforge/internal/brain/staging_quality.go
++++ b/platform/neuroforge/internal/brain/staging_quality.go
+@@ -10,6 +10,7 @@ import (
+ 	"sort"
+ 	"strconv"
+ 	"strings"
++	"unicode"
+ 
+ 	"neuroforge/internal/core"
+ )
+@@ -298,18 +299,59 @@ func evidencePackForPrompt(cfg StagingPublisherConfig, evidence []draftEvidence)
+ 	return b.String()
+ }
+ 
+-var criticalIdentifierRE = regexp.MustCompile(`(?i)\b(?:0x[0-9a-f]{4,}|cve-\d{4}-\d{4,}|kb\d{5,}|v?\d+\.\d+(?:\.\d+){0,2})\b|-\d{3,}|/[A-Za-z][A-Za-z0-9-]{2,}`)
++var (
++	criticalIdentifierRE = regexp.MustCompile(`(?i)\b(?:0x[0-9a-f]{4,}|cve-\d{4}-\d{4,}|kb\d{5,}|v?\d+\.\d+(?:\.\d+){0,2})\b|-\d{3,}`)
++	slashSwitchRE        = regexp.MustCompile(`/[A-Za-z][A-Za-z0-9-]{2,}`)
++	markdownCodeRE       = regexp.MustCompile("(?s)```(?:[A-Za-z0-9_+.-]+)?[\t ]*\n?(.*?)```|`([^`\n]+)`")
++)
++
++// slashSwitchIdentifiers intentionally considers slash-prefixed identifiers only
++// inside Markdown code spans/fences. A bare `/word` in prose is highly ambiguous:
++// German compounds such as "BIOS-/UEFI-Konfiguration" and URL paths such as
++// "/portal-konfiguration" previously tripped the source-grounding gate even though
++// they were not CLI switches. Actionable commands are already claim-verified, so the
++// deterministic identifier guard should be conservative and only add the extra
++// slash-token check when the draft itself marks content as code.
++func slashSwitchIdentifiers(text string) []string {
++	var out []string
++	for _, match := range markdownCodeRE.FindAllStringSubmatch(text, -1) {
++		segment := ""
++		if len(match) > 1 && match[1] != "" {
++			segment = match[1]
++		} else if len(match) > 2 {
++			segment = match[2]
++		}
++		for _, loc := range slashSwitchRE.FindAllStringIndex(segment, -1) {
++			if loc[0] > 0 {
++				prev := segment[loc[0]-1]
++				// URL paths (host/path), compound prose (BIOS-/UEFI) and
++				// filesystem-like fragments are not command switches.
++				if !unicode.IsSpace(rune(prev)) && prev != '(' && prev != '[' && prev != '{' && prev != '"' && prev != '\'' {
++					continue
++				}
++			}
++			out = append(out, segment[loc[0]:loc[1]])
++		}
++	}
++	return out
++}
+ 
+ func criticalIdentifiers(parts ...string) []string {
+ 	seen := map[string]bool{}
+ 	var out []string
++	add := func(m string) {
++		k := strings.ToLower(strings.TrimSpace(m))
++		if k != "" && !seen[k] {
++			seen[k] = true
++			out = append(out, k)
++		}
++	}
+ 	for _, p := range parts {
+ 		for _, m := range criticalIdentifierRE.FindAllString(p, -1) {
+-			k := strings.ToLower(strings.TrimSpace(m))
+-			if k != "" && !seen[k] {
+-				seen[k] = true
+-				out = append(out, k)
+-			}
++			add(m)
++		}
++		for _, m := range slashSwitchIdentifiers(p) {
++			add(m)
+ 		}
+ 	}
+ 	return out

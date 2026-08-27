@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"neuroforge/internal/core"
 )
@@ -298,18 +299,59 @@ func evidencePackForPrompt(cfg StagingPublisherConfig, evidence []draftEvidence)
 	return b.String()
 }
 
-var criticalIdentifierRE = regexp.MustCompile(`(?i)\b(?:0x[0-9a-f]{4,}|cve-\d{4}-\d{4,}|kb\d{5,}|v?\d+\.\d+(?:\.\d+){0,2})\b|-\d{3,}|/[A-Za-z][A-Za-z0-9-]{2,}`)
+var (
+	criticalIdentifierRE = regexp.MustCompile(`(?i)\b(?:0x[0-9a-f]{4,}|cve-\d{4}-\d{4,}|kb\d{5,}|v?\d+\.\d+(?:\.\d+){0,2})\b|-\d{3,}`)
+	slashSwitchRE        = regexp.MustCompile(`/[A-Za-z][A-Za-z0-9-]{2,}`)
+	markdownCodeRE       = regexp.MustCompile("(?s)```(?:[A-Za-z0-9_+.-]+)?[\t ]*\n?(.*?)```|`([^`\n]+)`")
+)
+
+// slashSwitchIdentifiers intentionally considers slash-prefixed identifiers only
+// inside Markdown code spans/fences. A bare `/word` in prose is highly ambiguous:
+// German compounds such as "BIOS-/UEFI-Konfiguration" and URL paths such as
+// "/portal-konfiguration" previously tripped the source-grounding gate even though
+// they were not CLI switches. Actionable commands are already claim-verified, so the
+// deterministic identifier guard should be conservative and only add the extra
+// slash-token check when the draft itself marks content as code.
+func slashSwitchIdentifiers(text string) []string {
+	var out []string
+	for _, match := range markdownCodeRE.FindAllStringSubmatch(text, -1) {
+		segment := ""
+		if len(match) > 1 && match[1] != "" {
+			segment = match[1]
+		} else if len(match) > 2 {
+			segment = match[2]
+		}
+		for _, loc := range slashSwitchRE.FindAllStringIndex(segment, -1) {
+			if loc[0] > 0 {
+				prev := segment[loc[0]-1]
+				// URL paths (host/path), compound prose (BIOS-/UEFI) and
+				// filesystem-like fragments are not command switches.
+				if !unicode.IsSpace(rune(prev)) && prev != '(' && prev != '[' && prev != '{' && prev != '"' && prev != '\'' {
+					continue
+				}
+			}
+			out = append(out, segment[loc[0]:loc[1]])
+		}
+	}
+	return out
+}
 
 func criticalIdentifiers(parts ...string) []string {
 	seen := map[string]bool{}
 	var out []string
+	add := func(m string) {
+		k := strings.ToLower(strings.TrimSpace(m))
+		if k != "" && !seen[k] {
+			seen[k] = true
+			out = append(out, k)
+		}
+	}
 	for _, p := range parts {
 		for _, m := range criticalIdentifierRE.FindAllString(p, -1) {
-			k := strings.ToLower(strings.TrimSpace(m))
-			if k != "" && !seen[k] {
-				seen[k] = true
-				out = append(out, k)
-			}
+			add(m)
+		}
+		for _, m := range slashSwitchIdentifiers(p) {
+			add(m)
 		}
 	}
 	return out

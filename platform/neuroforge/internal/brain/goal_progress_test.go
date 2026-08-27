@@ -525,6 +525,43 @@ func TestCriticalIdentifierGuardRejectsInventedVersion(t *testing.T) {
 	}
 }
 
+func TestCriticalIdentifierGuardIgnoresSlashCompoundsAndURLPaths(t *testing.T) {
+	draft := stagingDraftPayload{
+		Title:  "BitLocker Wiederherstellung",
+		Text:   "Nach einer TPM-, BIOS-/UEFI- oder Hardwareänderung kann die Wiederherstellung erforderlich sein. Prüfen Sie die Web-/Portal-Konfiguration und dokumentieren Sie Interaktionsbereiche/-Tags.",
+		Answer: "Öffnen Sie die Herstellerdokumentation unter https://example.test/docs/portal-konfiguration/uefi-recovery.",
+	}
+	evidence := []draftEvidence{{Memory: core.Memory{Text: "BitLocker recovery can be triggered after TPM, BIOS, UEFI, or hardware changes."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/windows/security/operating-system-security/data-protection/bitlocker/recovery-overview"}}}
+	if err := validateDraftCriticalIdentifiers(draft, evidence); err != nil {
+		t.Fatalf("slash compounds and URL paths must not be treated as CLI identifiers: %v", err)
+	}
+}
+
+func TestCriticalIdentifierGuardRejectsInventedSlashSwitchInCode(t *testing.T) {
+	draft := stagingDraftPayload{
+		Title:  "DISM Reparatur",
+		Text:   "Verwenden Sie nur dokumentierte Reparaturoptionen.",
+		Answer: "Führen Sie `DISM /Online /Cleanup-Image /MagicRepair` aus.",
+	}
+	evidence := []draftEvidence{{Memory: core.Memory{Text: "Run DISM /Online /Cleanup-Image /RestoreHealth to repair the image."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/windows-hardware/manufacture/desktop/repair-a-windows-image"}}}
+	err := validateDraftCriticalIdentifiers(draft, evidence)
+	if err == nil || !strings.Contains(strings.ToLower(err.Error()), "/magicrepair") {
+		t.Fatalf("invented slash switch in code must be rejected, got %v", err)
+	}
+}
+
+func TestCriticalIdentifierGuardAcceptsSourcedSlashSwitchInCode(t *testing.T) {
+	draft := stagingDraftPayload{
+		Title:  "DISM Reparatur",
+		Text:   "Verwenden Sie nur dokumentierte Reparaturoptionen.",
+		Answer: "Führen Sie `DISM /Online /Cleanup-Image /RestoreHealth` aus.",
+	}
+	evidence := []draftEvidence{{Memory: core.Memory{Text: "Run DISM /Online /Cleanup-Image /RestoreHealth to repair the image."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/windows-hardware/manufacture/desktop/repair-a-windows-image"}}}
+	if err := validateDraftCriticalIdentifiers(draft, evidence); err != nil {
+		t.Fatalf("sourced slash switches in code must pass: %v", err)
+	}
+}
+
 func TestClaimVerificationRepairsUnsupportedDISMOrder(t *testing.T) {
 	chatCalls := 0
 	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {

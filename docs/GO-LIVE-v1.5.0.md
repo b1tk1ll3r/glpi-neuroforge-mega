@@ -46,3 +46,8 @@ Für einen realen Research→Staging-Smoke-Test zusätzlich verifizieren:
 2. Staging-Synthese und Claim-Verifikation bleiben bei nicht reparierbarem JSON fail-closed.
 3. Der resultierende Draft enthält weiterhin `human_review_required=true` und `auto_reply=false`.
 4. Source-Authority und Claim-Verifikation aus v1.5.5 bleiben bestanden; JSON-Robustheit darf diese Gates nicht umgehen.
+
+
+## v1.5.7 Identifier-Grounding Zusatzgate
+
+Bei Windows-/Vendor-Artikeln dürfen normale Slash-Komposita oder URL-Pfade kein `source-unverified identifiers` auslösen. Echte CLI-Switches in Code-Spans/Fences bleiben source-verifiziert. Vor Go-Live mindestens einen Goal-Lauf mit `BIOS-/UEFI`-ähnlicher Prosa und einen Lauf mit einem belegten Slash-Command prüfen.
