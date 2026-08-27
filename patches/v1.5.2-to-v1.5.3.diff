@@ -1,0 +1,396 @@
+diff --git a/.env.example b/.env.example
+index 29dccfe3cc0acceb42597be0217c2f7ddeae6752..3fd8d691392605c5b0971b3758c1d91286cadbe6 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,5 +1,5 @@
+ ###############################################################################
+-# GLPI NEUROFORGE MEGA v1.5.2 - VOLLSTÄNDIGE .ENV.example
++# GLPI NEUROFORGE MEGA v1.5.3 - VOLLSTÄNDIGE .ENV.example
+ #
+ # Diese Datei ist die zentrale Konfiguration für docker compose.
+ # Sie enthält:
+@@ -29,7 +29,7 @@
+ # 01. MEGA STACK - RELEASE / HOST PORTS / PFADE
+ ###############################################################################
+ # Immutable Registry-Tag der sechs Projekt-Images. "latest" ist produktiv verboten.
+-IMAGE_TAG=1.5.2
++IMAGE_TAG=1.5.3
+ 
+ CONTROL_HOST_PORT=8070
+ AGENT_HOST_PORT=8080
+diff --git a/README.md b/README.md
+index 432307f253bb5f4368a6da35e8209d1253d8e759..cd2ebb9bf588270fa3e5b02a12a8f96dc0091c16 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+-# GLPI NeuroForge Mega v1.5.2
++# GLPI NeuroForge Mega v1.5.3
+ 
+-> Release: **v1.5.2** · Research-Query-Hardening mit kompakten deterministischen Suchanfragen und automatischem SearXNG-Kategorie-Fallback.
++> Release: **v1.5.3** · Research-Relevanz-Hardening, nachvollziehbare Draft-Belegzahlen und Schutz vor doppelten aktiven Goals.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+diff --git a/VERSION b/VERSION
+index 4cda8f19edc7ffa01ba13d5dbe4909a6dc2ce3c8..8af85beb5159909f7df13705826e8c937f2b050b 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.5.2
++1.5.3
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 1e82ef5fff7ad747c8f335f457fc7e08d3b9e5ed..aca2e75cd7b856d95435ac477327313cd02a9ed9 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -33,7 +33,7 @@ services:
+     cap_drop:
+     - ALL
+   neuroforge:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.3}
+     command:
+     - -data
+     - /app/data
+@@ -99,7 +99,7 @@ services:
+       start_period: 15s
+     stop_grace_period: 35s
+   neuroforge-worker:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.3}
+     command:
+     - -server
+     - http://neuroforge:8080
+@@ -119,7 +119,7 @@ services:
+     cap_drop:
+     - ALL
+   agent-data-init:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.3}
+     restart: 'no'
+     user: 0:0
+     volumes:
+@@ -132,7 +132,7 @@ services:
+     - CHOWN
+     - FOWNER
+   agent:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.3}
+     restart: unless-stopped
+     environment:
+       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
+@@ -353,7 +353,7 @@ services:
+       start_period: 10s
+     stop_grace_period: 20s
+   knowledge:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.3}
+     restart: unless-stopped
+     environment:
+       APP_MODE: ${KB_APP_MODE:-editor}
+@@ -394,7 +394,7 @@ services:
+     - ALL
+     stop_grace_period: 35s
+   control:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.3}
+     restart: unless-stopped
+     environment:
+       CONTROL_ADDR: :8070
+diff --git a/mega-project.json b/mega-project.json
+index 9c840c1deb461108a879aba189bb844b0981a8ed..d12824a263e59d507a344f0751755775a2ba4b94 100644
+--- a/mega-project.json
++++ b/mega-project.json
+@@ -28,7 +28,7 @@
+     "schema": "Wiki/Schema.md",
+     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
+   },
+-  "version": "1.5.2",
++  "version": "1.5.3",
+   "controlled_learning": {
+     "raw_chat_auto_learning": false,
+     "validated_outcomes": [
+diff --git a/platform/neuroforge/internal/brain/goal_progress_test.go b/platform/neuroforge/internal/brain/goal_progress_test.go
+index 6c96722c8d50543db9820cf2284dcf87f76be854..19d5edb71c119233ff8390dd8a9214c179f9cb79 100644
+--- a/platform/neuroforge/internal/brain/goal_progress_test.go
++++ b/platform/neuroforge/internal/brain/goal_progress_test.go
+@@ -76,6 +76,16 @@ func TestGoalResearchPublishesIdempotentHumanReviewDraft(t *testing.T) {
+ 		if body["answer"] == "" {
+ 			t.Fatalf("empty answer")
+ 		}
++		meta, ok := body["metadata"].(map[string]any)
++		if !ok {
++			t.Fatalf("missing metadata: %#v", body["metadata"])
++		}
++		if meta["research_evidence"] != float64(1) || meta["research_sources"] != float64(1) {
++			t.Fatalf("draft counters must reflect selected evidence: %#v", meta)
++		}
++		if meta["research_goal_evidence"] != float64(13) || meta["research_goal_sources"] != float64(5) {
++			t.Fatalf("goal totals must remain auditable: %#v", meta)
++		}
+ 		w.Header().Set("Content-Type", "application/json")
+ 		_ = json.NewEncoder(w).Encode(map[string]any{"staging": map[string]any{"key": "KB-AI-STAGING-1", "meta": map[string]any{"integration_action": "created"}}})
+ 	}))
+@@ -103,7 +113,7 @@ func TestGoalResearchPublishesIdempotentHumanReviewDraft(t *testing.T) {
+ 
+ 	e := &Engine{store: s, http: kb.Client()}
+ 	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1, SynthesisMode: "evidence"})
+-	g := &core.Goal{ID: "goal-1", Title: "NVIDIA", ResearchEvidence: 1, ResearchSources: 1, ResearchSourceIDs: []string{src.ID}}
++	g := &core.Goal{ID: "goal-1", Title: "NVIDIA", ResearchEvidence: 13, ResearchSources: 5, ResearchSourceIDs: []string{src.ID}}
+ 	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
+ 	if requests != 1 || g.StagingDraftsCreated != 1 || g.LastStagingDraftID == "" || g.LastStagingError != "" {
+ 		t.Fatalf("goal=%#v requests=%d", g, requests)
+@@ -289,3 +299,45 @@ func TestGoalArticleTargetUsesCreatedStagingArticles(t *testing.T) {
+ 		t.Fatalf("article target must count articles, got progress=%f reason=%q", g.Progress, g.ProgressReason)
+ 	}
+ }
++
++func TestResearchMaterialRelevanceRequiresExactErrorCodeAndSubjectAnchor(t *testing.T) {
++	g := &core.Goal{Title: "FortiClient SSLVPN 7200"}
++
++	for _, tc := range []struct {
++		name     string
++		parts    []string
++		relevant bool
++	}{
++		{
++			name:     "official fortinet title with exact code",
++			parts:    []string{"Troubleshooting Tip: FortiClient error 'Credentials or SSLVPN configuration is wrong. (-7200)'", "FortiClient SSL VPN authentication troubleshooting"},
++			relevant: true,
++		},
++		{
++			name:     "split ssl vpn plus exact code",
++			parts:    []string{"Technical Tip: Credential or SSL VPN configuration is wrong (-7200)", "SSL VPN authentication rule troubleshooting"},
++			relevant: true,
++		},
++		{
++			name:     "docker id only contains 7200 as substring",
++			parts:    []string{"Docker image", "https://hub.docker.com/r/cffork8s/72007bf3-214d-4f19-a618-f74b145ca3a5", "generic container image"},
++			relevant: false,
++		},
++		{
++			name:     "generic sslvpn without error code",
++			parts:    []string{"baselibrary/sslvpn", "VPN_TYPE=fortinet NET_ADMIN /dev/ppp"},
++			relevant: false,
++		},
++		{
++			name:     "exact code without product subject",
++			parts:    []string{"Build 7200 released", "unrelated software package"},
++			relevant: false,
++		},
++	} {
++		t.Run(tc.name, func(t *testing.T) {
++			if got := researchMaterialRelevant(g, tc.parts...); got != tc.relevant {
++				t.Fatalf("researchMaterialRelevant=%v want %v for %#v", got, tc.relevant, tc.parts)
++			}
++		})
++	}
++}
+diff --git a/platform/neuroforge/internal/brain/research_quality.go b/platform/neuroforge/internal/brain/research_quality.go
+index 328c000b75d270ace41b9170a2c76a39b870cb83..541a68d982368beef3eb2a7a755e87a451233a73 100644
+--- a/platform/neuroforge/internal/brain/research_quality.go
++++ b/platform/neuroforge/internal/brain/research_quality.go
+@@ -66,13 +66,83 @@ func researchMaterialRelevant(goal *core.Goal, parts ...string) bool {
+ 	if len(anchors) == 0 {
+ 		return true
+ 	}
+-	haystack := strings.ToLower(strings.Join(parts, "\n"))
+-	for _, tok := range anchors {
+-		if strings.Contains(haystack, tok) {
+-			return true
++
++	// Relevance is intentionally token-aware and requires coverage of more than
++	// one anchor for multi-part goals. The previous substring-any rule allowed
++	// false positives such as goal code "7200" matching a Docker repository id
++	// beginning with "72007...", or a generic page containing only "sslvpn".
++	// Numeric anchors (error codes, versions, model numbers) must match an exact
++	// normalized token and, when a lexical anchor exists, be accompanied by at
++	// least one subject/product anchor.
++	words := normalizedResearchWords(parts...)
++	wordSet := make(map[string]bool, len(words))
++	for _, w := range words {
++		wordSet[w] = true
++	}
++	// Also index compact adjacent word pairs/triples so an anchor such as
++	// "sslvpn" matches source text written as "SSL VPN" without falling back to
++	// unrestricted substring matching.
++	compact := make(map[string]bool, len(words)*2)
++	for i := range words {
++		if i+1 < len(words) {
++			compact[words[i]+words[i+1]] = true
++		}
++		if i+2 < len(words) {
++			compact[words[i]+words[i+1]+words[i+2]] = true
+ 		}
+ 	}
+-	return false
++
++	lexicalTotal, lexicalMatches := 0, 0
++	numericTotal, numericMatches := 0, 0
++	for _, anchor := range anchors {
++		if allDigits(anchor) {
++			numericTotal++
++			if wordSet[anchor] {
++				numericMatches++
++			}
++			continue
++		}
++		lexicalTotal++
++		if wordSet[anchor] || compact[anchor] {
++			lexicalMatches++
++		}
++	}
++
++	if numericTotal > 0 {
++		if numericMatches == 0 {
++			return false
++		}
++		if lexicalTotal > 0 && lexicalMatches == 0 {
++			return false
++		}
++		return true
++	}
++	if lexicalTotal <= 1 {
++		return lexicalMatches == lexicalTotal
++	}
++	return lexicalMatches >= 2
++}
++
++func normalizedResearchWords(parts ...string) []string {
++	normalized := strings.Map(func(r rune) rune {
++		if unicode.IsLetter(r) || unicode.IsDigit(r) {
++			return unicode.ToLower(r)
++		}
++		return ' '
++	}, strings.Join(parts, "\n"))
++	return strings.Fields(normalized)
++}
++
++func allDigits(s string) bool {
++	if s == "" {
++		return false
++	}
++	for _, r := range s {
++		if !unicode.IsDigit(r) {
++			return false
++		}
++	}
++	return true
+ }
+ 
+ func goalIDFromTags(tags []string) string {
+diff --git a/platform/neuroforge/internal/brain/staging.go b/platform/neuroforge/internal/brain/staging.go
+index 801b1ec8957a08392ffaff47a6f7a8f447d503f3..fcea5df063d7c2ec098aae09ec6ddc0f5f0c216f 100644
+--- a/platform/neuroforge/internal/brain/staging.go
++++ b/platform/neuroforge/internal/brain/staging.go
+@@ -138,14 +138,19 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
+ 		}
+ 	}
+ 	draft.Metadata = map[string]any{
+-		"research_goal_id":        goal.ID,
+-		"research_run_id":         research.RunID,
+-		"research_evidence":       goal.ResearchEvidence,
+-		"research_sources":        goal.ResearchSources,
+-		"research_corroborations": goal.ResearchCorroborations,
+-		"research_evidence_ids":   evidenceIDs,
+-		"research_source_uris":    sourceURIs,
+-		"human_review_required":   true,
++		"research_goal_id": goal.ID,
++		"research_run_id":  research.RunID,
++		// Draft-level counters describe the evidence actually supplied to the
++		// synthesizer. Goal totals are preserved separately for audit/history.
++		"research_evidence":            len(evidenceIDs),
++		"research_sources":             len(sourceURIs),
++		"research_corroborations":      goal.ResearchCorroborations,
++		"research_goal_evidence":       goal.ResearchEvidence,
++		"research_goal_sources":        goal.ResearchSources,
++		"research_goal_corroborations": goal.ResearchCorroborations,
++		"research_evidence_ids":        evidenceIDs,
++		"research_source_uris":         sourceURIs,
++		"human_review_required":        true,
+ 	}
+ 	body, _ := json.Marshal(draft)
+ 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.URL, bytes.NewReader(body))
+diff --git a/platform/neuroforge/internal/httpapi/index.html b/platform/neuroforge/internal/httpapi/index.html
+index 3fc4fd742602c5cdc907c38edd371ddd3cf2987f..2909d9bef560a7a3fc623efdd97f0ac9cb2dd2d2 100644
+--- a/platform/neuroforge/internal/httpapi/index.html
++++ b/platform/neuroforge/internal/httpapi/index.html
+@@ -226,7 +226,7 @@ function openGoalResearch(id,title){researchWatch.goalId=id;researchWatch.goalTi
+ $('liveCloseBtn').addEventListener('click',()=>{$('goalResearchLive').classList.remove('show');stopResearchPolling()});$('liveRefreshBtn').addEventListener('click',()=>{researchWatch.after=0;researchWatch.events=[];researchWatch.runId='';pollGoalResearch();loadResearchHistory()});
+ async function loadGoals(){try{let xs=await req('/api/v1/goals');xs=Array.isArray(xs)?xs:[];$('goalsList').innerHTML=xs.length?xs.map(g=>{let active=g.status==='active',paused=g.status==='paused';return `<div class="goal ${paused?'goalPaused':''}"><div class="goalHead"><div><h3>${esc(g.title)}</h3><div class="meta"><span>Priorität ${g.priority}</span><span>${g.research_enabled?'⌕ Research':'ohne Research'}</span><span>${g.auto_run?'AUTO':'MANUELL'}</span></div></div><span class="pill ${active?'good':paused?'warn':''}">${paused?'PAUSIERT':esc(g.status)}</span></div><p class="muted small">${esc(g.description||'')}</p><div class="progress"><span style="width:${Math.round((g.progress||0)*100)}%"></span></div><div class="meta"><span>${Math.round((g.progress||0)*100)}%</span><span>${esc(g.progress_reason||'Fortschritt noch nicht messbar')}</span><span>Intervall ${g.interval_minutes||'–'} min</span><span>${paused?'Scheduler angehalten':('Nächster: '+(g.next_cycle_at?when(g.next_cycle_at):'–'))}</span></div>${g.research_enabled?`<div class="meta"><span>${g.research_evidence||0} Evidenzen</span><span>${g.research_sources||0} Quellen</span><span>${g.research_corroborations||0} bestätigt</span>${g.last_staging_draft_id?`<span class="pill good">Staging ${esc(g.last_staging_draft_id)}</span>`:''}</div>`:''}${g.next_action?`<p><b>Nächste Aktion:</b> ${esc(g.next_action)}</p>`:''}${g.last_staging_error?`<p class="error small"><b>Staging:</b> ${esc(g.last_staging_error)}</p>`:''}${g.last_error?`<p class="error small">${esc(g.last_error)}</p>`:''}<div class="goalActions">${active?`<button class="btn secondary" data-goal-action="cycle" data-goal-id="${esc(g.id)}" data-goal-title="${esc(g.title)}">Jetzt lernen</button><button class="btn ghost" data-goal-action="pause" data-goal-id="${esc(g.id)}">Pausieren</button>`:''}${paused?`<button class="btn secondary" data-goal-action="resume" data-goal-id="${esc(g.id)}">Fortsetzen</button>`:''}${g.research_enabled?`<button class="btn ghost" data-research-live="${esc(g.id)}" data-goal-title="${esc(g.title)}">Live Research</button>`:''}<button class="btn ghost" data-focus="${esc(g.id)}">Graph</button><button class="btn danger" data-goal-action="delete" data-goal-id="${esc(g.id)}" data-goal-title="${esc(g.title)}">Löschen</button></div></div>`}).join(''):'<p class="muted">Noch keine Ziele.</p>';$$('[data-goal-action]').forEach(b=>b.addEventListener('click',()=>goalAction(b)));$$('[data-research-live]').forEach(b=>b.addEventListener('click',()=>openGoalResearch(b.dataset.researchLive,b.dataset.goalTitle)));$$('[data-focus]').forEach(b=>b.addEventListener('click',()=>{switchView('knowledge');$('knowledgeQuery').value='goal:'+b.dataset.focus;searchKnowledge()}))}catch(e){toast(e.message,true)}}
+ async function goalAction(b){let id=b.dataset.goalId,action=b.dataset.goalAction;if(action==='delete'&&!confirm(`Ziel „${b.dataset.goalTitle||id}“ wirklich löschen? Bereits gelerntes Wissen bleibt erhalten.`))return;if(action==='cycle')openGoalResearch(id,b.dataset.goalTitle||id);let old=b.textContent;try{b.disabled=true;b.textContent=action==='cycle'?'läuft …':action==='delete'?'lösche …':'speichere …';let path='/api/v1/goals/'+encodeURIComponent(id)+(action==='cycle'?'/cycle':action==='pause'?'/pause':action==='resume'?'/resume':'');let d=await req(path,{method:action==='delete'?'DELETE':'POST',body:action==='delete'?undefined:'{}'});if(action==='cycle')toast(`Zyklus fertig · Evaluation ${Number(d.evaluation).toFixed(2)} · ${d.sources_ingested||0} Quellen`);else if(action==='pause')toast('Ziel pausiert. Der Scheduler verarbeitet es nicht weiter.');else if(action==='resume')toast('Ziel wieder aktiv. Nächster Lauf wurde eingeplant.');else{toast('Ziel gelöscht. Bereits gelerntes Wissen bleibt erhalten.');if(researchWatch.goalId===id){$('goalResearchLive').classList.remove('show');stopResearchPolling();researchWatch.goalId=''}}await loadGoals();refreshAll()}catch(e){toast(e.message,true)}finally{b.disabled=false;b.textContent=old}}
+-$('goalCreateBtn').addEventListener('click',async()=>{let title=$('goalTitle').value.trim();if(!title)return toast('Titel fehlt.',true);try{let g=await req('/api/v1/goals',{method:'POST',body:JSON.stringify({title,description:$('goalDesc').value,target:$('goalTarget').value,priority:Number($('goalPriority').value||50),interval_minutes:Number($('goalInterval').value||10),status:'active'})});toast(`Ziel ${g.title} angelegt – erster Lauf ist eingeplant.`);$('goalTitle').value='';$('goalDesc').value='';loadGoals();refreshAll()}catch(e){toast(e.message,true)}});$('runAutonomyBtn').addEventListener('click',async()=>{try{let d=await req('/admin/api/autonomy',{method:'POST',body:'{}'});toast(`${d.cycles?.length||0} fällige Zyklen ausgeführt.`);loadGoals()}catch(e){toast(e.message,true)}});
++$('goalCreateBtn').addEventListener('click',async()=>{let title=$('goalTitle').value.trim();if(!title)return toast('Titel fehlt.',true);let b=$('goalCreateBtn'),old=b.textContent;try{b.disabled=true;b.textContent='lege an …';let g=await req('/api/v1/goals',{method:'POST',body:JSON.stringify({title,description:$('goalDesc').value,target:$('goalTarget').value,priority:Number($('goalPriority').value||50),interval_minutes:Number($('goalInterval').value||10),status:'active'})});toast(`Ziel ${g.title} angelegt – erster Lauf ist eingeplant.`);$('goalTitle').value='';$('goalDesc').value='';await loadGoals();refreshAll()}catch(e){toast(e.message,true)}finally{b.disabled=false;b.textContent=old}});$('runAutonomyBtn').addEventListener('click',async()=>{try{let d=await req('/admin/api/autonomy',{method:'POST',body:'{}'});toast(`${d.cycles?.length||0} fällige Zyklen ausgeführt.`);loadGoals()}catch(e){toast(e.message,true)}});
+ 
+ // ---- Chat ----
+ $('chatBtn').addEventListener('click',async()=>{let input=document.getElementById('chatPrompt').value.trim();if(!input)return toast('Nachricht fehlt.',true);chatAbort=new AbortController();$('chatAbortBtn').disabled=false;$('chatBtn').disabled=true;let start=Date.now(),timer=setInterval(()=>$('chatElapsed').textContent=Math.round((Date.now()-start)/1000)+' s',1000);$('chatOutput').textContent='Ollama / NeuroForge arbeitet …';try{let r=await fetch('/api/v1/chat',{method:'POST',headers:tokenHeaders(),signal:chatAbort.signal,body:JSON.stringify({session_id:$('chatSession').value,input,provider:$('chatProvider').value})}),txt=await r.text(),d;try{d=JSON.parse(txt)}catch{d=txt}if(!r.ok)throw new Error(d.error||d);$('chatOutput').textContent=(d.answer||'')+'\n\n— '+(d.provider||'')+' · '+(d.model||'')+' · Recall '+(d.recalled?.length||0)+' · Reward '+Number(d.auto_reward||0).toFixed(3);refreshAll()}catch(e){$('chatOutput').textContent=e.name==='AbortError'?'Abgebrochen.':e.message}finally{clearInterval(timer);$('chatElapsed').textContent='';$('chatAbortBtn').disabled=true;$('chatBtn').disabled=false;chatAbort=null}});$('chatAbortBtn').addEventListener('click',()=>chatAbort?.abort());
+diff --git a/platform/neuroforge/internal/httpapi/v3.go b/platform/neuroforge/internal/httpapi/v3.go
+index 8c2b8b4f5edfd46f1e355a63bd81c622654f4cad..e01f17d73e493b205c609085fa57637007ba3bb3 100644
+--- a/platform/neuroforge/internal/httpapi/v3.go
++++ b/platform/neuroforge/internal/httpapi/v3.go
+@@ -9,6 +9,7 @@ import (
+ 
+ 	"neuroforge/internal/brain"
+ 	"neuroforge/internal/core"
++	"neuroforge/internal/store"
+ )
+ 
+ func (s *Server) goalsList(w http.ResponseWriter, r *http.Request) {
+@@ -22,6 +23,10 @@ func (s *Server) goalsCreate(w http.ResponseWriter, r *http.Request) {
+ 		return
+ 	}
+ 	if err := s.store.UpsertGoal(&g); err != nil {
++		if errors.Is(err, store.ErrDuplicateGoal) {
++			s.err(w, http.StatusConflict, err)
++			return
++		}
+ 		s.err(w, 400, err)
+ 		return
+ 	}
+diff --git a/platform/neuroforge/internal/store/v3.go b/platform/neuroforge/internal/store/v3.go
+index f0e1ceaf4d21e99616e4e4ab756f801463652cef..033be4b7ca8cf7dda411e18b62730dc0c1ca9ce6 100644
+--- a/platform/neuroforge/internal/store/v3.go
++++ b/platform/neuroforge/internal/store/v3.go
+@@ -12,6 +12,8 @@ import (
+ 	"neuroforge/internal/vector"
+ )
+ 
++var ErrDuplicateGoal = errors.New("duplicate goal")
++
+ func (s *Store) resolveConflictLocked(in *core.Memory) []core.Memory {
+ 	key := strings.TrimSpace(in.TruthKey)
+ 	if key == "" {
+@@ -173,6 +175,17 @@ func (s *Store) UpsertGoal(g *core.Goal) error {
+ 	defer s.mu.Unlock()
+ 	now := time.Now().UTC()
+ 	newGoal := g.ID == "" || s.state.Goals[g.ID] == nil
++	if newGoal {
++		fingerprint := goalFingerprint(g)
++		for id, existing := range s.state.Goals {
++			if existing == nil || existing.Status == core.GoalCompleted {
++				continue
++			}
++			if goalFingerprint(existing) == fingerprint {
++				return fmt.Errorf("%w: existing goal %s", ErrDuplicateGoal, id)
++			}
++		}
++	}
+ 	if g.ID == "" {
+ 		g.ID = NewID("goal")
+ 	}
+@@ -206,6 +219,16 @@ func (s *Store) UpsertGoal(g *core.Goal) error {
+ 	return s.commitLocked("goal.upsert", cp)
+ }
+ 
++func goalFingerprint(g *core.Goal) string {
++	if g == nil {
++		return ""
++	}
++	normalize := func(v string) string {
++		return strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(v)), " "))
++	}
++	return normalize(g.Title) + "\x00" + normalize(g.Description) + "\x00" + normalize(g.Target)
++}
++
+ func (s *Store) GetGoal(id string) (*core.Goal, bool) {
+ 	s.mu.RLock()
+ 	defer s.mu.RUnlock()

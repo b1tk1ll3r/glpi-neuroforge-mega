@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.2
+# GLPI NeuroForge Mega v1.5.3
 
-> Release: **v1.5.2** · Research-Query-Hardening mit kompakten deterministischen Suchanfragen und automatischem SearXNG-Kategorie-Fallback.
+> Release: **v1.5.3** · Research-Relevanz-Hardening, nachvollziehbare Draft-Belegzahlen und Schutz vor doppelten aktiven Goals.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 

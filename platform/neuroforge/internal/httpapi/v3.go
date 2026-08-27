@@ -9,6 +9,7 @@ import (
 
 	"neuroforge/internal/brain"
 	"neuroforge/internal/core"
+	"neuroforge/internal/store"
 )
 
 func (s *Server) goalsList(w http.ResponseWriter, r *http.Request) {
@@ -22,6 +23,10 @@ func (s *Server) goalsCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := s.store.UpsertGoal(&g); err != nil {
+		if errors.Is(err, store.ErrDuplicateGoal) {
+			s.err(w, http.StatusConflict, err)
+			return
+		}
 		s.err(w, 400, err)
 		return
 	}

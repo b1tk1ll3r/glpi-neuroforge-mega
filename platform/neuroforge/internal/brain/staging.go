@@ -138,14 +138,19 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
 		}
 	}
 	draft.Metadata = map[string]any{
-		"research_goal_id":        goal.ID,
-		"research_run_id":         research.RunID,
-		"research_evidence":       goal.ResearchEvidence,
-		"research_sources":        goal.ResearchSources,
-		"research_corroborations": goal.ResearchCorroborations,
-		"research_evidence_ids":   evidenceIDs,
-		"research_source_uris":    sourceURIs,
-		"human_review_required":   true,
+		"research_goal_id": goal.ID,
+		"research_run_id":  research.RunID,
+		// Draft-level counters describe the evidence actually supplied to the
+		// synthesizer. Goal totals are preserved separately for audit/history.
+		"research_evidence":            len(evidenceIDs),
+		"research_sources":             len(sourceURIs),
+		"research_corroborations":      goal.ResearchCorroborations,
+		"research_goal_evidence":       goal.ResearchEvidence,
+		"research_goal_sources":        goal.ResearchSources,
+		"research_goal_corroborations": goal.ResearchCorroborations,
+		"research_evidence_ids":        evidenceIDs,
+		"research_source_uris":         sourceURIs,
+		"human_review_required":        true,
 	}
 	body, _ := json.Marshal(draft)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, cfg.URL, bytes.NewReader(body))

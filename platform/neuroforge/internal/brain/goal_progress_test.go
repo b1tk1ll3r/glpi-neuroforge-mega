@@ -76,6 +76,16 @@ func TestGoalResearchPublishesIdempotentHumanReviewDraft(t *testing.T) {
 		if body["answer"] == "" {
 			t.Fatalf("empty answer")
 		}
+		meta, ok := body["metadata"].(map[string]any)
+		if !ok {
+			t.Fatalf("missing metadata: %#v", body["metadata"])
+		}
+		if meta["research_evidence"] != float64(1) || meta["research_sources"] != float64(1) {
+			t.Fatalf("draft counters must reflect selected evidence: %#v", meta)
+		}
+		if meta["research_goal_evidence"] != float64(13) || meta["research_goal_sources"] != float64(5) {
+			t.Fatalf("goal totals must remain auditable: %#v", meta)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{"staging": map[string]any{"key": "KB-AI-STAGING-1", "meta": map[string]any{"integration_action": "created"}}})
 	}))
@@ -103,7 +113,7 @@ func TestGoalResearchPublishesIdempotentHumanReviewDraft(t *testing.T) {
 
 	e := &Engine{store: s, http: kb.Client()}
 	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1, SynthesisMode: "evidence"})
-	g := &core.Goal{ID: "goal-1", Title: "NVIDIA", ResearchEvidence: 1, ResearchSources: 1, ResearchSourceIDs: []string{src.ID}}
+	g := &core.Goal{ID: "goal-1", Title: "NVIDIA", ResearchEvidence: 13, ResearchSources: 5, ResearchSourceIDs: []string{src.ID}}
 	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
 	if requests != 1 || g.StagingDraftsCreated != 1 || g.LastStagingDraftID == "" || g.LastStagingError != "" {
 		t.Fatalf("goal=%#v requests=%d", g, requests)
@@ -287,5 +297,47 @@ func TestGoalArticleTargetUsesCreatedStagingArticles(t *testing.T) {
 	e.refreshGoalResearchProgress(g, 0)
 	if g.Progress < .049 || g.Progress > .051 || !strings.Contains(g.ProgressReason, "1/20 Staging-Artikel") {
 		t.Fatalf("article target must count articles, got progress=%f reason=%q", g.Progress, g.ProgressReason)
+	}
+}
+
+func TestResearchMaterialRelevanceRequiresExactErrorCodeAndSubjectAnchor(t *testing.T) {
+	g := &core.Goal{Title: "FortiClient SSLVPN 7200"}
+
+	for _, tc := range []struct {
+		name     string
+		parts    []string
+		relevant bool
+	}{
+		{
+			name:     "official fortinet title with exact code",
+			parts:    []string{"Troubleshooting Tip: FortiClient error 'Credentials or SSLVPN configuration is wrong. (-7200)'", "FortiClient SSL VPN authentication troubleshooting"},
+			relevant: true,
+		},
+		{
+			name:     "split ssl vpn plus exact code",
+			parts:    []string{"Technical Tip: Credential or SSL VPN configuration is wrong (-7200)", "SSL VPN authentication rule troubleshooting"},
+			relevant: true,
+		},
+		{
+			name:     "docker id only contains 7200 as substring",
+			parts:    []string{"Docker image", "https://hub.docker.com/r/cffork8s/72007bf3-214d-4f19-a618-f74b145ca3a5", "generic container image"},
+			relevant: false,
+		},
+		{
+			name:     "generic sslvpn without error code",
+			parts:    []string{"baselibrary/sslvpn", "VPN_TYPE=fortinet NET_ADMIN /dev/ppp"},
+			relevant: false,
+		},
+		{
+			name:     "exact code without product subject",
+			parts:    []string{"Build 7200 released", "unrelated software package"},
+			relevant: false,
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := researchMaterialRelevant(g, tc.parts...); got != tc.relevant {
+				t.Fatalf("researchMaterialRelevant=%v want %v for %#v", got, tc.relevant, tc.parts)
+			}
+		})
 	}
 }

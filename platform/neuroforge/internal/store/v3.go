@@ -12,6 +12,8 @@ import (
 	"neuroforge/internal/vector"
 )
 
+var ErrDuplicateGoal = errors.New("duplicate goal")
+
 func (s *Store) resolveConflictLocked(in *core.Memory) []core.Memory {
 	key := strings.TrimSpace(in.TruthKey)
 	if key == "" {
@@ -173,6 +175,17 @@ func (s *Store) UpsertGoal(g *core.Goal) error {
 	defer s.mu.Unlock()
 	now := time.Now().UTC()
 	newGoal := g.ID == "" || s.state.Goals[g.ID] == nil
+	if newGoal {
+		fingerprint := goalFingerprint(g)
+		for id, existing := range s.state.Goals {
+			if existing == nil || existing.Status == core.GoalCompleted {
+				continue
+			}
+			if goalFingerprint(existing) == fingerprint {
+				return fmt.Errorf("%w: existing goal %s", ErrDuplicateGoal, id)
+			}
+		}
+	}
 	if g.ID == "" {
 		g.ID = NewID("goal")
 	}
@@ -204,6 +217,16 @@ func (s *Store) UpsertGoal(g *core.Goal) error {
 	cp := cloneGoal(*g)
 	s.state.Goals[g.ID] = &cp
 	return s.commitLocked("goal.upsert", cp)
+}
+
+func goalFingerprint(g *core.Goal) string {
+	if g == nil {
+		return ""
+	}
+	normalize := func(v string) string {
+		return strings.ToLower(strings.Join(strings.Fields(strings.TrimSpace(v)), " "))
+	}
+	return normalize(g.Title) + "\x00" + normalize(g.Description) + "\x00" + normalize(g.Target)
 }
 
 func (s *Store) GetGoal(id string) (*core.Goal, bool) {

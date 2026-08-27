@@ -66,13 +66,83 @@ func researchMaterialRelevant(goal *core.Goal, parts ...string) bool {
 	if len(anchors) == 0 {
 		return true
 	}
-	haystack := strings.ToLower(strings.Join(parts, "\n"))
-	for _, tok := range anchors {
-		if strings.Contains(haystack, tok) {
-			return true
+
+	// Relevance is intentionally token-aware and requires coverage of more than
+	// one anchor for multi-part goals. The previous substring-any rule allowed
+	// false positives such as goal code "7200" matching a Docker repository id
+	// beginning with "72007...", or a generic page containing only "sslvpn".
+	// Numeric anchors (error codes, versions, model numbers) must match an exact
+	// normalized token and, when a lexical anchor exists, be accompanied by at
+	// least one subject/product anchor.
+	words := normalizedResearchWords(parts...)
+	wordSet := make(map[string]bool, len(words))
+	for _, w := range words {
+		wordSet[w] = true
+	}
+	// Also index compact adjacent word pairs/triples so an anchor such as
+	// "sslvpn" matches source text written as "SSL VPN" without falling back to
+	// unrestricted substring matching.
+	compact := make(map[string]bool, len(words)*2)
+	for i := range words {
+		if i+1 < len(words) {
+			compact[words[i]+words[i+1]] = true
+		}
+		if i+2 < len(words) {
+			compact[words[i]+words[i+1]+words[i+2]] = true
 		}
 	}
-	return false
+
+	lexicalTotal, lexicalMatches := 0, 0
+	numericTotal, numericMatches := 0, 0
+	for _, anchor := range anchors {
+		if allDigits(anchor) {
+			numericTotal++
+			if wordSet[anchor] {
+				numericMatches++
+			}
+			continue
+		}
+		lexicalTotal++
+		if wordSet[anchor] || compact[anchor] {
+			lexicalMatches++
+		}
+	}
+
+	if numericTotal > 0 {
+		if numericMatches == 0 {
+			return false
+		}
+		if lexicalTotal > 0 && lexicalMatches == 0 {
+			return false
+		}
+		return true
+	}
+	if lexicalTotal <= 1 {
+		return lexicalMatches == lexicalTotal
+	}
+	return lexicalMatches >= 2
+}
+
+func normalizedResearchWords(parts ...string) []string {
+	normalized := strings.Map(func(r rune) rune {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			return unicode.ToLower(r)
+		}
+		return ' '
+	}, strings.Join(parts, "\n"))
+	return strings.Fields(normalized)
+}
+
+func allDigits(s string) bool {
+	if s == "" {
+		return false
+	}
+	for _, r := range s {
+		if !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func goalIDFromTags(tags []string) string {
