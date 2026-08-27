@@ -14,36 +14,64 @@ import (
 var targetNumberRE = regexp.MustCompile(`(?i)(\d{1,9})`)
 
 func (e *Engine) refreshGoalResearchProgress(goal *core.Goal, evaluation float64) {
-	runs := e.store.ResearchRunsSnapshot(goal.ID, 200)
+	if goal == nil {
+		return
+	}
+	// Recompute from relevant evidence instead of keeping monotonic counters from
+	// old research runs. This intentionally lets upgrades remove previously
+	// counted off-topic evidence (for example an NVIDIA goal polluted by WebRTC).
 	sourceSet := map[string]struct{}{}
-	evidence, corroborations := 0, 0
+	memorySet := map[string]struct{}{}
+	corroborationSet := map[string]struct{}{}
+	runs := e.store.ResearchRunsSnapshot(goal.ID, 200)
 	for _, run := range runs {
-		evidence += run.Stats.NewEvidence
-		corroborations += run.Stats.Corroborations
 		for _, ev := range run.Events {
-			if strings.TrimSpace(ev.SourceID) != "" {
+			if ev.Type != "evidence.learned" && ev.Type != "evidence.corroborated" {
+				continue
+			}
+			m, ok := e.store.GetMemory(ev.MemoryID)
+			if !ok || m == nil {
+				continue
+			}
+			var src *core.KnowledgeSource
+			if m.Provenance.SourceID != "" {
+				if x, ok := e.store.GetSource(m.Provenance.SourceID); ok {
+					src = x
+				}
+			}
+			if !goalEvidenceRelevant(goal, *m, src) {
+				continue
+			}
+			memorySet[m.ID] = struct{}{}
+			if ev.SourceID != "" {
 				sourceSet[ev.SourceID] = struct{}{}
+			} else if m.Provenance.SourceID != "" {
+				sourceSet[m.Provenance.SourceID] = struct{}{}
+			}
+			if ev.Type == "evidence.corroborated" {
+				corroborationSet[m.ID+"\x00"+ev.SourceID] = struct{}{}
 			}
 		}
 	}
-	// Research-run telemetry is intentionally bounded. Keep persistent cumulative
-	// counters monotonic so progress cannot fall backwards when old runs are
-	// trimmed from the audit window. Existing source IDs are merged into the
-	// bounded lineage sample.
-	for _, id := range goal.ResearchSourceIDs {
-		if strings.TrimSpace(id) != "" {
-			sourceSet[id] = struct{}{}
+	// Durable provenance/legacy goal tags cover evidence older than the bounded
+	// research-run history and make the relevance repair effective after restart.
+	for _, m := range e.store.MemoriesSnapshot() {
+		if !memoryBelongsToGoal(m, goal.ID) || m.Provenance.SourceID == "" {
+			continue
 		}
+		var src *core.KnowledgeSource
+		if x, ok := e.store.GetSource(m.Provenance.SourceID); ok {
+			src = x
+		}
+		if !goalEvidenceRelevant(goal, m, src) {
+			continue
+		}
+		memorySet[m.ID] = struct{}{}
+		sourceSet[m.Provenance.SourceID] = struct{}{}
 	}
-	if evidence > goal.ResearchEvidence {
-		goal.ResearchEvidence = evidence
-	}
-	if corroborations > goal.ResearchCorroborations {
-		goal.ResearchCorroborations = corroborations
-	}
-	if len(sourceSet) > goal.ResearchSources {
-		goal.ResearchSources = len(sourceSet)
-	}
+	goal.ResearchEvidence = len(memorySet)
+	goal.ResearchSources = len(sourceSet)
+	goal.ResearchCorroborations = len(corroborationSet)
 	goal.ResearchSourceIDs = goal.ResearchSourceIDs[:0]
 	for id := range sourceSet {
 		goal.ResearchSourceIDs = append(goal.ResearchSourceIDs, id)
@@ -56,15 +84,16 @@ func (e *Engine) refreshGoalResearchProgress(goal *core.Goal, evaluation float64
 	if m := targetNumberRE.FindStringSubmatch(target); len(m) == 2 {
 		if n, err := strconv.Atoi(m[1]); err == nil && n > 0 {
 			current, label := goal.ResearchEvidence, "quellengebundene Evidenzen"
-			// Explicit evidence/knowledge-entry wording wins over adjectives such as
-			// "quellengebundene"; otherwise a target like "100 quellengebundene
-			// Wissenseinträge" would incorrectly become a source-count target.
-			evidenceTarget := strings.Contains(target, "wissensein") || strings.Contains(target, "evidenz") || strings.Contains(target, "claim") || strings.Contains(target, "eintr")
-			if !evidenceTarget && (strings.Contains(target, "quelle") || strings.Contains(target, "source")) {
-				current, label = goal.ResearchSources, "unabhängige Quellen"
-			}
-			if strings.Contains(target, "bestät") || strings.Contains(target, "corrobor") {
-				current, label = goal.ResearchCorroborations, "Bestätigungen"
+			if strings.Contains(target, "artikel") || strings.Contains(target, "article") || strings.Contains(target, "draft") || strings.Contains(target, "entwurf") {
+				current, label = goal.StagingDraftsCreated, "Staging-Artikel"
+			} else {
+				evidenceTarget := strings.Contains(target, "wissensein") || strings.Contains(target, "evidenz") || strings.Contains(target, "claim") || strings.Contains(target, "eintr")
+				if !evidenceTarget && (strings.Contains(target, "quelle") || strings.Contains(target, "source")) {
+					current, label = goal.ResearchSources, "unabhängige Quellen"
+				}
+				if strings.Contains(target, "bestät") || strings.Contains(target, "corrobor") {
+					current, label = goal.ResearchCorroborations, "Bestätigungen"
+				}
 			}
 			goal.Progress = vector.Clamp(float64(current)/float64(n), 0, 1)
 			goal.ProgressReason = fmt.Sprintf("%d/%d %s", current, n, label)

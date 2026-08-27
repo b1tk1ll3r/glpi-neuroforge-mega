@@ -258,9 +258,12 @@ func run() (retErr error) {
 	if v, ok := envInt("NEUROFORGE_KB_STAGING_MAX_EVIDENCE"); ok {
 		stagingCfg.MaxEvidence = v
 	}
+	if v := strings.TrimSpace(os.Getenv("NEUROFORGE_KB_STAGING_SYNTHESIS_MODE")); v != "" {
+		stagingCfg.SynthesisMode = v
+	}
 	b.ConfigureStagingPublisher(stagingCfg)
 	if stagingCfg.Enabled {
-		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0))
+		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d, synthesis=%s)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0), firstNonEmptyMain(stagingCfg.SynthesisMode, "llm"))
 	}
 	if err := b.ReconcileGoalProgress(); err != nil {
 		return fmt.Errorf("reconcile persisted goal research progress: %w", err)
@@ -340,4 +343,13 @@ func run() (retErr error) {
 	}
 	log.Printf("NeuroForge stopped")
 	return serveErr
+}
+
+func firstNonEmptyMain(xs ...string) string {
+	for _, x := range xs {
+		if strings.TrimSpace(x) != "" {
+			return strings.TrimSpace(x)
+		}
+	}
+	return ""
 }

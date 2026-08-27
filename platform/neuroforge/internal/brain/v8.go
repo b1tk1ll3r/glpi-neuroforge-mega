@@ -195,7 +195,7 @@ func (e *Engine) ingestSourceText(ctx context.Context, src *core.KnowledgeSource
 		mem := &core.Memory{
 			Kind: "evidence", MemoryType: memoryType, Text: chunk, Vector: emb.Vector,
 			Tags: appendUniqueTags(tags, "source:"+src.ID, "source-type:"+src.Type), Salience: 1.0, Confidence: conf, EvidenceSourceIDs: []string{src.ID}, EvidenceCount: 1,
-			Provenance: core.MemoryProvenance{Source: policySource, Actor: "ingestion", EmbeddingProvider: emb.Provider, EmbeddingModel: emb.Model, EmbeddingNodeID: emb.NodeID, SourceID: src.ID, SourceURI: src.URI, SourceTitle: src.Title, ChunkIndex: i + 1, ChunkCount: len(chunks), ContentHash: hashText(chunk), RetrievedAt: time.Now().UTC()},
+			Provenance: core.MemoryProvenance{Source: policySource, Actor: "ingestion", EmbeddingProvider: emb.Provider, EmbeddingModel: emb.Model, EmbeddingNodeID: emb.NodeID, GoalID: goalIDFromTags(tags), SourceID: src.ID, SourceURI: src.URI, SourceTitle: src.Title, ChunkIndex: i + 1, ChunkCount: len(chunks), ContentHash: hashText(chunk), RetrievedAt: time.Now().UTC()},
 		}
 		if dup, sim := e.duplicateMemory(mem.Vector, mem.MemoryType, mem.Kind, lp.DuplicateSimilarity); dup != nil {
 			res.Duplicates++
@@ -319,6 +319,12 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 		return ResearchResult{}, err
 	}
 	out := ResearchResult{Query: query, Results: results}
+	var researchGoal *core.Goal
+	if q.goalID != "" {
+		if g, ok := e.store.GetGoal(q.goalID); ok {
+			researchGoal = g
+		}
+	}
 	if q.trace != nil {
 		out.RunID = q.trace.runID
 		q.trace.emit(core.ResearchEvent{Type: "search.completed", Phase: "search", Status: "ok", Query: query, Message: fmt.Sprintf("%d Suchtreffer gefunden", len(results))})
@@ -343,6 +349,12 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 	for i, r := range results {
 		if ctx.Err() != nil {
 			return out, ctx.Err()
+		}
+		if researchGoal != nil && !researchMaterialRelevant(researchGoal, r.Title, r.Abstract, r.Content, r.URL) {
+			if q.trace != nil {
+				q.trace.emit(core.ResearchEvent{Type: "source.rejected", Phase: "relevance", Status: "skipped", Query: query, URL: r.URL, Title: r.Title, Message: "Suchtreffer ist thematisch nicht mit dem Goal verankert", Metadata: map[string]string{"reason": "goal_irrelevant"}})
+			}
+			continue
 		}
 		text := strings.TrimSpace(r.Content)
 		title := r.Title
@@ -411,6 +423,12 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 					sourceType = "web"
 				}
 			}
+		}
+		if researchGoal != nil && !researchMaterialRelevant(researchGoal, title, uri, text) {
+			if q.trace != nil {
+				q.trace.emit(core.ResearchEvent{Type: "source.rejected", Phase: "relevance", Status: "skipped", Query: query, URL: uri, Title: title, Message: "Geladener Inhalt ist thematisch nicht mit dem Goal verankert", Metadata: map[string]string{"reason": "goal_irrelevant"}})
+			}
+			continue
 		}
 		if text == "" {
 			if q.trace != nil {

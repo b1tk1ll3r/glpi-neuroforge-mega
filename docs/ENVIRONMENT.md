@@ -74,6 +74,7 @@ NEUROFORGE_KB_STAGING_MIN_EVIDENCE=4
 NEUROFORGE_KB_STAGING_MIN_SOURCES=2
 NEUROFORGE_KB_STAGING_MIN_CORROBORATIONS=0
 NEUROFORGE_KB_STAGING_MAX_EVIDENCE=12
+NEUROFORGE_KB_STAGING_SYNTHESIS_MODE=llm
 ```
 
 `NEUROFORGE_KB_STAGING_URL` and `NEUROFORGE_KB_STAGING_TOKEN` are container-internal values owned by the root Compose file. The token is derived from the existing `KB_INTEGRATION_TOKEN`; do not duplicate it under a second operator-managed secret name.
@@ -83,3 +84,7 @@ This bridge can only create/update **human-review staging**. The Knowledge servi
 ## Production secret isolation
 
 The production Compose does not use `env_file`. Agent and Knowledge receive only explicit runtime variables. NeuroForge Admin/Worker/Metrics, Knowledge editor and Control Center credentials are therefore not broadly inherited by unrelated containers. Local source builds use the separate `docker-compose.dev.yml` override.
+
+### Staging quality gate (v1.5.1)
+
+`NEUROFORGE_KB_STAGING_SYNTHESIS_MODE=llm` is the production default. Drafts are published only after goal-relevance filtering, source diversification and successful LLM synthesis. `evidence` is a diagnostic mode that exposes the selected evidence bundle and must not be treated as an article. Off-topic search results are rejected before ingestion and do not count toward goal progress.

@@ -3,6 +3,7 @@ package brain
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -20,12 +21,20 @@ func TestGoalProgressUsesResearchEvidenceTarget(t *testing.T) {
 	defer s.Close()
 	g := &core.Goal{ID: "goal-1", Title: "NVIDIA", Target: "100 hochwertige, quellengebundene Wissenseinträge"}
 	for r := 0; r < 3; r++ {
+		sourceID := string(rune('a' + r))
+		if err := s.UpsertSource(&core.KnowledgeSource{ID: sourceID, Type: "web", Title: "NVIDIA vendor documentation", URI: "https://example.test/nvidia/" + sourceID, Status: "ready"}); err != nil {
+			t.Fatal(err)
+		}
 		run, err := s.StartResearchRun(g.ID, g.Title)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for i := 0; i < 10; i++ {
-			_, _ = s.AddResearchEvent(run.ID, core.ResearchEvent{Type: "evidence.learned", SourceID: string(rune('a' + r)), MemoryID: "m"})
+			memoryID := fmt.Sprintf("m-%d-%d", r, i)
+			if err := s.AddMemory(&core.Memory{ID: memoryID, Kind: "evidence", MemoryType: core.MemorySemantic, Text: "NVIDIA RTX evidence", Vector: []float32{1, 0}, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", GoalID: g.ID, SourceID: sourceID}}); err != nil {
+				t.Fatal(err)
+			}
+			_, _ = s.AddResearchEvent(run.ID, core.ResearchEvent{Type: "evidence.learned", SourceID: sourceID, MemoryID: memoryID})
 		}
 		_, _ = s.FinishResearchRun(run.ID, "completed", "")
 	}
@@ -77,11 +86,11 @@ func TestGoalResearchPublishesIdempotentHumanReviewDraft(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	src := &core.KnowledgeSource{ID: "src-1", Type: "web", Title: "Vendor", URI: "https://example.test/doc", Trust: .8, Status: "ready"}
+	src := &core.KnowledgeSource{ID: "src-1", Type: "web", Title: "NVIDIA Vendor", URI: "https://example.test/nvidia/doc", Trust: .8, Status: "ready"}
 	if err := s.UpsertSource(src); err != nil {
 		t.Fatal(err)
 	}
-	mem := &core.Memory{ID: "mem-1", Kind: "evidence", MemoryType: core.MemorySemantic, Text: "RTX driver installation requires a supported operating system and current vendor package.", Vector: []float32{1, 0}, Confidence: .7, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", SourceID: src.ID}}
+	mem := &core.Memory{ID: "mem-1", Kind: "evidence", MemoryType: core.MemorySemantic, Text: "RTX driver installation requires a supported operating system and current vendor package.", Vector: []float32{1, 0}, Confidence: .7, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", GoalID: "goal-1", SourceID: src.ID}}
 	if err := s.AddMemory(mem); err != nil {
 		t.Fatal(err)
 	}
@@ -93,7 +102,7 @@ func TestGoalResearchPublishesIdempotentHumanReviewDraft(t *testing.T) {
 	_, _ = s.FinishResearchRun(run.ID, "completed", "")
 
 	e := &Engine{store: s, http: kb.Client()}
-	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1})
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1, SynthesisMode: "evidence"})
 	g := &core.Goal{ID: "goal-1", Title: "NVIDIA", ResearchEvidence: 1, ResearchSources: 1, ResearchSourceIDs: []string{src.ID}}
 	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
 	if requests != 1 || g.StagingDraftsCreated != 1 || g.LastStagingDraftID == "" || g.LastStagingError != "" {
@@ -134,20 +143,26 @@ func TestResearchQueryUsefulRejectsMetaProcessInstructions(t *testing.T) {
 	}
 }
 
-func TestGoalProgressDoesNotRegressWhenResearchAuditRunsAreTrimmed(t *testing.T) {
+func TestGoalProgressSurvivesTrimmedAuditFromDurableRelevantEvidence(t *testing.T) {
 	s, err := store.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	g := &core.Goal{ID: "goal-old", Target: "100 quellengebundene Wissenseinträge", ResearchEvidence: 100, ResearchSources: 12, ResearchCorroborations: 4}
+	g := &core.Goal{ID: "goal-old", Title: "NVIDIA", Target: "2 quellengebundene Wissenseinträge", ResearchEvidence: 100, ResearchSources: 12}
+	for i := 0; i < 2; i++ {
+		sid := fmt.Sprintf("src-%d", i)
+		if err := s.UpsertSource(&core.KnowledgeSource{ID: sid, Type: "web", Title: "NVIDIA documentation", URI: "https://example.test/nvidia", Status: "ready"}); err != nil {
+			t.Fatal(err)
+		}
+		if err := s.AddMemory(&core.Memory{ID: fmt.Sprintf("mem-%d", i), Kind: "evidence", MemoryType: core.MemorySemantic, Text: "NVIDIA Blackwell architecture evidence", Vector: []float32{1, 0}, Status: core.MemoryActive, Tags: []string{"goal:" + g.ID}, Provenance: core.MemoryProvenance{Source: "web.page", SourceID: sid}}); err != nil {
+			t.Fatal(err)
+		}
+	}
 	e := &Engine{store: s}
 	e.refreshGoalResearchProgress(g, .5)
-	if g.Progress != 1 {
-		t.Fatalf("progress regressed despite persistent cumulative counters: %f", g.Progress)
-	}
-	if g.ResearchEvidence != 100 || g.ResearchSources != 12 {
-		t.Fatalf("counters regressed: %#v", g)
+	if g.Progress != 1 || g.ResearchEvidence != 2 || g.ResearchSources != 2 {
+		t.Fatalf("durable relevant evidence not reconciled: %#v", g)
 	}
 }
 
@@ -188,7 +203,7 @@ func TestResearchProgressAndStagingRunWhenGoalSummaryLearningDisabled(t *testing
 	if err := s.UpdateConfig(cfg); err != nil {
 		t.Fatal(err)
 	}
-	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "staging-token-123456789012345678901234", MinEvidence: 1, MinSources: 1, MaxEvidence: 4})
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "staging-token-123456789012345678901234", MinEvidence: 1, MinSources: 1, MaxEvidence: 4, SynthesisMode: "evidence"})
 	goal := core.Goal{Title: "Driver research", Description: "collect sourced driver evidence", Target: "1 quellengebundener Wissenseintrag", Status: core.GoalActive, Priority: 80, ResearchEnabled: true}
 	if err := s.UpsertGoal(&goal); err != nil {
 		t.Fatal(err)
@@ -213,5 +228,29 @@ func TestResearchProgressAndStagingRunWhenGoalSummaryLearningDisabled(t *testing
 	}
 	if strings.Contains(strings.ToLower(updated.LastError), "learning policy") {
 		t.Fatalf("legacy learning-policy error survived: %q", updated.LastError)
+	}
+}
+
+func TestResearchMaterialRelevanceRejectsOffTopicWebRTCForNVIDIA(t *testing.T) {
+	g := &core.Goal{Title: "NVIDIA", Description: "Sammle Informationen zu den neuen RTX Grafikkarten."}
+	if researchMaterialRelevant(g, "Codecs used by WebRTC - MDN", "VP8 AVC codec browser media") {
+		t.Fatal("off-topic MDN WebRTC evidence must not pass NVIDIA goal relevance")
+	}
+	if !researchMaterialRelevant(g, "NVIDIA GeForce RTX 5090", "Blackwell architecture and GPU documentation") {
+		t.Fatal("NVIDIA evidence should pass goal relevance")
+	}
+}
+
+func TestGoalArticleTargetUsesCreatedStagingArticles(t *testing.T) {
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	g := &core.Goal{ID: "goal-articles", Title: "NVIDIA", Target: "20 hochwertige Wissensartikel", StagingDraftsCreated: 1}
+	e := &Engine{store: s}
+	e.refreshGoalResearchProgress(g, 0)
+	if g.Progress < .049 || g.Progress > .051 || !strings.Contains(g.ProgressReason, "1/20 Staging-Artikel") {
+		t.Fatalf("article target must count articles, got progress=%f reason=%q", g.Progress, g.ProgressReason)
 	}
 }

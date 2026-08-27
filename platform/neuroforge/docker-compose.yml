@@ -36,10 +36,10 @@ services:
     command:
       - -server
       - http://neuroforge:8080
-      - -token
-      - ${NEUROFORGE_WORKER_TOKEN}
       - -id
       - worker-compose-1
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set a unique NeuroForge worker token}
     depends_on:
       neuroforge:
         condition: service_healthy
