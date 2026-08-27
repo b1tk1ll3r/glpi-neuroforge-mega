@@ -122,6 +122,19 @@ func (r *Router) Chat(ctx context.Context, providerName, model, instructions, in
 // A non-empty nodeID is strict: NeuroForge will not silently use another Ollama
 // server for that role. OpenAI ignores nodeID.
 func (r *Router) ChatOn(ctx context.Context, providerName, model, nodeID, instructions, input string, maxOutput int) (ChatResult, error) {
+	return r.chatOn(ctx, providerName, model, nodeID, instructions, input, maxOutput, false)
+}
+
+// ChatJSONOn requests provider-native JSON output where the provider supports it.
+// Ollama's /api/chat "format":"json" keeps structured-output calls syntactically
+// constrained before NeuroForge applies its own strict schema and evidence gates.
+// Providers without a native mode continue through the normal transport and are
+// still validated by the caller's strict JSON decoder.
+func (r *Router) ChatJSONOn(ctx context.Context, providerName, model, nodeID, instructions, input string, maxOutput int) (ChatResult, error) {
+	return r.chatOn(ctx, providerName, model, nodeID, instructions, input, maxOutput, true)
+}
+
+func (r *Router) chatOn(ctx context.Context, providerName, model, nodeID, instructions, input string, maxOutput int, jsonMode bool) (ChatResult, error) {
 	cfg := r.store.Config()
 	if providerName == "" || providerName == "auto" {
 		providerName = cfg.Routing.ChatProvider
@@ -144,7 +157,7 @@ func (r *Router) ChatOn(ctx context.Context, providerName, model, nodeID, instru
 				lastErr = fmt.Errorf("ollama %s has no chat_model configured", o.Name)
 				continue
 			}
-			res, err := r.chatOllama(ctx, o, m, instructions, input, maxOutput)
+			res, err := r.chatOllama(ctx, o, m, instructions, input, maxOutput, jsonMode)
 			if err == nil {
 				return res, nil
 			}
@@ -255,13 +268,16 @@ func ollamaThinkValue(v string) (any, bool) {
 	}
 }
 
-func (r *Router) chatOllama(ctx context.Context, o core.OllamaServer, model, instructions, input string, maxOutput int) (ChatResult, error) {
+func (r *Router) chatOllama(ctx context.Context, o core.OllamaServer, model, instructions, input string, maxOutput int, jsonMode bool) (ChatResult, error) {
 	messages := []map[string]string{}
 	if instructions != "" {
 		messages = append(messages, map[string]string{"role": "system", "content": instructions})
 	}
 	messages = append(messages, map[string]string{"role": "user", "content": input})
 	body := map[string]any{"model": model, "messages": messages, "stream": false}
+	if jsonMode {
+		body["format"] = "json"
+	}
 	if strings.TrimSpace(o.ChatKeepAlive) != "" {
 		body["keep_alive"] = strings.TrimSpace(o.ChatKeepAlive)
 	}

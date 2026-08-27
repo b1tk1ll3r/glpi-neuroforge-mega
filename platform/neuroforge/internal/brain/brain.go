@@ -141,6 +141,14 @@ func (e *Engine) chatModelLimit(ctx context.Context, providerName, model, instru
 }
 
 func (e *Engine) chatModelLimitOn(ctx context.Context, providerName, model, nodeID, instructions, input string, maxOutput int) (provider.ChatResult, float64, error) {
+	return e.chatModelLimitOnMode(ctx, providerName, model, nodeID, instructions, input, maxOutput, false)
+}
+
+func (e *Engine) chatModelJSONLimitOn(ctx context.Context, providerName, model, nodeID, instructions, input string, maxOutput int) (provider.ChatResult, float64, error) {
+	return e.chatModelLimitOnMode(ctx, providerName, model, nodeID, instructions, input, maxOutput, true)
+}
+
+func (e *Engine) chatModelLimitOnMode(ctx context.Context, providerName, model, nodeID, instructions, input string, maxOutput int, jsonMode bool) (provider.ChatResult, float64, error) {
 	cfg := e.store.Config()
 	if maxOutput <= 0 {
 		maxOutput = cfg.OpenAI.MaxOutputTokens
@@ -153,7 +161,13 @@ func (e *Engine) chatModelLimitOn(ctx context.Context, providerName, model, node
 		route = "auto"
 	}
 	if route == "auto" {
-		res, err := e.router.ChatOn(ctx, "ollama", model, nodeID, instructions, input, maxOutput)
+		var res provider.ChatResult
+		var err error
+		if jsonMode {
+			res, err = e.router.ChatJSONOn(ctx, "ollama", model, nodeID, instructions, input, maxOutput)
+		} else {
+			res, err = e.router.ChatOn(ctx, "ollama", model, nodeID, instructions, input, maxOutput)
+		}
 		if err == nil {
 			costUSD, recErr := e.cost.Record(res.Provider, res.Model, "chat", res.Usage)
 			return res, costUSD, recErr
@@ -179,7 +193,13 @@ func (e *Engine) chatModelLimitOn(ctx context.Context, providerName, model, node
 		}
 		defer release()
 	}
-	res, err := e.router.ChatOn(ctx, route, model, nodeID, instructions, input, maxOutput)
+	var res provider.ChatResult
+	var err error
+	if jsonMode {
+		res, err = e.router.ChatJSONOn(ctx, route, model, nodeID, instructions, input, maxOutput)
+	} else {
+		res, err = e.router.ChatOn(ctx, route, model, nodeID, instructions, input, maxOutput)
+	}
 	if err != nil {
 		return provider.ChatResult{}, 0, err
 	}

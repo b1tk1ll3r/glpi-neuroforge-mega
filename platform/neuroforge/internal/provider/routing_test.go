@@ -72,6 +72,47 @@ func TestChatOnStrictOllamaNodeUsesNodeDefaultModel(t *testing.T) {
 	}
 }
 
+func TestChatJSONOnRequestsNativeOllamaJSONMode(t *testing.T) {
+	var format any
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/chat" {
+			http.NotFound(w, r)
+			return
+		}
+		var q map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&q); err != nil {
+			t.Fatal(err)
+		}
+		format = q["format"]
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"message":           map[string]any{"content": `{"ok":true}`},
+			"prompt_eval_count": 1,
+			"eval_count":        1,
+		})
+	}))
+	defer srv.Close()
+
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	cfg := s.Config()
+	cfg.Routing.ChatProvider = "ollama"
+	cfg.Ollama = []core.OllamaServer{{ID: "json", Name: "JSON", BaseURL: srv.URL, ChatModel: "test", EmbeddingModel: "embed", Weight: 1, Enabled: true}}
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	r := NewRouter(s)
+	if _, err := r.ChatJSONOn(context.Background(), "ollama", "", "json", "return json", "input", 32); err != nil {
+		t.Fatal(err)
+	}
+	if format != "json" {
+		t.Fatalf("ollama format=%#v want json", format)
+	}
+}
+
 func TestChatOnUnknownPinnedNodeDoesNotFallback(t *testing.T) {
 	s, err := store.New(t.TempDir())
 	if err != nil {

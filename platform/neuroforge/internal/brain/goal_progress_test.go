@@ -370,6 +370,44 @@ func TestDecodeStagingSynthesisJSONRepairsFencedMembersWithoutOuterBraces(t *tes
 	}
 }
 
+func TestDecodeStagingSynthesisJSONRepairsInvalidBackslashesInStrings(t *testing.T) {
+	var got stagingSynthesisContent
+	raw := `{"title":"BitLocker Recovery","text":"Prüfen Sie C:\Windows\System32 und HKLM\SOFTWARE\Microsoft.","answer":"Öffnen Sie C:\Windows\System32 nur nach Prüfung der Recovery-Dokumentation.","categories":["Windows"],"keywords":["BitLocker"]}`
+	if err := decodeStagingSynthesisJSON(raw, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(got.Text, `C:\Windows\System32`) || !strings.Contains(got.Text, `HKLM\SOFTWARE\Microsoft`) {
+		t.Fatalf("invalid backslashes were not preserved literally: %#v", got)
+	}
+}
+
+func TestDecodeStagingSynthesisJSONRepairsBackslashBeforeMarkdownBacktick(t *testing.T) {
+	var got stagingSynthesisContent
+	raw := "{\"title\":\"BitLocker Recovery\",\"text\":\"Nutzen Sie \\`manage-bde\\` nur nach Prüfung.\",\"answer\":\"Prüfen Sie zuerst die Microsoft-Dokumentation zum Recovery-Schlüssel.\",\"categories\":[\"Windows\"],\"keywords\":[\"BitLocker\"]}"
+	if err := decodeStagingSynthesisJSON(raw, &got); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(got.Text, "\\`manage-bde\\`") {
+		t.Fatalf("literal escaped Markdown marker was not preserved: %q", got.Text)
+	}
+}
+
+func TestDecodeStagingSynthesisJSONRejectsSurroundingProse(t *testing.T) {
+	var got stagingSynthesisContent
+	raw := `Here is the JSON: {"title":"BitLocker","text":"source backed","answer":"A sufficiently long source-backed BitLocker recovery answer for review.","categories":["Windows"],"keywords":["BitLocker"]}`
+	if err := decodeStagingSynthesisJSON(raw, &got); err == nil {
+		t.Fatal("expected surrounding prose to fail strict structured-output decoding")
+	}
+}
+
+func TestDecodeStagingSynthesisJSONRejectsUnknownFields(t *testing.T) {
+	var got stagingSynthesisContent
+	raw := `{"title":"BitLocker","text":"source backed","answer":"A sufficiently long source-backed BitLocker recovery answer for review.","categories":["Windows"],"keywords":["BitLocker"],"auto_reply":true}`
+	if err := decodeStagingSynthesisJSON(raw, &got); err == nil {
+		t.Fatal("expected strict schema rejection for unknown auto_reply field")
+	}
+}
+
 func TestStagingSynthesisRetriesMalformedStructuredOutputOnce(t *testing.T) {
 	chatCalls := 0
 	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {

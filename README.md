@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.5
+# GLPI NeuroForge Mega v1.5.6
 
-> Release: **v1.5.5** · Production-Grounding: First-Party-Quellen, Claim→Evidence-Verifikation, autoritative Action-Gates, Widerspruchserkennung und fail-closed Re-Verification.
+> Release: **v1.5.6** · Structured-Output-Hardening: provider-natives JSON, strikte Schemaprüfung und deterministische Behandlung fehlerhafter Backslash-Escapes zusätzlich zu den v1.5.5 Production-Grounding-Gates.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
@@ -150,6 +150,10 @@ Ein erfolgreiches Research-Gate allein reicht nicht mehr für einen Staging-Arti
 - Source-Authority, Claim-Coverage, Evidence-IDs, Widersprüche und Repair-Status werden im Staging-JSON persistiert.
 
 Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Origins statt mehrere Seiten derselben Domain künstlich als unabhängige Bestätigungen zu behandeln.
+
+### Structured Output Hardening (v1.5.6)
+
+Staging-Synthese, Claim-Verifikation und Grounding-Rewrite fordern bei Ollama jetzt provider-nativ `format: "json"` an. Zusätzlich validiert NeuroForge die erwarteten JSON-Schemata strikt, lehnt unbekannte Felder ab und repariert ausschließlich syntaktisch eindeutig ungültige Backslash-Escapes innerhalb von JSON-Strings (z. B. Windows-/Registry-Pfade). Gültige JSON-Escapes und Daten außerhalb von Strings werden nicht verändert. Andere Syntaxfehler bleiben fail-closed bzw. durchlaufen höchstens den bereits begrenzten syntax-only Repair-Pass.
 
 ## Obsidian / llm-wiki Export
 

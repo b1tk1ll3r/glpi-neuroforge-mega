@@ -36,3 +36,13 @@ Vor Go-Live mit autonomem Research zusätzlich verifizieren:
 4. `research_authoritative_sources >= 1` und `quality_gate_version=staging-v2` sind im Draft vorhanden.
 5. Ein absichtlich nicht belegter Versions-/Errorcode im Synthese-Test wird fail-closed abgewiesen.
 6. Ein Blog-/Forum-only Evidence-Set erzeugt bei aktiviertem Authority-Gate keinen Staging-Artikel.
+
+
+## v1.5.6 Structured-Output Zusatzgate
+
+Für einen realen Research→Staging-Smoke-Test zusätzlich verifizieren:
+
+1. Ein Windows-/Registry-lastiges Testziel erzeugt keine `invalid ... string escape code`-Fehler.
+2. Staging-Synthese und Claim-Verifikation bleiben bei nicht reparierbarem JSON fail-closed.
+3. Der resultierende Draft enthält weiterhin `human_review_required=true` und `auto_reply=false`.
+4. Source-Authority und Claim-Verifikation aus v1.5.5 bleiben bestanden; JSON-Robustheit darf diese Gates nicht umgehen.
