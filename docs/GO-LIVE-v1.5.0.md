@@ -25,3 +25,14 @@ Alternativ führt `./scripts/go-live.sh` genau diesen Ablauf ohne `make` aus. `I
 8. Vor GLPI-Schreibfreigabe einen vollständigen Ticketdurchlauf in `DRY_RUN=true` prüfen. Erst danach die gewünschten Automationen einzeln aktivieren.
 
 Docker, eine echte GLPI-Instanz, SearXNG und Ollama stehen in der Build-/Review-Umgebung nicht zur Verfügung; dieser Host-Smoke-Test ist deshalb ein bewusstes externes Release-Gate und darf nicht als lokal bestanden markiert werden.
+
+## v1.5.5 Production-Grounding Zusatzgate
+
+Vor Go-Live mit autonomem Research zusätzlich verifizieren:
+
+1. `NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_SOURCE=true` und `NEUROFORGE_KB_STAGING_VERIFY_CLAIMS=true` sind im aufgelösten Compose gesetzt.
+2. Ein Test-Goal mit explizitem Herstellerbezug erzeugt mindestens eine First-Party-Query (`site:`) und nutzt mindestens eine autoritative Quelle im finalen Staging-JSON.
+3. `claim_verification.verdict` ist `pass`, `claim_verification.coverage` ist `1`, `unsupported`/`contradictions` sind leer.
+4. `research_authoritative_sources >= 1` und `quality_gate_version=staging-v2` sind im Draft vorhanden.
+5. Ein absichtlich nicht belegter Versions-/Errorcode im Synthese-Test wird fail-closed abgewiesen.
+6. Ein Blog-/Forum-only Evidence-Set erzeugt bei aktiviertem Authority-Gate keinen Staging-Artikel.

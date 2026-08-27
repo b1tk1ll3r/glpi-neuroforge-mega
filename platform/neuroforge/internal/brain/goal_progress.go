@@ -48,8 +48,18 @@ func (e *Engine) refreshGoalResearchProgress(goal *core.Goal, evaluation float64
 			} else if m.Provenance.SourceID != "" {
 				sourceSet[m.Provenance.SourceID] = struct{}{}
 			}
-			if ev.Type == "evidence.corroborated" {
-				corroborationSet[m.ID+"\x00"+ev.SourceID] = struct{}{}
+			if ev.Type == "evidence.corroborated" && ev.SourceID != "" {
+				corroborating, ok := e.store.GetSource(ev.SourceID)
+				if ok && corroborating != nil {
+					primaryOrigin := ""
+					if src != nil {
+						primaryOrigin = sourceOriginKey(src.URI)
+					}
+					origin := sourceOriginKey(corroborating.URI)
+					if origin != "" && origin != primaryOrigin {
+						corroborationSet[m.ID+"\x00"+origin] = struct{}{}
+					}
+				}
 			}
 		}
 	}
@@ -68,6 +78,23 @@ func (e *Engine) refreshGoalResearchProgress(goal *core.Goal, evaluation float64
 		}
 		memorySet[m.ID] = struct{}{}
 		sourceSet[m.Provenance.SourceID] = struct{}{}
+		primaryOrigin := ""
+		if src != nil {
+			primaryOrigin = sourceOriginKey(src.URI)
+		}
+		for _, sid := range m.EvidenceSourceIDs {
+			if sid == "" || sid == m.Provenance.SourceID {
+				continue
+			}
+			corroborating, ok := e.store.GetSource(sid)
+			if !ok || corroborating == nil {
+				continue
+			}
+			origin := sourceOriginKey(corroborating.URI)
+			if origin != "" && origin != primaryOrigin {
+				corroborationSet[m.ID+"\x00"+origin] = struct{}{}
+			}
+		}
 	}
 	goal.ResearchEvidence = len(memorySet)
 	goal.ResearchSources = len(sourceSet)

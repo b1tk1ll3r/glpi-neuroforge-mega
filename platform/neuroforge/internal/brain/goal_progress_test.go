@@ -142,8 +142,8 @@ func TestGoalResearchQueryNeverUsesSchedulerNextActionAsSearchSubject(t *testing
 			t.Fatalf("bad research query: %q", q)
 		}
 	}
-	if qs[0] != "NVIDIA" || !strings.Contains(strings.ToLower(qs[1]), "rtx") {
-		t.Fatalf("deterministic queries are not compact/topic-focused: %#v", qs)
+	if qs[0] != "NVIDIA" || qs[1] != "NVIDIA site:docs.nvidia.com" {
+		t.Fatalf("deterministic queries are not compact/authority-focused: %#v", qs)
 	}
 }
 
@@ -402,5 +402,156 @@ func TestStagingSynthesisRetriesMalformedStructuredOutputOnce(t *testing.T) {
 	}
 	if !strings.Contains(got.Title, "0x800f081f") || got.Answer == "" {
 		t.Fatalf("unexpected draft: %#v", got)
+	}
+}
+
+func TestSourceAuthorityTreatsPrimaryDocsAndVendorCommunityDifferently(t *testing.T) {
+	cfg := StagingPublisherConfig{}
+	primary := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/repair-a-windows-image"})
+	if !primary.Authoritative || primary.AuthorityScore < .9 {
+		t.Fatalf("primary Microsoft docs should be authoritative: %#v", primary)
+	}
+	qna := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://learn.microsoft.com/de-de/answers/questions/123/dism"})
+	if qna.Authoritative || qna.Authority != "vendor-community" {
+		t.Fatalf("Microsoft Q&A must not count as primary documentation: %#v", qna)
+	}
+	fortinet := sourceAuthorityFor(cfg, &core.KnowledgeSource{URI: "https://community.fortinet.com/t5/FortiGate/Technical-Tip/ta-p/219912"})
+	if !fortinet.Authoritative {
+		t.Fatalf("first-party Fortinet knowledge content should count as authoritative: %#v", fortinet)
+	}
+}
+
+func TestCollectGoalDraftEvidencePrefersAuthoritativeSource(t *testing.T) {
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	g := &core.Goal{ID: "goal-dism", Title: "Windows 11 DISM Fehler 0x800f081f"}
+	sources := []*core.KnowledgeSource{
+		{ID: "blog", Type: "web", Title: "Blog 0x800f081f DISM Windows 11", URI: "https://example.test/dism-0x800f081f", Status: "ready", Trust: .85},
+		{ID: "ms", Type: "web", Title: "Microsoft DISM 0x800f081f Windows 11", URI: "https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/repair-a-windows-image", Status: "ready", Trust: .85},
+	}
+	for i, src := range sources {
+		if err := s.UpsertSource(src); err != nil {
+			t.Fatal(err)
+		}
+		m := &core.Memory{ID: fmt.Sprintf("m%d", i), Kind: "evidence", MemoryType: core.MemorySemantic, Text: "Windows 11 DISM error 0x800f081f repair source evidence.", Confidence: .8, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", GoalID: g.ID, SourceID: src.ID}}
+		if err := s.AddMemory(m); err != nil {
+			t.Fatal(err)
+		}
+	}
+	e := &Engine{store: s}
+	got := e.collectGoalDraftEvidence(g, StagingPublisherConfig{MaxEvidence: 1})
+	if len(got) != 1 || got[0].Source == nil || got[0].Source.ID != "ms" {
+		t.Fatalf("authoritative source was not preferred: %#v", got)
+	}
+}
+
+func TestStagingAuthorityGateBlocksBlogOnlyDraft(t *testing.T) {
+	calls := 0
+	kb := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		_ = json.NewEncoder(w).Encode(map[string]any{"staging": map[string]any{"key": "never", "meta": map[string]any{"integration_action": "created"}}})
+	}))
+	defer kb.Close()
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	src := &core.KnowledgeSource{ID: "blog", Type: "web", Title: "DISM 0x800f081f Windows 11 blog", URI: "https://example.test/windows-dism-0x800f081f", Status: "ready", Trust: .85}
+	if err := s.UpsertSource(src); err != nil {
+		t.Fatal(err)
+	}
+	m := &core.Memory{ID: "m1", Kind: "evidence", MemoryType: core.MemorySemantic, Text: "Windows 11 DISM error 0x800f081f evidence.", Confidence: .8, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", GoalID: "g1", SourceID: src.ID}}
+	if err := s.AddMemory(m); err != nil {
+		t.Fatal(err)
+	}
+	run, _ := s.StartResearchRun("g1", "Windows 11 DISM Fehler 0x800f081f")
+	_, _ = s.AddResearchEvent(run.ID, core.ResearchEvent{Type: "evidence.learned", SourceID: src.ID, MemoryID: m.ID})
+	e := &Engine{store: s, http: kb.Client()}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1, MaxEvidence: 4, SynthesisMode: "evidence", RequireAuthoritativeSource: true, MinAuthoritativeSources: 1})
+	g := &core.Goal{ID: "g1", Title: "Windows 11 DISM Fehler 0x800f081f", ResearchEvidence: 1, ResearchSources: 1}
+	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
+	if calls != 0 || !strings.Contains(g.LastStagingError, "source authority") {
+		t.Fatalf("blog-only draft must fail closed: calls=%d error=%q", calls, g.LastStagingError)
+	}
+}
+
+func TestCriticalIdentifierGuardRejectsInventedVersion(t *testing.T) {
+	draft := stagingDraftPayload{Title: "DISM 0x800f081f", Text: "Unter Windows v99.9 tritt der Fehler 0x800f081f auf.", Answer: "Prüfen Sie DISM bei Fehler 0x800f081f und verwenden Sie /RestoreHealth."}
+	evidence := []draftEvidence{{Memory: core.Memory{Text: "DISM error 0x800f081f can be repaired with /RestoreHealth."}, Source: &core.KnowledgeSource{Title: "Microsoft", URI: "https://learn.microsoft.com/doc"}}}
+	if err := validateDraftCriticalIdentifiers(draft, evidence); err == nil || !strings.Contains(err.Error(), "v99.9") {
+		t.Fatalf("invented version must be rejected, got %v", err)
+	}
+}
+
+func TestClaimVerificationRepairsUnsupportedDISMOrder(t *testing.T) {
+	chatCalls := 0
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/chat" {
+			http.NotFound(w, r)
+			return
+		}
+		chatCalls++
+		var content string
+		switch chatCalls {
+		case 1:
+			content = `{"title":"Windows 11 DISM Fehler 0x800f081f","text":"Der Fehler 0x800f081f betrifft die Windows-Reparaturquelle.","answer":"Führen Sie zuerst sfc /scannow und anschließend DISM /Online /Cleanup-Image /RestoreHealth aus.","categories":["Windows"],"keywords":["DISM","0x800f081f"]}`
+		case 2:
+			content = `{"verdict":"fail","statements":[{"id":"S1","status":"unsupported","evidence_ids":["E1"],"reason":"The evidence specifies DISM before SFC."},{"id":"S2","status":"supported","evidence_ids":["E1"],"reason":"The error/source statement is supported."}],"contradictions":[]}`
+		case 3:
+			content = `{"title":"Windows 11 DISM Fehler 0x800f081f","text":"Der Fehler 0x800f081f betrifft die Windows-Reparaturquelle.","answer":"Führen Sie zuerst DISM /Online /Cleanup-Image /RestoreHealth und anschließend sfc /scannow aus.","categories":["Windows"],"keywords":["DISM","0x800f081f"]}`
+		case 4:
+			content = `{"verdict":"pass","statements":[{"id":"S1","status":"supported","evidence_ids":["E1"],"reason":"Authoritative evidence specifies this order."},{"id":"S2","status":"supported","evidence_ids":["E1"],"reason":"Supported."}],"contradictions":[]}`
+		default:
+			t.Fatalf("unexpected chat call %d", chatCalls)
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": content}, "prompt_eval_count": 2, "eval_count": 2})
+	})
+	cfg := s.Config()
+	cfg.Autonomy.Provider = "ollama"
+	cfg.Autonomy.Model = cfg.Ollama[0].ChatModel
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, SynthesisMode: "llm", VerifyClaims: true, MinClaimCoverage: 1, RequireAuthoritativeActions: true, VerificationRepair: true})
+	goal := &core.Goal{ID: "goal-dism", Title: "Windows 11 DISM Fehler 0x800f081f", Description: "Reparaturreihenfolge fuer DISM Fehler 0x800f081f"}
+	evidence := []draftEvidence{{
+		Memory: core.Memory{ID: "m1", Text: "For Windows error 0x800f081f, run DISM /Online /Cleanup-Image /RestoreHealth first. After DISM completes, run sfc /scannow.", Confidence: .9, Provenance: core.MemoryProvenance{Source: "web.page", SourceID: "ms"}},
+		Source: &core.KnowledgeSource{ID: "ms", Title: "Microsoft system repair documentation", URI: "https://support.microsoft.com/windows/system-file-checker", Trust: .9},
+	}}
+	got, err := e.synthesizeGoalDraft(context.Background(), goal, evidence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if chatCalls != 4 {
+		t.Fatalf("chat calls=%d want 4", chatCalls)
+	}
+	if !strings.Contains(got.Answer, "zuerst DISM") || got.Quality == nil || got.Quality.Verification == nil || !got.Quality.Verification.RepairApplied {
+		t.Fatalf("draft was not grounded/reverified: %#v", got)
+	}
+}
+
+func TestIndependentCorroborationsDoNotCountSameVendorOriginTwice(t *testing.T) {
+	sources := map[string]*core.KnowledgeSource{
+		"primary": {ID: "primary", URI: "https://learn.microsoft.com/doc/a"},
+		"same":    {ID: "same", URI: "https://support.microsoft.com/doc/b"},
+		"other":   {ID: "other", URI: "https://example.org/independent"},
+	}
+	evidence := []draftEvidence{{Memory: core.Memory{ID: "m1", Provenance: core.MemoryProvenance{SourceID: "primary"}, EvidenceSourceIDs: []string{"primary", "same", "other"}}, Source: sources["primary"]}}
+	got := countDraftIndependentCorroborations(evidence, func(id string) (*core.KnowledgeSource, bool) { x, ok := sources[id]; return x, ok })
+	if got != 1 {
+		t.Fatalf("corroborations=%d want 1 independent origin", got)
+	}
+}
+
+func TestAuthoritativeDomainConfigurationRejectsOverbroadValues(t *testing.T) {
+	e := &Engine{}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{AuthoritativeDomains: []string{"com", "https://evil.example", "*.docs.example.com", "support.example.org"}})
+	cfg := e.stagingConfig()
+	if len(cfg.AuthoritativeDomains) != 2 || cfg.AuthoritativeDomains[0] != "docs.example.com" || cfg.AuthoritativeDomains[1] != "support.example.org" {
+		t.Fatalf("unsafe authority domains were not sanitized: %#v", cfg.AuthoritativeDomains)
 	}
 }

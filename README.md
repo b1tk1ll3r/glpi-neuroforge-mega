@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.4
+# GLPI NeuroForge Mega v1.5.5
 
-> Release: **v1.5.4** · Robuste fail-closed Staging-Synthese für lokale LLMs: Markdown-Fences, eng begrenzte JSON-Normalisierung und genau ein syntax-only Repair-Retry.
+> Release: **v1.5.5** · Production-Grounding: First-Party-Quellen, Claim→Evidence-Verifikation, autoritative Action-Gates, Widerspruchserkennung und fail-closed Re-Verification.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
@@ -137,6 +137,19 @@ export KB_INTEGRATION_TOKEN='...'
 
 Die Promotion bleibt ausschließlich beim normalen KB-Review-Workflow.
 
+### Production-Grounding (v1.5.5)
+
+Ein erfolgreiches Research-Gate allein reicht nicht mehr für einen Staging-Artikel. Vor dem Write werden Evidence und Synthese zusätzlich fail-closed geprüft:
+
+- First-Party-/Herstellerquellen werden gegenüber Blogs/Foren bevorzugt; produktiv ist mindestens eine autoritative Quelle erforderlich.
+- Microsoft Q&A gilt bewusst nur als Vendor-Community, nicht als Primärdokumentation. Weitere First-Party-Domains können operatorseitig ergänzt werden.
+- Fehlercodes, CVEs, KB-Nummern, Versionsnummern und Command-Switches, die der Draft neu einführt, müssen im Evidence-Bundle vorkommen.
+- Eine separate Critic-/Verification-Stufe prüft jede materielle Draft-Aussage gegen konkrete `E*`-Evidence-IDs.
+- Handlungsanweisungen benötigen bei aktiviertem Production-Gate mindestens einen autoritativen Beleg.
+- Unsupported/contradicted Claims blockieren den Write. Optional ist genau ein evidence-only Grounding-Repair erlaubt; anschließend wird der komplette Draft erneut verifiziert.
+- Source-Authority, Claim-Coverage, Evidence-IDs, Widersprüche und Repair-Status werden im Staging-JSON persistiert.
+
+Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Origins statt mehrere Seiten derselben Domain künstlich als unabhängige Bestätigungen zu behandeln.
 
 ## Obsidian / llm-wiki Export
 
@@ -183,7 +196,7 @@ python3 scripts/quality-replay.py docs/QUALITY-REPLAY-example.json --url http://
 
 ## Bewusst begrenzte Autonomie
 
-Auch bei aktivierter Research-Autonomie veröffentlicht NeuroForge **nicht selbstständig** in die produktive Knowledgebase. Der technische Draft-Ingress ist vorhanden, aber der Übergang von einem konkreten Research-Run zu einem KB-Draft soll über einen expliziten Workflow/Job erfolgen. Das ist eine Governance-Entscheidung, kein fehlender Schreibweg.
+Bei aktivierter Research-Autonomie darf NeuroForge selbstständig **human-review Staging-Drafts** erzeugen und bei neuer Evidence idempotent aktualisieren. Es besitzt jedoch keinen produktiven Knowledge-Promotion-Pfad: `auto_reply=false` wird am Integration-Ingress erzwungen und die Übernahme in die kanonische Knowledgebase bleibt eine menschliche Review-/Promotion-Aktion. v1.5.5 verschärft zusätzlich die Source-Authority- und Claim-Grounding-Gates vor jedem autonomen Draft-Write.
 
 ### Goal-Learning separat freigeben
 

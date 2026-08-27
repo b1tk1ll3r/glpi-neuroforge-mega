@@ -28,7 +28,7 @@
     "schema": "Wiki/Schema.md",
     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
   },
-  "version": "1.5.4",
+  "version": "1.5.5",
   "controlled_learning": {
     "raw_chat_auto_learning": false,
     "validated_outcomes": [
@@ -79,7 +79,15 @@
     "auto_reply": false,
     "default_min_evidence": 4,
     "default_min_sources": 2,
-    "default_min_corroborations": 0
+    "default_min_corroborations": 0,
+    "require_authoritative_source": true,
+    "min_authoritative_sources": 1,
+    "claim_verification": true,
+    "min_claim_coverage": 1.0,
+    "require_authoritative_actions": true,
+    "verification_repair_once": true,
+    "critical_identifier_guard": true,
+    "corroboration_scope": "independent source origin"
   },
-  "goal_progress": "persisted research evidence/source/corroboration metrics; numeric target aware"
+  "goal_progress": "persisted research evidence/source/independent-origin corroboration metrics; numeric target aware"
 }

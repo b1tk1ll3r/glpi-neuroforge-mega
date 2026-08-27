@@ -75,6 +75,14 @@ NEUROFORGE_KB_STAGING_MIN_SOURCES=2
 NEUROFORGE_KB_STAGING_MIN_CORROBORATIONS=0
 NEUROFORGE_KB_STAGING_MAX_EVIDENCE=12
 NEUROFORGE_KB_STAGING_SYNTHESIS_MODE=llm
+NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_SOURCE=true
+NEUROFORGE_KB_STAGING_MIN_AUTHORITATIVE_SOURCES=1
+NEUROFORGE_KB_STAGING_AUTHORITATIVE_DOMAINS=
+NEUROFORGE_KB_STAGING_VERIFY_CLAIMS=true
+NEUROFORGE_KB_STAGING_MIN_CLAIM_COVERAGE=1.0
+NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_ACTIONS=true
+NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS=24
+NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR=true
 ```
 
 `NEUROFORGE_KB_STAGING_URL` and `NEUROFORGE_KB_STAGING_TOKEN` are container-internal values owned by the root Compose file. The token is derived from the existing `KB_INTEGRATION_TOKEN`; do not duplicate it under a second operator-managed secret name.
@@ -88,3 +96,11 @@ The production Compose does not use `env_file`. Agent and Knowledge receive only
 ### Staging quality gate (v1.5.1)
 
 `NEUROFORGE_KB_STAGING_SYNTHESIS_MODE=llm` is the production default. Drafts are published only after goal-relevance filtering, source diversification and successful LLM synthesis. `evidence` is a diagnostic mode that exposes the selected evidence bundle and must not be treated as an article. Off-topic search results are rejected before ingestion and do not count toward goal progress.
+
+### Production grounding gate (v1.5.5)
+
+Before an LLM-synthesized research article reaches human-review staging, NeuroForge now ranks selected evidence by source authority, requires the configured number of first-party/authoritative sources, validates critical identifiers (error codes, CVEs, KB IDs, versions and command switches) against the source bundle, and runs a second claim-verification pass. Every material draft statement must be accounted for. Prescriptive guidance must cite at least one evidence item classified as authoritative when `NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_ACTIONS=true`.
+
+The verifier is fail-closed. Unsupported or contradicted statements prevent publication. With `NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR=true`, one evidence-only rewrite is attempted and the complete draft is then verified again. The repair may remove unsupported content but may not add outside knowledge. Source authority, claim-level evidence IDs, coverage, contradictions and whether a repair occurred are persisted in the staging JSON for human audit.
+
+Microsoft Q&A (`learn.microsoft.com/.../answers/...`) is intentionally treated as vendor-community rather than primary documentation. Operator-specific first-party domains can be added with `NEUROFORGE_KB_STAGING_AUTHORITATIVE_DOMAINS`.

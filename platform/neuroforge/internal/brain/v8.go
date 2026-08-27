@@ -352,6 +352,26 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 			results = fallback
 		}
 	}
+	if researchGoal != nil {
+		// SearXNG ranking is a discovery signal, not a trust decision. Prioritize
+		// goal-relevant first-party sources before consuming the bounded web-fetch
+		// budget; otherwise blogs/off-topic hits at the top of the result list can
+		// starve authoritative documentation that appears later.
+		stagingCfg := e.stagingConfig()
+		sort.SliceStable(results, func(i, j int) bool {
+			ri := researchMaterialRelevant(researchGoal, results[i].Title, results[i].Abstract, results[i].Content, results[i].URL)
+			rj := researchMaterialRelevant(researchGoal, results[j].Title, results[j].Abstract, results[j].Content, results[j].URL)
+			if ri != rj {
+				return ri
+			}
+			ai := sourceAuthorityFor(stagingCfg, &core.KnowledgeSource{URI: results[i].URL, Title: results[i].Title, Trust: .85}).AuthorityScore
+			aj := sourceAuthorityFor(stagingCfg, &core.KnowledgeSource{URI: results[j].URL, Title: results[j].Title, Trust: .85}).AuthorityScore
+			if ai != aj {
+				return ai > aj
+			}
+			return results[i].Score > results[j].Score
+		})
+	}
 	out := ResearchResult{Query: query, Results: results}
 	if q.trace != nil {
 		out.RunID = q.trace.runID
@@ -374,7 +394,8 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 	if pages > len(results) {
 		pages = len(results)
 	}
-	for i, r := range results {
+	fetchAttempts := 0
+	for _, r := range results {
 		if ctx.Err() != nil {
 			return out, ctx.Err()
 		}
@@ -388,7 +409,8 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 		title := r.Title
 		uri := r.URL
 		sourceType := "search"
-		if q.FetchPages && cfg.Research.WebFetch.Enabled && i < pages {
+		if q.FetchPages && cfg.Research.WebFetch.Enabled && fetchAttempts < pages {
+			fetchAttempts++
 			if q.trace != nil {
 				q.trace.emit(core.ResearchEvent{Type: "download.started", Phase: "fetch", Status: "running", Query: query, URL: r.URL, Title: r.Title, Message: "Quelle wird geladen"})
 			}
@@ -581,6 +603,16 @@ func deterministicResearchQueries(goal *core.Goal, max int) []string {
 	}
 	if len(out) >= max {
 		return out[:max]
+	}
+	// When the subject maps to a known first-party vendor documentation domain,
+	// reserve one deterministic query for that authority. This materially
+	// improves the chance that the staging authority gate can be satisfied instead
+	// of forcing a later draft to rely on blogs/forums.
+	if domains := goalPreferredAuthorityDomains(goal); len(domains) > 0 && title != "" {
+		out = append(out, title+" site:"+domains[0])
+		if len(out) >= max {
+			return dedupeStrings(out[:max])
+		}
 	}
 
 	stop := map[string]bool{

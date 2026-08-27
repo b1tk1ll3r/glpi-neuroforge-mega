@@ -47,6 +47,18 @@ func envInt(name string) (int, bool) {
 	return v, true
 }
 
+func envFloat(name string) (float64, bool) {
+	raw, ok := os.LookupEnv(name)
+	if !ok {
+		return 0, false
+	}
+	v, err := strconv.ParseFloat(strings.TrimSpace(raw), 64)
+	if err != nil {
+		return 0, false
+	}
+	return v, true
+}
+
 func validateManagedSecret(name, value string, minLen int) error {
 	value = strings.TrimSpace(value)
 	if value == "" {
@@ -261,9 +273,33 @@ func run() (retErr error) {
 	if v := strings.TrimSpace(os.Getenv("NEUROFORGE_KB_STAGING_SYNTHESIS_MODE")); v != "" {
 		stagingCfg.SynthesisMode = v
 	}
+	if v, ok := envBool("NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_SOURCE"); ok {
+		stagingCfg.RequireAuthoritativeSource = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MIN_AUTHORITATIVE_SOURCES"); ok {
+		stagingCfg.MinAuthoritativeSources = v
+	}
+	if v := strings.TrimSpace(os.Getenv("NEUROFORGE_KB_STAGING_AUTHORITATIVE_DOMAINS")); v != "" {
+		stagingCfg.AuthoritativeDomains = strings.Split(v, ",")
+	}
+	if v, ok := envBool("NEUROFORGE_KB_STAGING_VERIFY_CLAIMS"); ok {
+		stagingCfg.VerifyClaims = v
+	}
+	if v, ok := envFloat("NEUROFORGE_KB_STAGING_MIN_CLAIM_COVERAGE"); ok {
+		stagingCfg.MinClaimCoverage = v
+	}
+	if v, ok := envBool("NEUROFORGE_KB_STAGING_REQUIRE_AUTHORITATIVE_ACTIONS"); ok {
+		stagingCfg.RequireAuthoritativeActions = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS"); ok {
+		stagingCfg.MaxVerificationStatements = v
+	}
+	if v, ok := envBool("NEUROFORGE_KB_STAGING_VERIFICATION_REPAIR"); ok {
+		stagingCfg.VerificationRepair = v
+	}
 	b.ConfigureStagingPublisher(stagingCfg)
 	if stagingCfg.Enabled {
-		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d, synthesis=%s)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0), firstNonEmptyMain(stagingCfg.SynthesisMode, "llm"))
+		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d, synthesis=%s, authority_required=%t, claim_verify=%t)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0), firstNonEmptyMain(stagingCfg.SynthesisMode, "llm"), stagingCfg.RequireAuthoritativeSource, stagingCfg.VerifyClaims)
 	}
 	if err := b.ReconcileGoalProgress(); err != nil {
 		return fmt.Errorf("reconcile persisted goal research progress: %w", err)
