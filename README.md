@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.0
+# GLPI NeuroForge Mega v1.5.2
 
-> Release: **v1.5.0** · Stop-the-Line-Hardening für Trust Boundaries, Registry-Deployment, Readiness und transaktionales Knowledge-Staging.
+> Release: **v1.5.2** · Research-Query-Hardening mit kompakten deterministischen Suchanfragen und automatischem SearXNG-Kategorie-Fallback.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 

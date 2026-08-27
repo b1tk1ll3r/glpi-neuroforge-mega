@@ -124,12 +124,47 @@ func TestGoalResearchQueryNeverUsesSchedulerNextActionAsSearchSubject(t *testing
 	e := &Engine{store: s}
 	g := &core.Goal{Title: "NVIDIA", Description: "Sammle Informationen zu den neuen RTX Grafikkarten.", Target: "100 quellengebundene Wissenseinträge", NextAction: "Review the strongest negative evidence and create a corrective task before the next cycle."}
 	qs, _ := e.goalResearchQueries(context.Background(), g, 2, nil)
-	if len(qs) != 1 {
+	if len(qs) != 2 {
 		t.Fatalf("queries=%#v", qs)
 	}
-	q := qs[0]
-	if !strings.Contains(strings.ToLower(q), "nvidia") || strings.Contains(strings.ToLower(q), "negative evidence") || strings.Contains(strings.ToLower(q), "next cycle") {
-		t.Fatalf("bad research query: %q", q)
+	for _, q := range qs {
+		if !strings.Contains(strings.ToLower(q), "nvidia") || strings.Contains(strings.ToLower(q), "negative evidence") || strings.Contains(strings.ToLower(q), "next cycle") {
+			t.Fatalf("bad research query: %q", q)
+		}
+	}
+	if qs[0] != "NVIDIA" || !strings.Contains(strings.ToLower(qs[1]), "rtx") {
+		t.Fatalf("deterministic queries are not compact/topic-focused: %#v", qs)
+	}
+}
+
+func TestDeterministicResearchQueryDoesNotSendFullGoalPromptToSearch(t *testing.T) {
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	cfg := s.Config()
+	cfg.Autonomy.UseLLM = false
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	e := &Engine{store: s}
+	g := &core.Goal{
+		Title:       "FortiClient SSLVPN 7200",
+		Description: "Erstelle einen deutschsprachigen Support-Wissensartikel zum FortiClient SSL-VPN Fehler 7200. Recherchiere Ursache, typische Auslöser, sichere Diagnose-Schritte und geeignete Lösungswege. Bevorzuge offizielle Fortinet-Dokumentation und technisch belastbare Quellen.",
+		Target:      "1 hochwertiger Wissensartikel",
+	}
+	qs, _ := e.goalResearchQueries(context.Background(), g, 2, nil)
+	if len(qs) != 2 {
+		t.Fatalf("queries=%#v", qs)
+	}
+	if qs[0] != "FortiClient SSLVPN 7200" {
+		t.Fatalf("first query must be exact compact title, got %q", qs[0])
+	}
+	for _, q := range qs {
+		if strings.Contains(strings.ToLower(q), "wissensartikel") || strings.Contains(strings.ToLower(q), "hochwertiger") || len(q) > 100 {
+			t.Fatalf("query contains goal-instruction noise: %q", q)
+		}
 	}
 }
 

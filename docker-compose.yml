@@ -33,7 +33,7 @@ services:
     cap_drop:
     - ALL
   neuroforge:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
     command:
     - -data
     - /app/data
@@ -99,7 +99,7 @@ services:
       start_period: 15s
     stop_grace_period: 35s
   neuroforge-worker:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
     command:
     - -server
     - http://neuroforge:8080
@@ -119,7 +119,7 @@ services:
     cap_drop:
     - ALL
   agent-data-init:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
     restart: 'no'
     user: 0:0
     volumes:
@@ -132,7 +132,7 @@ services:
     - CHOWN
     - FOWNER
   agent:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
     restart: unless-stopped
     environment:
       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
@@ -353,7 +353,7 @@ services:
       start_period: 10s
     stop_grace_period: 20s
   knowledge:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
     restart: unless-stopped
     environment:
       APP_MODE: ${KB_APP_MODE:-editor}
@@ -394,7 +394,7 @@ services:
     - ALL
     stop_grace_period: 35s
   control:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
     restart: unless-stopped
     environment:
       CONTROL_ADDR: :8070

@@ -284,6 +284,18 @@ type ResearchRequest struct {
 	trace      *researchTrace
 }
 
+func researchResultsContainRelevant(goal *core.Goal, results []research.Result) bool {
+	if goal == nil {
+		return len(results) > 0
+	}
+	for _, r := range results {
+		if researchMaterialRelevant(goal, r.Title, r.Abstract, r.Content, r.URL) {
+			return true
+		}
+	}
+	return false
+}
+
 type ResearchResult struct {
 	RunID             string                 `json:"run_id,omitempty"`
 	Query             string                 `json:"query"`
@@ -308,23 +320,39 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
 	if max <= 0 || max > cfg.Research.SearXNG.MaxResults {
 		max = cfg.Research.SearXNG.MaxResults
 	}
-	if q.trace != nil {
-		q.trace.emit(core.ResearchEvent{Type: "search.started", Phase: "search", Status: "running", Query: query, Message: fmt.Sprintf("SearXNG-Suche gestartet · max %d Ergebnisse", max)})
-	}
-	results, err := research.Search(ctx, research.SearchConfig{BaseURL: cfg.Research.SearXNG.BaseURL, Language: cfg.Research.SearXNG.Language, Categories: cfg.Research.SearXNG.Categories, SafeSearch: cfg.Research.SearXNG.SafeSearch, Timeout: time.Duration(cfg.Research.SearXNG.TimeoutSeconds) * time.Second, MaxResults: max, Authorization: e.store.Secrets().SearXNGAuthHeader}, query)
-	if err != nil {
-		if q.trace != nil {
-			q.trace.emit(core.ResearchEvent{Type: "search.error", Phase: "search", Status: "error", Query: query, Message: err.Error()})
-		}
-		return ResearchResult{}, err
-	}
-	out := ResearchResult{Query: query, Results: results}
 	var researchGoal *core.Goal
 	if q.goalID != "" {
 		if g, ok := e.store.GetGoal(q.goalID); ok {
 			researchGoal = g
 		}
 	}
+	searchCfg := research.SearchConfig{BaseURL: cfg.Research.SearXNG.BaseURL, Language: cfg.Research.SearXNG.Language, Categories: cfg.Research.SearXNG.Categories, SafeSearch: cfg.Research.SearXNG.SafeSearch, Timeout: time.Duration(cfg.Research.SearXNG.TimeoutSeconds) * time.Second, MaxResults: max, Authorization: e.store.Secrets().SearXNGAuthHeader}
+	if q.trace != nil {
+		q.trace.emit(core.ResearchEvent{Type: "search.started", Phase: "search", Status: "running", Query: query, Message: fmt.Sprintf("SearXNG-Suche gestartet · max %d Ergebnisse", max)})
+	}
+	results, err := research.Search(ctx, searchCfg, query)
+	if err != nil {
+		if q.trace != nil {
+			q.trace.emit(core.ResearchEvent{Type: "search.error", Phase: "search", Status: "error", Query: query, Message: err.Error()})
+		}
+		return ResearchResult{}, err
+	}
+	// Category mixes are useful for broad autonomous research, but a specialized
+	// engine can occasionally dominate the top-N with completely unrelated hits.
+	// For goal-bound research, retry once in the general category if none of the
+	// configured-category results is anchored to the goal. This preserves the
+	// strict relevance gate while avoiding false "zero evidence" cycles.
+	if researchGoal != nil && !researchResultsContainRelevant(researchGoal, results) && !strings.EqualFold(strings.TrimSpace(searchCfg.Categories), "general") {
+		fallbackCfg := searchCfg
+		fallbackCfg.Categories = "general"
+		if q.trace != nil {
+			q.trace.emit(core.ResearchEvent{Type: "search.fallback", Phase: "search", Status: "warn", Query: query, Message: "Keine goal-relevanten Treffer in den konfigurierten Kategorien; Wiederholung mit category=general"})
+		}
+		if fallback, ferr := research.Search(ctx, fallbackCfg, query); ferr == nil && researchResultsContainRelevant(researchGoal, fallback) {
+			results = fallback
+		}
+	}
+	out := ResearchResult{Query: query, Results: results}
 	if q.trace != nil {
 		out.RunID = q.trace.runID
 		q.trace.emit(core.ResearchEvent{Type: "search.completed", Phase: "search", Status: "ok", Query: query, Message: fmt.Sprintf("%d Suchtreffer gefunden", len(results))})
@@ -477,13 +505,15 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
 	}
 	// Search subject and scheduler action are deliberately separated. NextAction
 	// describes what the autonomy loop should do, not what a search engine should
-	// search for. Feeding it back as a query caused self-referential searches such
-	// as "Review the strongest negative evidence ... next cycle".
-	base := strings.TrimSpace(strings.Join([]string{goal.Title, goal.Description, goal.Target}, " "))
-	if base == "" {
-		base = strings.TrimSpace(goal.Title)
+	// search for. Deterministic planning must also stay compact: sending the full
+	// goal description/target to SearXNG diluted specific support queries and could
+	// cause a category engine (notably arXiv) to dominate otherwise obvious results.
+	deterministic := deterministicResearchQueries(goal, max)
+	base := strings.TrimSpace(goal.Title)
+	if len(deterministic) > 0 {
+		base = deterministic[0]
 	}
-	queries := []string{base}
+	queries := append([]string(nil), deterministic...)
 	cost := 0.0
 	cfg := e.store.Config()
 	if trace != nil {
@@ -506,7 +536,7 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
 				}
 			}
 			if len(queries) == 0 {
-				queries = []string{base}
+				queries = append([]string(nil), deterministic...)
 			}
 		} else if trace != nil {
 			trace.emit(core.ResearchEvent{Type: "plan.fallback", Phase: "plan", Status: "warn", Message: "LLM-Queryplanung fehlgeschlagen; deterministische Query wird verwendet: " + shortPreview(err.Error(), 180)})
@@ -522,7 +552,10 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
 		}
 	}
 	if len(filtered) == 0 {
-		filtered = []string{base}
+		filtered = append([]string(nil), deterministic...)
+		if len(filtered) == 0 && base != "" {
+			filtered = []string{base}
+		}
 	}
 	queries = dedupeStrings(filtered)
 	if trace != nil {
@@ -532,6 +565,79 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
 		trace.emit(core.ResearchEvent{Type: "plan.completed", Phase: "plan", Status: "ok", Message: fmt.Sprintf("%d Research-Queries geplant", len(queries))})
 	}
 	return queries, cost
+}
+
+func deterministicResearchQueries(goal *core.Goal, max int) []string {
+	if goal == nil {
+		return nil
+	}
+	if max <= 0 {
+		max = 2
+	}
+	title := strings.Join(strings.Fields(strings.TrimSpace(goal.Title)), " ")
+	out := make([]string, 0, max)
+	if title != "" {
+		out = append(out, title)
+	}
+	if len(out) >= max {
+		return out[:max]
+	}
+
+	stop := map[string]bool{
+		"der": true, "die": true, "das": true, "den": true, "dem": true, "des": true, "ein": true, "eine": true, "einen": true, "einer": true,
+		"und": true, "oder": true, "mit": true, "für": true, "von": true, "zum": true, "zur": true, "zu": true, "nach": true, "bei": true, "auf": true,
+		"erstelle": true, "erstellen": true, "recherchiere": true, "suche": true, "sammle": true, "informationen": true, "information": true,
+		"deutschsprachigen": true, "deutschsprachig": true, "wissensartikel": true, "support": true, "hochwertigen": true, "hochwertiger": true, "sichere": true,
+		"typische": true, "geeignete": true, "bevorzuge": true, "offizielle": true, "technisch": true, "belastbare": true, "quellen": true,
+		"keine": true, "keinen": true, "allgemeinen": true, "ohne": true, "direkten": true, "bezug": true, "themen": true,
+		"the": true, "and": true, "for": true, "with": true, "from": true, "about": true, "create": true, "research": true, "find": true, "article": true,
+	}
+	canonical := func(v string) string {
+		v = strings.ToLower(strings.TrimSpace(v))
+		v = strings.NewReplacer("-", "", "_", "", "/", "", ".", "", ":", "").Replace(v)
+		return v
+	}
+	seen := map[string]bool{}
+	for _, raw := range strings.Fields(strings.ToLower(title)) {
+		tok := strings.Trim(raw, ".,:;!?()[]{}\"'/_-")
+		if key := canonical(tok); key != "" {
+			seen[key] = true
+		}
+	}
+	extras := make([]string, 0, 4)
+	for _, raw := range strings.Fields(goal.Description) {
+		tok := strings.Trim(raw, ".,:;!?()[]{}\"'/_-")
+		lower := strings.ToLower(tok)
+		key := canonical(lower)
+		if len([]rune(lower)) < 3 || stop[lower] || strings.Contains(lower, "wissensartikel") || seen[key] {
+			continue
+		}
+		seen[key] = true
+		extras = append(extras, tok)
+		if len(extras) >= 4 {
+			break
+		}
+	}
+	if len(extras) > 0 {
+		q := strings.TrimSpace(strings.Join(append([]string{title}, extras...), " "))
+		if q != "" && !strings.EqualFold(q, title) {
+			out = append(out, q)
+		}
+	}
+	if len(out) == 0 {
+		parts := strings.Fields(strings.TrimSpace(goal.Description))
+		if len(parts) > 8 {
+			parts = parts[:8]
+		}
+		q := strings.Join(parts, " ")
+		if q != "" {
+			out = append(out, q)
+		}
+	}
+	if len(out) > max {
+		out = out[:max]
+	}
+	return dedupeStrings(out)
 }
 
 func researchQueryUseful(goal *core.Goal, query string) bool {

@@ -1,0 +1,470 @@
+diff --git a/.env.example b/.env.example
+index 5e8726a5df3df1aa912a9f79a1c33f3c39018216..29dccfe3cc0acceb42597be0217c2f7ddeae6752 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,5 +1,5 @@
+ ###############################################################################
+-# GLPI NEUROFORGE MEGA v1.5.0 - VOLLSTÄNDIGE .ENV.example
++# GLPI NEUROFORGE MEGA v1.5.2 - VOLLSTÄNDIGE .ENV.example
+ #
+ # Diese Datei ist die zentrale Konfiguration für docker compose.
+ # Sie enthält:
+@@ -29,7 +29,7 @@
+ # 01. MEGA STACK - RELEASE / HOST PORTS / PFADE
+ ###############################################################################
+ # Immutable Registry-Tag der sechs Projekt-Images. "latest" ist produktiv verboten.
+-IMAGE_TAG=1.5.0
++IMAGE_TAG=1.5.2
+ 
+ CONTROL_HOST_PORT=8070
+ AGENT_HOST_PORT=8080
+diff --git a/README.md b/README.md
+index a31b5e06dc5f385aa25e56479badfabd4b452599..432307f253bb5f4368a6da35e8209d1253d8e759 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+-# GLPI NeuroForge Mega v1.5.0
++# GLPI NeuroForge Mega v1.5.2
+ 
+-> Release: **v1.5.0** · Stop-the-Line-Hardening für Trust Boundaries, Registry-Deployment, Readiness und transaktionales Knowledge-Staging.
++> Release: **v1.5.2** · Research-Query-Hardening mit kompakten deterministischen Suchanfragen und automatischem SearXNG-Kategorie-Fallback.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+diff --git a/VERSION b/VERSION
+index 26ca594609a93d60b6543102d639fa76b50a6925..4cda8f19edc7ffa01ba13d5dbe4909a6dc2ce3c8 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.5.1
++1.5.2
+diff --git a/docker-compose.yml b/docker-compose.yml
+index 506ea8cd77f71ae3ad1a588897d408e872a998b3..1e82ef5fff7ad747c8f335f457fc7e08d3b9e5ed 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -33,7 +33,7 @@ services:
+     cap_drop:
+     - ALL
+   neuroforge:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
+     command:
+     - -data
+     - /app/data
+@@ -99,7 +99,7 @@ services:
+       start_period: 15s
+     stop_grace_period: 35s
+   neuroforge-worker:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
+     command:
+     - -server
+     - http://neuroforge:8080
+@@ -119,7 +119,7 @@ services:
+     cap_drop:
+     - ALL
+   agent-data-init:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
+     restart: 'no'
+     user: 0:0
+     volumes:
+@@ -132,7 +132,7 @@ services:
+     - CHOWN
+     - FOWNER
+   agent:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
+     restart: unless-stopped
+     environment:
+       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
+@@ -353,7 +353,7 @@ services:
+       start_period: 10s
+     stop_grace_period: 20s
+   knowledge:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
+     restart: unless-stopped
+     environment:
+       APP_MODE: ${KB_APP_MODE:-editor}
+@@ -394,7 +394,7 @@ services:
+     - ALL
+     stop_grace_period: 35s
+   control:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.2}
+     restart: unless-stopped
+     environment:
+       CONTROL_ADDR: :8070
+diff --git a/docs/MIGRATION-v1.5.1-to-v1.5.2.md b/docs/MIGRATION-v1.5.1-to-v1.5.2.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..933409113f008ed6527cb896541dd1d6dde40e5b
+--- /dev/null
++++ b/docs/MIGRATION-v1.5.1-to-v1.5.2.md
+@@ -0,0 +1,11 @@
++# Migration v1.5.1 → v1.5.2
++
++v1.5.2 is a drop-in research-planning fix. Persistent volumes and existing secrets are retained.
++
++1. Build/publish the v1.5.2 images through the normal Gitea pipeline.
++2. Set `IMAGE_TAG=1.5.2`.
++3. `docker compose --profile research pull`
++4. `docker compose --profile research up -d --force-recreate neuroforge neuroforge-worker`
++5. Re-run the FortiClient SSLVPN 7200 goal and inspect `/api/v1/goals/{id}/research/live`.
++
++Expected behavior: `query.planned` starts with `FortiClient SSLVPN 7200`; if the configured category mix produces no relevant result, `search.fallback` is emitted and a `general` search is used. Relevant Fortinet hits should proceed to `download.started` rather than being rejected before fetch.
+diff --git a/docs/RELEASE-v1.5.2.md b/docs/RELEASE-v1.5.2.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..a135189c14feee103910b2c38a99282af82f56ab
+--- /dev/null
++++ b/docs/RELEASE-v1.5.2.md
+@@ -0,0 +1,18 @@
++# GLPI NeuroForge Mega v1.5.2
++
++v1.5.2 fixes a real autonomous-research failure observed with a narrow FortiClient SSLVPN 7200 goal. SearXNG itself returned relevant Fortinet sources for a focused query, while NeuroForge's deterministic planner sent the complete goal description and target as one oversized query. With a mixed `general,science,it` category configuration this allowed arXiv results to dominate the top-N; the strict relevance gate then correctly rejected every result, leaving the cycle with zero evidence.
++
++## Fixes
++
++- Deterministic goal research no longer sends `title + full description + target` to SearXNG when `autonomy.use_llm=false`.
++- The first deterministic query is the compact goal title; an optional second query adds only a small number of non-generic description terms.
++- Scheduler/process text remains excluded from all search queries.
++- Goal-bound research retries once with SearXNG `category=general` when the configured category mix returns no goal-anchored result.
++- The strict pre-fetch relevance gate remains fail-closed; it is not weakened to compensate for bad search ranking.
++- Regression coverage reproduces the observed `general,science,it -> unrelated arXiv` result set and verifies that the general fallback returns and learns FortiClient 7200 evidence.
++
++## Validation
++
++All four Go modules pass `go test ./...`, `go vet ./...`, and `go build ./...`. Race checks pass for NeuroForge brain/store/http/research, Agent core/config/knowledge/learning/state, Knowledge staging/store/server, and Control.
++
++The real Docker/SearXNG/Ollama host smoke remains a deployment-host gate.
+diff --git a/mega-project.json b/mega-project.json
+index 62b23f57728905388b5a1b86a8f301ef5f736de7..9c840c1deb461108a879aba189bb844b0981a8ed 100644
+--- a/mega-project.json
++++ b/mega-project.json
+@@ -28,7 +28,7 @@
+     "schema": "Wiki/Schema.md",
+     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
+   },
+-  "version": "1.5.0",
++  "version": "1.5.2",
+   "controlled_learning": {
+     "raw_chat_auto_learning": false,
+     "validated_outcomes": [
+diff --git a/platform/neuroforge/internal/brain/goal_progress_test.go b/platform/neuroforge/internal/brain/goal_progress_test.go
+index e2c15177a251b1425af295abd6f6a94f6d01c862..6c96722c8d50543db9820cf2284dcf87f76be854 100644
+--- a/platform/neuroforge/internal/brain/goal_progress_test.go
++++ b/platform/neuroforge/internal/brain/goal_progress_test.go
+@@ -124,12 +124,47 @@ func TestGoalResearchQueryNeverUsesSchedulerNextActionAsSearchSubject(t *testing
+ 	e := &Engine{store: s}
+ 	g := &core.Goal{Title: "NVIDIA", Description: "Sammle Informationen zu den neuen RTX Grafikkarten.", Target: "100 quellengebundene Wissenseinträge", NextAction: "Review the strongest negative evidence and create a corrective task before the next cycle."}
+ 	qs, _ := e.goalResearchQueries(context.Background(), g, 2, nil)
+-	if len(qs) != 1 {
++	if len(qs) != 2 {
+ 		t.Fatalf("queries=%#v", qs)
+ 	}
+-	q := qs[0]
+-	if !strings.Contains(strings.ToLower(q), "nvidia") || strings.Contains(strings.ToLower(q), "negative evidence") || strings.Contains(strings.ToLower(q), "next cycle") {
+-		t.Fatalf("bad research query: %q", q)
++	for _, q := range qs {
++		if !strings.Contains(strings.ToLower(q), "nvidia") || strings.Contains(strings.ToLower(q), "negative evidence") || strings.Contains(strings.ToLower(q), "next cycle") {
++			t.Fatalf("bad research query: %q", q)
++		}
++	}
++	if qs[0] != "NVIDIA" || !strings.Contains(strings.ToLower(qs[1]), "rtx") {
++		t.Fatalf("deterministic queries are not compact/topic-focused: %#v", qs)
++	}
++}
++
++func TestDeterministicResearchQueryDoesNotSendFullGoalPromptToSearch(t *testing.T) {
++	s, err := store.New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	cfg := s.Config()
++	cfg.Autonomy.UseLLM = false
++	if err := s.UpdateConfig(cfg); err != nil {
++		t.Fatal(err)
++	}
++	e := &Engine{store: s}
++	g := &core.Goal{
++		Title:       "FortiClient SSLVPN 7200",
++		Description: "Erstelle einen deutschsprachigen Support-Wissensartikel zum FortiClient SSL-VPN Fehler 7200. Recherchiere Ursache, typische Auslöser, sichere Diagnose-Schritte und geeignete Lösungswege. Bevorzuge offizielle Fortinet-Dokumentation und technisch belastbare Quellen.",
++		Target:      "1 hochwertiger Wissensartikel",
++	}
++	qs, _ := e.goalResearchQueries(context.Background(), g, 2, nil)
++	if len(qs) != 2 {
++		t.Fatalf("queries=%#v", qs)
++	}
++	if qs[0] != "FortiClient SSLVPN 7200" {
++		t.Fatalf("first query must be exact compact title, got %q", qs[0])
++	}
++	for _, q := range qs {
++		if strings.Contains(strings.ToLower(q), "wissensartikel") || strings.Contains(strings.ToLower(q), "hochwertiger") || len(q) > 100 {
++			t.Fatalf("query contains goal-instruction noise: %q", q)
++		}
+ 	}
+ }
+ 
+diff --git a/platform/neuroforge/internal/brain/v8.go b/platform/neuroforge/internal/brain/v8.go
+index da3f3f805a7137188c70b4928bdfb3e70c6e841f..bae1afd8faf92399f8da6905b9719824b9df6c47 100644
+--- a/platform/neuroforge/internal/brain/v8.go
++++ b/platform/neuroforge/internal/brain/v8.go
+@@ -284,6 +284,18 @@ type ResearchRequest struct {
+ 	trace      *researchTrace
+ }
+ 
++func researchResultsContainRelevant(goal *core.Goal, results []research.Result) bool {
++	if goal == nil {
++		return len(results) > 0
++	}
++	for _, r := range results {
++		if researchMaterialRelevant(goal, r.Title, r.Abstract, r.Content, r.URL) {
++			return true
++		}
++	}
++	return false
++}
++
+ type ResearchResult struct {
+ 	RunID             string                 `json:"run_id,omitempty"`
+ 	Query             string                 `json:"query"`
+@@ -308,23 +320,39 @@ func (e *Engine) Research(ctx context.Context, q ResearchRequest) (ResearchResul
+ 	if max <= 0 || max > cfg.Research.SearXNG.MaxResults {
+ 		max = cfg.Research.SearXNG.MaxResults
+ 	}
++	var researchGoal *core.Goal
++	if q.goalID != "" {
++		if g, ok := e.store.GetGoal(q.goalID); ok {
++			researchGoal = g
++		}
++	}
++	searchCfg := research.SearchConfig{BaseURL: cfg.Research.SearXNG.BaseURL, Language: cfg.Research.SearXNG.Language, Categories: cfg.Research.SearXNG.Categories, SafeSearch: cfg.Research.SearXNG.SafeSearch, Timeout: time.Duration(cfg.Research.SearXNG.TimeoutSeconds) * time.Second, MaxResults: max, Authorization: e.store.Secrets().SearXNGAuthHeader}
+ 	if q.trace != nil {
+ 		q.trace.emit(core.ResearchEvent{Type: "search.started", Phase: "search", Status: "running", Query: query, Message: fmt.Sprintf("SearXNG-Suche gestartet · max %d Ergebnisse", max)})
+ 	}
+-	results, err := research.Search(ctx, research.SearchConfig{BaseURL: cfg.Research.SearXNG.BaseURL, Language: cfg.Research.SearXNG.Language, Categories: cfg.Research.SearXNG.Categories, SafeSearch: cfg.Research.SearXNG.SafeSearch, Timeout: time.Duration(cfg.Research.SearXNG.TimeoutSeconds) * time.Second, MaxResults: max, Authorization: e.store.Secrets().SearXNGAuthHeader}, query)
++	results, err := research.Search(ctx, searchCfg, query)
+ 	if err != nil {
+ 		if q.trace != nil {
+ 			q.trace.emit(core.ResearchEvent{Type: "search.error", Phase: "search", Status: "error", Query: query, Message: err.Error()})
+ 		}
+ 		return ResearchResult{}, err
+ 	}
+-	out := ResearchResult{Query: query, Results: results}
+-	var researchGoal *core.Goal
+-	if q.goalID != "" {
+-		if g, ok := e.store.GetGoal(q.goalID); ok {
+-			researchGoal = g
++	// Category mixes are useful for broad autonomous research, but a specialized
++	// engine can occasionally dominate the top-N with completely unrelated hits.
++	// For goal-bound research, retry once in the general category if none of the
++	// configured-category results is anchored to the goal. This preserves the
++	// strict relevance gate while avoiding false "zero evidence" cycles.
++	if researchGoal != nil && !researchResultsContainRelevant(researchGoal, results) && !strings.EqualFold(strings.TrimSpace(searchCfg.Categories), "general") {
++		fallbackCfg := searchCfg
++		fallbackCfg.Categories = "general"
++		if q.trace != nil {
++			q.trace.emit(core.ResearchEvent{Type: "search.fallback", Phase: "search", Status: "warn", Query: query, Message: "Keine goal-relevanten Treffer in den konfigurierten Kategorien; Wiederholung mit category=general"})
++		}
++		if fallback, ferr := research.Search(ctx, fallbackCfg, query); ferr == nil && researchResultsContainRelevant(researchGoal, fallback) {
++			results = fallback
+ 		}
+ 	}
++	out := ResearchResult{Query: query, Results: results}
+ 	if q.trace != nil {
+ 		out.RunID = q.trace.runID
+ 		q.trace.emit(core.ResearchEvent{Type: "search.completed", Phase: "search", Status: "ok", Query: query, Message: fmt.Sprintf("%d Suchtreffer gefunden", len(results))})
+@@ -477,13 +505,15 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
+ 	}
+ 	// Search subject and scheduler action are deliberately separated. NextAction
+ 	// describes what the autonomy loop should do, not what a search engine should
+-	// search for. Feeding it back as a query caused self-referential searches such
+-	// as "Review the strongest negative evidence ... next cycle".
+-	base := strings.TrimSpace(strings.Join([]string{goal.Title, goal.Description, goal.Target}, " "))
+-	if base == "" {
+-		base = strings.TrimSpace(goal.Title)
+-	}
+-	queries := []string{base}
++	// search for. Deterministic planning must also stay compact: sending the full
++	// goal description/target to SearXNG diluted specific support queries and could
++	// cause a category engine (notably arXiv) to dominate otherwise obvious results.
++	deterministic := deterministicResearchQueries(goal, max)
++	base := strings.TrimSpace(goal.Title)
++	if len(deterministic) > 0 {
++		base = deterministic[0]
++	}
++	queries := append([]string(nil), deterministic...)
+ 	cost := 0.0
+ 	cfg := e.store.Config()
+ 	if trace != nil {
+@@ -506,7 +536,7 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
+ 				}
+ 			}
+ 			if len(queries) == 0 {
+-				queries = []string{base}
++				queries = append([]string(nil), deterministic...)
+ 			}
+ 		} else if trace != nil {
+ 			trace.emit(core.ResearchEvent{Type: "plan.fallback", Phase: "plan", Status: "warn", Message: "LLM-Queryplanung fehlgeschlagen; deterministische Query wird verwendet: " + shortPreview(err.Error(), 180)})
+@@ -522,7 +552,10 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
+ 		}
+ 	}
+ 	if len(filtered) == 0 {
+-		filtered = []string{base}
++		filtered = append([]string(nil), deterministic...)
++		if len(filtered) == 0 && base != "" {
++			filtered = []string{base}
++		}
+ 	}
+ 	queries = dedupeStrings(filtered)
+ 	if trace != nil {
+@@ -534,6 +567,79 @@ func (e *Engine) goalResearchQueries(ctx context.Context, goal *core.Goal, max i
+ 	return queries, cost
+ }
+ 
++func deterministicResearchQueries(goal *core.Goal, max int) []string {
++	if goal == nil {
++		return nil
++	}
++	if max <= 0 {
++		max = 2
++	}
++	title := strings.Join(strings.Fields(strings.TrimSpace(goal.Title)), " ")
++	out := make([]string, 0, max)
++	if title != "" {
++		out = append(out, title)
++	}
++	if len(out) >= max {
++		return out[:max]
++	}
++
++	stop := map[string]bool{
++		"der": true, "die": true, "das": true, "den": true, "dem": true, "des": true, "ein": true, "eine": true, "einen": true, "einer": true,
++		"und": true, "oder": true, "mit": true, "für": true, "von": true, "zum": true, "zur": true, "zu": true, "nach": true, "bei": true, "auf": true,
++		"erstelle": true, "erstellen": true, "recherchiere": true, "suche": true, "sammle": true, "informationen": true, "information": true,
++		"deutschsprachigen": true, "deutschsprachig": true, "wissensartikel": true, "support": true, "hochwertigen": true, "hochwertiger": true, "sichere": true,
++		"typische": true, "geeignete": true, "bevorzuge": true, "offizielle": true, "technisch": true, "belastbare": true, "quellen": true,
++		"keine": true, "keinen": true, "allgemeinen": true, "ohne": true, "direkten": true, "bezug": true, "themen": true,
++		"the": true, "and": true, "for": true, "with": true, "from": true, "about": true, "create": true, "research": true, "find": true, "article": true,
++	}
++	canonical := func(v string) string {
++		v = strings.ToLower(strings.TrimSpace(v))
++		v = strings.NewReplacer("-", "", "_", "", "/", "", ".", "", ":", "").Replace(v)
++		return v
++	}
++	seen := map[string]bool{}
++	for _, raw := range strings.Fields(strings.ToLower(title)) {
++		tok := strings.Trim(raw, ".,:;!?()[]{}\"'/_-")
++		if key := canonical(tok); key != "" {
++			seen[key] = true
++		}
++	}
++	extras := make([]string, 0, 4)
++	for _, raw := range strings.Fields(goal.Description) {
++		tok := strings.Trim(raw, ".,:;!?()[]{}\"'/_-")
++		lower := strings.ToLower(tok)
++		key := canonical(lower)
++		if len([]rune(lower)) < 3 || stop[lower] || strings.Contains(lower, "wissensartikel") || seen[key] {
++			continue
++		}
++		seen[key] = true
++		extras = append(extras, tok)
++		if len(extras) >= 4 {
++			break
++		}
++	}
++	if len(extras) > 0 {
++		q := strings.TrimSpace(strings.Join(append([]string{title}, extras...), " "))
++		if q != "" && !strings.EqualFold(q, title) {
++			out = append(out, q)
++		}
++	}
++	if len(out) == 0 {
++		parts := strings.Fields(strings.TrimSpace(goal.Description))
++		if len(parts) > 8 {
++			parts = parts[:8]
++		}
++		q := strings.Join(parts, " ")
++		if q != "" {
++			out = append(out, q)
++		}
++	}
++	if len(out) > max {
++		out = out[:max]
++	}
++	return dedupeStrings(out)
++}
++
+ func researchQueryUseful(goal *core.Goal, query string) bool {
+ 	q := strings.ToLower(strings.TrimSpace(query))
+ 	if len(q) < 3 {
+diff --git a/platform/neuroforge/internal/brain/v8_test.go b/platform/neuroforge/internal/brain/v8_test.go
+index eadbf5c42fdab625840f67c52d6098554e9b161e..25c8ec4ca6b6e9477e47f4a7fb42a3e8d22f8e70 100644
+--- a/platform/neuroforge/internal/brain/v8_test.go
++++ b/platform/neuroforge/internal/brain/v8_test.go
+@@ -57,6 +57,55 @@ func TestResearchLearnsSearXNGSnippetWithoutExplicitLearnPermission(t *testing.T
+ 	}
+ }
+ 
++func TestGoalResearchFallsBackToGeneralWhenCategoryMixIsOffTopic(t *testing.T) {
++	var categories []string
++	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		cat := r.URL.Query().Get("categories")
++		categories = append(categories, cat)
++		if cat == "general" {
++			_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
++				"title": "FortiClient SSL VPN error -7200 troubleshooting", "url": "https://community.fortinet.com/forticlient-7200", "content": "FortiClient SSLVPN error 7200 can indicate credential or SSL VPN configuration problems.", "engine": "general-test",
++			}}})
++			return
++		}
++		_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
++			"title": "Unrelated arXiv graph paper", "url": "https://arxiv.org/abs/1234.5678", "content": "Graph transformation research unrelated to VPN clients.", "engine": "arxiv",
++		}}})
++	}))
++	defer searx.Close()
++
++	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
++		if r.URL.Path == "/api/embed" {
++			_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float32{{1, 0, 0, 0}}, "prompt_eval_count": 1})
++			return
++		}
++		http.NotFound(w, r)
++	})
++	cfg := s.Config()
++	cfg.Research.Enabled = true
++	cfg.Research.SearXNG.Enabled = true
++	cfg.Research.SearXNG.BaseURL = searx.URL
++	cfg.Research.SearXNG.Categories = "general,science,it"
++	cfg.Research.WebFetch.Enabled = false
++	if err := s.UpdateConfig(cfg); err != nil {
++		t.Fatal(err)
++	}
++	goal := core.Goal{Title: "FortiClient SSLVPN 7200", Status: core.GoalActive, ResearchEnabled: true}
++	if err := s.UpsertGoal(&goal); err != nil {
++		t.Fatal(err)
++	}
++	out, err := e.Research(context.Background(), ResearchRequest{Query: "FortiClient SSLVPN 7200", Learn: true, FetchPages: false, MaxResults: 6, goalID: goal.ID})
++	if err != nil {
++		t.Fatal(err)
++	}
++	if len(categories) != 2 || categories[0] != "general,science,it" || categories[1] != "general" {
++		t.Fatalf("expected category fallback, calls=%#v", categories)
++	}
++	if len(out.Results) != 1 || out.Results[0].Engine != "general-test" || out.Ingested < 1 {
++		t.Fatalf("fallback result was not used: %#v", out)
++	}
++}
++
+ func TestGoalResearchPersistsTransparentTrace(t *testing.T) {
+ 	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+ 		_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
+@@ -101,7 +150,7 @@ func TestGoalResearchPersistsTransparentTrace(t *testing.T) {
+ 	if run.ID != cycle.ResearchRunID || run.Status != "completed" {
+ 		t.Fatalf("unexpected run %#v", run)
+ 	}
+-	if run.Stats.Results != 1 || run.Stats.Claims < 1 || run.Stats.NewEvidence < 1 {
++	if run.Stats.Results < 1 || run.Stats.Claims < 1 || run.Stats.NewEvidence < 1 {
+ 		t.Fatalf("trace stats do not expose search/claim/learning: %#v", run.Stats)
+ 	}
+ 	seen := map[string]bool{}

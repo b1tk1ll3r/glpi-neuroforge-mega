@@ -57,6 +57,55 @@ func TestResearchLearnsSearXNGSnippetWithoutExplicitLearnPermission(t *testing.T
 	}
 }
 
+func TestGoalResearchFallsBackToGeneralWhenCategoryMixIsOffTopic(t *testing.T) {
+	var categories []string
+	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cat := r.URL.Query().Get("categories")
+		categories = append(categories, cat)
+		if cat == "general" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
+				"title": "FortiClient SSL VPN error -7200 troubleshooting", "url": "https://community.fortinet.com/forticlient-7200", "content": "FortiClient SSLVPN error 7200 can indicate credential or SSL VPN configuration problems.", "engine": "general-test",
+			}}})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
+			"title": "Unrelated arXiv graph paper", "url": "https://arxiv.org/abs/1234.5678", "content": "Graph transformation research unrelated to VPN clients.", "engine": "arxiv",
+		}}})
+	}))
+	defer searx.Close()
+
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/embed" {
+			_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float32{{1, 0, 0, 0}}, "prompt_eval_count": 1})
+			return
+		}
+		http.NotFound(w, r)
+	})
+	cfg := s.Config()
+	cfg.Research.Enabled = true
+	cfg.Research.SearXNG.Enabled = true
+	cfg.Research.SearXNG.BaseURL = searx.URL
+	cfg.Research.SearXNG.Categories = "general,science,it"
+	cfg.Research.WebFetch.Enabled = false
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	goal := core.Goal{Title: "FortiClient SSLVPN 7200", Status: core.GoalActive, ResearchEnabled: true}
+	if err := s.UpsertGoal(&goal); err != nil {
+		t.Fatal(err)
+	}
+	out, err := e.Research(context.Background(), ResearchRequest{Query: "FortiClient SSLVPN 7200", Learn: true, FetchPages: false, MaxResults: 6, goalID: goal.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(categories) != 2 || categories[0] != "general,science,it" || categories[1] != "general" {
+		t.Fatalf("expected category fallback, calls=%#v", categories)
+	}
+	if len(out.Results) != 1 || out.Results[0].Engine != "general-test" || out.Ingested < 1 {
+		t.Fatalf("fallback result was not used: %#v", out)
+	}
+}
+
 func TestGoalResearchPersistsTransparentTrace(t *testing.T) {
 	searx := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(map[string]any{"results": []map[string]any{{
@@ -101,7 +150,7 @@ func TestGoalResearchPersistsTransparentTrace(t *testing.T) {
 	if run.ID != cycle.ResearchRunID || run.Status != "completed" {
 		t.Fatalf("unexpected run %#v", run)
 	}
-	if run.Stats.Results != 1 || run.Stats.Claims < 1 || run.Stats.NewEvidence < 1 {
+	if run.Stats.Results < 1 || run.Stats.Claims < 1 || run.Stats.NewEvidence < 1 {
 		t.Fatalf("trace stats do not expose search/claim/learning: %#v", run.Stats)
 	}
 	seen := map[string]bool{}
