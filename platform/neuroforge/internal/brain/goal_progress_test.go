@@ -286,17 +286,17 @@ func TestResearchMaterialRelevanceRejectsOffTopicWebRTCForNVIDIA(t *testing.T) {
 	}
 }
 
-func TestGoalArticleTargetUsesCreatedStagingArticles(t *testing.T) {
+func TestGoalArticleTargetUsesCurrentValidatedStagingDraft(t *testing.T) {
 	s, err := store.New(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	g := &core.Goal{ID: "goal-articles", Title: "NVIDIA", Target: "20 hochwertige Wissensartikel", StagingDraftsCreated: 1}
+	g := &core.Goal{ID: "goal-articles", Title: "NVIDIA", Target: "20 hochwertige Wissensartikel", StagingDraftsCreated: 1, LastStagingDraftID: "KB-1", StagingDraftValidated: true, StagingQualityGateVersion: stagingQualityGateVersion}
 	e := &Engine{store: s}
 	e.refreshGoalResearchProgress(g, 0)
-	if g.Progress < .049 || g.Progress > .051 || !strings.Contains(g.ProgressReason, "1/20 Staging-Artikel") {
-		t.Fatalf("article target must count articles, got progress=%f reason=%q", g.Progress, g.ProgressReason)
+	if g.Progress < .049 || g.Progress > .051 || !strings.Contains(g.ProgressReason, "1/20 validierte Staging-Artikel") {
+		t.Fatalf("article target must count only a current validated draft, got progress=%f reason=%q", g.Progress, g.ProgressReason)
 	}
 }
 
@@ -628,5 +628,94 @@ func TestAuthoritativeDomainConfigurationRejectsOverbroadValues(t *testing.T) {
 	cfg := e.stagingConfig()
 	if len(cfg.AuthoritativeDomains) != 2 || cfg.AuthoritativeDomains[0] != "docs.example.com" || cfg.AuthoritativeDomains[1] != "support.example.org" {
 		t.Fatalf("unsafe authority domains were not sanitized: %#v", cfg.AuthoritativeDomains)
+	}
+}
+
+func TestStagingRetriesOldQualityFailureOnceAfterGateUpgrade(t *testing.T) {
+	requests := 0
+	kb := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{"staging": map[string]any{"key": "KB-AI-STAGING-OLD", "meta": map[string]any{"integration_action": "updated"}}})
+	}))
+	defer kb.Close()
+
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	src := &core.KnowledgeSource{ID: "src-1", Type: "web", Title: "Fortinet 7200", URI: "https://community.fortinet.com/fortigate/7200", Trust: .9, Status: "ready"}
+	if err := s.UpsertSource(src); err != nil {
+		t.Fatal(err)
+	}
+	mem := &core.Memory{ID: "mem-1", Kind: "evidence", MemoryType: core.MemorySemantic, Text: "FortiClient SSLVPN error 7200 troubleshooting evidence.", Confidence: .8, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", GoalID: "goal-1", SourceID: src.ID}}
+	if err := s.AddMemory(mem); err != nil {
+		t.Fatal(err)
+	}
+	run, err := s.StartResearchRun("goal-1", "FortiClient SSLVPN 7200")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, _ = s.FinishResearchRun(run.ID, "completed", "")
+
+	e := &Engine{store: s, http: kb.Client()}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1, SynthesisMode: "evidence"})
+	g := &core.Goal{
+		ID: "goal-1", Title: "FortiClient SSLVPN 7200", ResearchEvidence: 1, ResearchSources: 1,
+		LastStagingDraftID: "KB-AI-STAGING-OLD",
+		LastStagingError:   "staging synthesis introduced source-unverified identifiers: /portal-konfiguration",
+	}
+
+	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
+	if requests != 1 || g.LastStagingError != "" || !g.StagingDraftValidated || g.StagingQualityGateVersion != stagingQualityGateVersion {
+		t.Fatalf("old quality failure was not revalidated: requests=%d goal=%#v", requests, g)
+	}
+
+	// The same unchanged, already validated evidence must not be synthesized again.
+	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
+	if requests != 1 {
+		t.Fatalf("validated unchanged draft was republished: requests=%d", requests)
+	}
+}
+
+func TestArticleProgressRequiresCurrentValidatedDraft(t *testing.T) {
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	e := &Engine{store: s}
+	g := &core.Goal{ID: "g1", Title: "Test", Target: "1 hochwertiger Wissensartikel", LastStagingDraftID: "KB-OLD", StagingDraftsCreated: 1}
+
+	e.refreshGoalResearchProgress(g, 0)
+	if g.Progress != 0 || !strings.Contains(g.ProgressReason, "0/1 validierte Staging-Artikel") {
+		t.Fatalf("unvalidated legacy draft must not satisfy article target: %#v", g)
+	}
+
+	g.StagingDraftValidated = true
+	g.StagingQualityGateVersion = stagingQualityGateVersion
+	e.refreshGoalResearchProgress(g, 0)
+	if g.Progress != 1 || !strings.Contains(g.ProgressReason, "1/1 validierte Staging-Artikel") {
+		t.Fatalf("current validated draft should satisfy target: %#v", g)
+	}
+}
+
+func TestStagingBelowThresholdInvalidatesLegacyDraftAndReplacesStaleError(t *testing.T) {
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	e := &Engine{store: s}
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: "http://knowledge.invalid", Token: "secret", MinEvidence: 4, MinSources: 2})
+	g := &core.Goal{
+		ID: "g1", LastStagingDraftID: "KB-OLD", StagingDraftValidated: true,
+		StagingQualityGateVersion: "staging-v2",
+		LastStagingError:          "staging synthesis introduced source-unverified identifiers: /portal-konfiguration",
+	}
+	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{})
+	if g.StagingDraftValidated || g.StagingQualityGateVersion != stagingQualityGateVersion || !strings.Contains(g.LastStagingError, "quality gate not satisfied") {
+		t.Fatalf("legacy draft state was not invalidated/reconciled: %#v", g)
 	}
 }

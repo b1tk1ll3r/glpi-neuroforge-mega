@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.7
+# GLPI NeuroForge Mega v1.5.8
 
-> Release: **v1.5.7** · Identifier-Grounding-Hardening: Slash-Komposita und URL-Pfade werden nicht mehr als CLI-Switches fehlklassifiziert; echte code-markierte Command-Switches bleiben source-verifiziert.
+> Release: **v1.5.8** · Staging-Revalidation-Hardening: persistierte Quality-Fehler werden versionsbewusst neu geprüft; nur ein unter dem aktuellen Gate validierter Draft erfüllt ein Artikelziel.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
@@ -154,6 +154,15 @@ Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Orig
 ### Structured Output Hardening (v1.5.6)
 
 Staging-Synthese, Claim-Verifikation und Grounding-Rewrite fordern bei Ollama jetzt provider-nativ `format: "json"` an. Zusätzlich validiert NeuroForge die erwarteten JSON-Schemata strikt, lehnt unbekannte Felder ab und repariert ausschließlich syntaktisch eindeutig ungültige Backslash-Escapes innerhalb von JSON-Strings (z. B. Windows-/Registry-Pfade). Gültige JSON-Escapes und Daten außerhalb von Strings werden nicht verändert. Andere Syntaxfehler bleiben fail-closed bzw. durchlaufen höchstens den bereits begrenzten syntax-only Repair-Pass.
+
+
+### Staging Revalidation Hardening (v1.5.8)
+
+- Persistierte `last_staging_error`-Werte aus älteren Quality-Gates werden nicht mehr endlos angezeigt, nur weil ein späterer Research-Cycle keine neue Evidenz enthält.
+- Ein bestehender Draft wird nach einem Quality-Gate-Upgrade mit seiner vorhandenen relevanten Evidence einmal erneut validiert.
+- Deterministisch fehlgeschlagene, unveränderte Drafts werden über eine Evidence-Signatur nicht in jedem Scheduler-Tick erneut teuer synthetisiert.
+- Der Goal-State speichert, ob der aktuelle Staging-Draft unter der aktuellen Quality-Gate-Version validiert wurde.
+- Artikelziele zählen nur einen aktuell validierten Draft; historische Draft-Erzeugungen allein erzeugen keine 100-%-Anzeige mehr.
 
 ### Identifier Grounding Hardening (v1.5.7)
 

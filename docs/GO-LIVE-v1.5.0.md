@@ -51,3 +51,8 @@ Für einen realen Research→Staging-Smoke-Test zusätzlich verifizieren:
 ## v1.5.7 Identifier-Grounding Zusatzgate
 
 Bei Windows-/Vendor-Artikeln dürfen normale Slash-Komposita oder URL-Pfade kein `source-unverified identifiers` auslösen. Echte CLI-Switches in Code-Spans/Fences bleiben source-verifiziert. Vor Go-Live mindestens einen Goal-Lauf mit `BIOS-/UEFI`-ähnlicher Prosa und einen Lauf mit einem belegten Slash-Command prüfen.
+
+
+## v1.5.8 Staging-Revalidation Zusatzgate
+
+Nach einem Upgrade auf v1.5.8 aktive Goals mindestens einen Scheduler-Cycle durchlaufen lassen. Ein Artikelziel darf erst dann als erfüllt gelten, wenn der Goal-State `staging_draft_validated=true` und `staging_quality_gate_version=staging-v3` meldet. Persistierte Fehler aus älteren Gates dürfen nicht als aktueller Fehlerstatus interpretiert werden.

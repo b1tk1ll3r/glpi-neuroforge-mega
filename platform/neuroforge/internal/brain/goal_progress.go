@@ -112,7 +112,10 @@ func (e *Engine) refreshGoalResearchProgress(goal *core.Goal, evaluation float64
 		if n, err := strconv.Atoi(m[1]); err == nil && n > 0 {
 			current, label := goal.ResearchEvidence, "quellengebundene Evidenzen"
 			if strings.Contains(target, "artikel") || strings.Contains(target, "article") || strings.Contains(target, "draft") || strings.Contains(target, "entwurf") {
-				current, label = goal.StagingDraftsCreated, "Staging-Artikel"
+				current, label = 0, "validierte Staging-Artikel"
+				if goal.LastStagingDraftID != "" && goal.StagingDraftValidated && goal.StagingQualityGateVersion == stagingQualityGateVersion {
+					current = 1
+				}
 			} else {
 				evidenceTarget := strings.Contains(target, "wissensein") || strings.Contains(target, "evidenz") || strings.Contains(target, "claim") || strings.Contains(target, "eintr")
 				if !evidenceTarget && (strings.Contains(target, "quelle") || strings.Contains(target, "source")) {

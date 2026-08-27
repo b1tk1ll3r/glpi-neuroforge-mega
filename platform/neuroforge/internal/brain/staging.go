@@ -3,6 +3,7 @@ package brain
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,8 @@ import (
 
 	"neuroforge/internal/core"
 )
+
+const stagingQualityGateVersion = "staging-v3"
 
 // StagingPublisherConfig configures the one-way governance bridge from
 // autonomous research into the human-review knowledge staging area.
@@ -120,25 +123,25 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
 		return
 	}
 	if strings.TrimSpace(cfg.URL) == "" || strings.TrimSpace(cfg.Token) == "" {
+		goal.StagingDraftValidated = false
+		goal.StagingQualityGateVersion = stagingQualityGateVersion
 		goal.LastStagingError = "staging publisher enabled but URL/token is missing"
 		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.publish_error", Summary: "Research draft could not be published", Reason: goal.LastStagingError, Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
 		return
 	}
-	if goal.LastStagingDraftID != "" && research.RunID != "" {
-		if run, ok := e.store.GetResearchRun(research.RunID); ok && run.Stats.NewEvidence == 0 && run.Stats.Corroborations == 0 {
-			// Avoid rewriting the same active staging draft every scheduler tick when
-			// this cycle contributed no new information.
-			return
-		}
-	}
 	if goal.ResearchEvidence < cfg.MinEvidence || goal.ResearchSources < cfg.MinSources || goal.ResearchCorroborations < cfg.MinCorroborations {
-		goal.LastStagingError = ""
-		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.not_ready", Summary: "Research has not reached staging quality gate", Reason: fmt.Sprintf("evidence=%d/%d sources=%d/%d corroborations=%d/%d", goal.ResearchEvidence, cfg.MinEvidence, goal.ResearchSources, cfg.MinSources, goal.ResearchCorroborations, cfg.MinCorroborations), Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
+		goal.StagingDraftValidated = false
+		goal.StagingQualityGateVersion = stagingQualityGateVersion
+		goal.LastStagingAttemptSignature = ""
+		goal.LastStagingError = fmt.Sprintf("staging quality gate not satisfied: evidence=%d/%d sources=%d/%d corroborations=%d/%d", goal.ResearchEvidence, cfg.MinEvidence, goal.ResearchSources, cfg.MinSources, goal.ResearchCorroborations, cfg.MinCorroborations)
+		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.not_ready", Summary: "Research has not reached staging quality gate", Reason: goal.LastStagingError, Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
 		return
 	}
 
 	evidence := e.collectGoalDraftEvidence(goal, cfg)
 	if len(evidence) == 0 {
+		goal.StagingDraftValidated = false
+		goal.StagingQualityGateVersion = stagingQualityGateVersion
 		goal.LastStagingError = "no active, goal-relevant source-backed evidence available for staging"
 		return
 	}
@@ -158,15 +161,39 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
 		}
 	}
 	if len(selectedSources) < cfg.MinSources {
+		goal.StagingDraftValidated = false
+		goal.StagingQualityGateVersion = stagingQualityGateVersion
 		goal.LastStagingError = fmt.Sprintf("staging evidence diversity below threshold: relevant_sources=%d/%d", len(selectedSources), cfg.MinSources)
 		return
 	}
 	authoritativeSources, independentOrigins, sourceAudit := summarizeEvidenceAuthority(cfg, evidence)
 	if cfg.RequireAuthoritativeSource && authoritativeSources < cfg.MinAuthoritativeSources {
+		goal.StagingDraftValidated = false
+		goal.StagingQualityGateVersion = stagingQualityGateVersion
 		goal.LastStagingError = fmt.Sprintf("staging source authority below threshold: authoritative_sources=%d/%d", authoritativeSources, cfg.MinAuthoritativeSources)
 		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.not_ready", Summary: "Research draft lacks authoritative sources", Reason: goal.LastStagingError, Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
 		return
 	}
+
+	attemptSignature := stagingEvidenceSignature(evidence)
+	noNewInformation := false
+	if research.RunID != "" {
+		if run, ok := e.store.GetResearchRun(research.RunID); ok {
+			noNewInformation = run.Stats.NewEvidence == 0 && run.Stats.Corroborations == 0
+		}
+	}
+	if goal.LastStagingDraftID != "" && noNewInformation {
+		if goal.StagingDraftValidated && goal.StagingQualityGateVersion == stagingQualityGateVersion && strings.TrimSpace(goal.LastStagingError) == "" {
+			return
+		}
+		if goal.StagingQualityGateVersion == stagingQualityGateVersion && goal.LastStagingAttemptSignature == attemptSignature && deterministicStagingFailure(goal.LastStagingError) {
+			return
+		}
+	}
+	goal.StagingDraftValidated = false
+	goal.StagingQualityGateVersion = stagingQualityGateVersion
+	goal.LastStagingAttemptSignature = attemptSignature
+
 	draft, err := e.synthesizeGoalDraft(ctx, goal, evidence)
 	if err != nil {
 		goal.LastStagingError = err.Error()
@@ -205,7 +232,7 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
 		"research_evidence_ids":          evidenceIDs,
 		"research_source_uris":           sourceURIs,
 		"source_authority":               sourceAudit,
-		"quality_gate_version":           "staging-v2",
+		"quality_gate_version":           stagingQualityGateVersion,
 		"human_review_required":          true,
 	}
 	if draft.Quality != nil && draft.Quality.Verification != nil {
@@ -245,7 +272,47 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
 	}
 	goal.LastStagingDraftID = out.Staging.Key
 	goal.LastStagingError = ""
+	goal.StagingDraftValidated = true
+	goal.StagingQualityGateVersion = stagingQualityGateVersion
+	goal.LastStagingAttemptSignature = attemptSignature
 	_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.draft_" + firstNonEmpty(action, "created"), Summary: "Research proposal sent to human-review staging", Reason: "research quality gate satisfied", Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID, "staging_id": out.Staging.Key, "action": action}})
+}
+
+func stagingEvidenceSignature(evidence []draftEvidence) string {
+	parts := make([]string, 0, len(evidence)*2+1)
+	parts = append(parts, stagingQualityGateVersion)
+	for _, ev := range evidence {
+		parts = append(parts, ev.Memory.ID, ev.Memory.Provenance.SourceID)
+		for _, src := range ev.CorroboratingSources {
+			if src != nil {
+				parts = append(parts, src.ID)
+			}
+		}
+	}
+	sort.Strings(parts[1:])
+	sum := sha256.Sum256([]byte(strings.Join(parts, "\x00")))
+	return fmt.Sprintf("%s:%x", stagingQualityGateVersion, sum[:12])
+}
+
+func deterministicStagingFailure(message string) bool {
+	m := strings.ToLower(strings.TrimSpace(message))
+	if m == "" {
+		return false
+	}
+	for _, prefix := range []string{
+		"staging synthesis ",
+		"invalid staging synthesis ",
+		"claim verification ",
+		"staging source authority ",
+		"staging evidence diversity ",
+		"no active, goal-relevant ",
+		"staging quality gate ",
+	} {
+		if strings.HasPrefix(m, prefix) {
+			return true
+		}
+	}
+	return strings.Contains(m, "source-unverified identifiers")
 }
 
 func (e *Engine) collectGoalDraftEvidence(goal *core.Goal, cfg StagingPublisherConfig) []draftEvidence {
@@ -412,7 +479,7 @@ func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evide
 			Text:   "Automatisch recherchiertes Evidence-Bundle. Keine Artikelsynthese; menschliche Prüfung ist zwingend erforderlich.\n\n" + evidencePack,
 			Answer: answer, Categories: []string{"Research", goal.Title}, Keywords: goalKeywords(goal), MinScore: .85,
 			IntegrationKey: "neuroforge-goal:" + goal.ID,
-			Quality:        &stagingQualityMetadata{GateVersion: "staging-v2", AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit},
+			Quality:        &stagingQualityMetadata{GateVersion: stagingQualityGateVersion, AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit},
 		}, nil
 	}
 	if cfg.SynthesisMode != "llm" {
@@ -473,7 +540,7 @@ func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evide
 		return stagingDraftPayload{}, err
 	}
 	auth, origins, audit := summarizeEvidenceAuthority(cfg, evidence)
-	draft.Quality = &stagingQualityMetadata{GateVersion: "staging-v2", AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit}
+	draft.Quality = &stagingQualityMetadata{GateVersion: stagingQualityGateVersion, AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit}
 	if !cfg.VerifyClaims {
 		return draft, nil
 	}
@@ -485,7 +552,7 @@ func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evide
 			repairedReport, secondErr := e.verifyDraftClaims(ctx, goal, evidence, repairedDraft)
 			if secondErr == nil {
 				repairedReport.RepairApplied = true
-				repairedDraft.Quality = &stagingQualityMetadata{GateVersion: "staging-v2", AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit, Verification: &repairedReport}
+				repairedDraft.Quality = &stagingQualityMetadata{GateVersion: stagingQualityGateVersion, AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit, Verification: &repairedReport}
 				return repairedDraft, nil
 			}
 			verifyErr = fmt.Errorf("%v; grounded repair verification failed: %w", verifyErr, secondErr)

@@ -456,6 +456,12 @@ components:
           type: string
         last_staging_error:
           type: string
+        staging_draft_validated:
+          type: boolean
+        staging_quality_gate_version:
+          type: string
+        last_staging_attempt_signature:
+          type: string
         memory_ids:
           type: array
           items:

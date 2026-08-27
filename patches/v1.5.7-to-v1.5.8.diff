@@ -1,0 +1,525 @@
+diff --git a/.env.example b/.env.example
+index daf61f7..7138009 100644
+--- a/.env.example
++++ b/.env.example
+@@ -1,5 +1,5 @@
+ ###############################################################################
+-# GLPI NEUROFORGE MEGA v1.5.7 - VOLLSTÄNDIGE .ENV.example
++# GLPI NEUROFORGE MEGA v1.5.8 - VOLLSTÄNDIGE .ENV.example
+ #
+ # Diese Datei ist die zentrale Konfiguration für docker compose.
+ # Sie enthält:
+@@ -29,7 +29,7 @@
+ # 01. MEGA STACK - RELEASE / HOST PORTS / PFADE
+ ###############################################################################
+ # Immutable Registry-Tag der sechs Projekt-Images. "latest" ist produktiv verboten.
+-IMAGE_TAG=1.5.7
++IMAGE_TAG=1.5.8
+ 
+ CONTROL_HOST_PORT=8070
+ AGENT_HOST_PORT=8080
+diff --git a/README.md b/README.md
+index 9bfff20..b5a7271 100644
+--- a/README.md
++++ b/README.md
+@@ -1,6 +1,6 @@
+-# GLPI NeuroForge Mega v1.5.7
++# GLPI NeuroForge Mega v1.5.8
+ 
+-> Release: **v1.5.7** · Identifier-Grounding-Hardening: Slash-Komposita und URL-Pfade werden nicht mehr als CLI-Switches fehlklassifiziert; echte code-markierte Command-Switches bleiben source-verifiziert.
++> Release: **v1.5.8** · Staging-Revalidation-Hardening: persistierte Quality-Fehler werden versionsbewusst neu geprüft; nur ein unter dem aktuellen Gate validierter Draft erfüllt ein Artikelziel.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+@@ -155,6 +155,15 @@ Die Zielgröße `research_corroborations` zählt v1.5.5 unabhängige Source-Orig
+ 
+ Staging-Synthese, Claim-Verifikation und Grounding-Rewrite fordern bei Ollama jetzt provider-nativ `format: "json"` an. Zusätzlich validiert NeuroForge die erwarteten JSON-Schemata strikt, lehnt unbekannte Felder ab und repariert ausschließlich syntaktisch eindeutig ungültige Backslash-Escapes innerhalb von JSON-Strings (z. B. Windows-/Registry-Pfade). Gültige JSON-Escapes und Daten außerhalb von Strings werden nicht verändert. Andere Syntaxfehler bleiben fail-closed bzw. durchlaufen höchstens den bereits begrenzten syntax-only Repair-Pass.
+ 
++
++### Staging Revalidation Hardening (v1.5.8)
++
++- Persistierte `last_staging_error`-Werte aus älteren Quality-Gates werden nicht mehr endlos angezeigt, nur weil ein späterer Research-Cycle keine neue Evidenz enthält.
++- Ein bestehender Draft wird nach einem Quality-Gate-Upgrade mit seiner vorhandenen relevanten Evidence einmal erneut validiert.
++- Deterministisch fehlgeschlagene, unveränderte Drafts werden über eine Evidence-Signatur nicht in jedem Scheduler-Tick erneut teuer synthetisiert.
++- Der Goal-State speichert, ob der aktuelle Staging-Draft unter der aktuellen Quality-Gate-Version validiert wurde.
++- Artikelziele zählen nur einen aktuell validierten Draft; historische Draft-Erzeugungen allein erzeugen keine 100-%-Anzeige mehr.
++
+ ### Identifier Grounding Hardening (v1.5.7)
+ 
+ Der deterministische Identifier-Guard unterscheidet Slash-prefixed CLI-Switches jetzt von normaler Prosa. Konstruktionen wie `BIOS-/UEFI-Konfiguration`, `Web-/Portal-Konfiguration` und URL-Pfade blockieren Staging nicht mehr als vermeintlich erfundene Command-Switches. Slash-Switches werden nur noch aus explizit als Code markierten Markdown-Spans/Fences extrahiert; dort bleiben erfundene Optionen wie `DISM /MagicRepair` weiterhin fail-closed source-verifiziert. Fehlercodes, CVEs, KB-Nummern und Versionsnummern werden unverändert global geprüft.
+diff --git a/VERSION b/VERSION
+index f01291b..1cc9c18 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.5.7
++1.5.8
+diff --git a/docs/GO-LIVE-v1.5.0.md b/docs/GO-LIVE-v1.5.0.md
+index ce05239..3b85c88 100644
+--- a/docs/GO-LIVE-v1.5.0.md
++++ b/docs/GO-LIVE-v1.5.0.md
+@@ -51,3 +51,8 @@ Für einen realen Research→Staging-Smoke-Test zusätzlich verifizieren:
+ ## v1.5.7 Identifier-Grounding Zusatzgate
+ 
+ Bei Windows-/Vendor-Artikeln dürfen normale Slash-Komposita oder URL-Pfade kein `source-unverified identifiers` auslösen. Echte CLI-Switches in Code-Spans/Fences bleiben source-verifiziert. Vor Go-Live mindestens einen Goal-Lauf mit `BIOS-/UEFI`-ähnlicher Prosa und einen Lauf mit einem belegten Slash-Command prüfen.
++
++
++## v1.5.8 Staging-Revalidation Zusatzgate
++
++Nach einem Upgrade auf v1.5.8 aktive Goals mindestens einen Scheduler-Cycle durchlaufen lassen. Ein Artikelziel darf erst dann als erfüllt gelten, wenn der Goal-State `staging_draft_validated=true` und `staging_quality_gate_version=staging-v3` meldet. Persistierte Fehler aus älteren Gates dürfen nicht als aktueller Fehlerstatus interpretiert werden.
+diff --git a/docs/MIGRATION-v1.5.7-to-v1.5.8.md b/docs/MIGRATION-v1.5.7-to-v1.5.8.md
+new file mode 100644
+index 0000000..ad46591
+--- /dev/null
++++ b/docs/MIGRATION-v1.5.7-to-v1.5.8.md
+@@ -0,0 +1,16 @@
++# Migration v1.5.7 → v1.5.8
++
++v1.5.8 is a non-destructive goal/staging state migration. No volumes must be deleted.
++
++1. Build/publish the v1.5.8 images.
++2. Set `IMAGE_TAG=1.5.8`.
++3. Pull and recreate NeuroForge and its worker:
++
++```bash
++docker compose --profile research pull neuroforge neuroforge-worker
++docker compose --profile research up -d --force-recreate neuroforge neuroforge-worker
++```
++
++4. Keep all existing goals and volumes.
++5. Let each active goal run once. Existing legacy drafts will either be revalidated under the current gate, remain below the current evidence threshold, or receive a current quality error.
++6. Article goals should only return to 100% after `staging_draft_validated=true`.
+diff --git a/docs/RELEASE-v1.5.8.md b/docs/RELEASE-v1.5.8.md
+new file mode 100644
+index 0000000..2fb1238
+--- /dev/null
++++ b/docs/RELEASE-v1.5.8.md
+@@ -0,0 +1,20 @@
++# GLPI NeuroForge Mega v1.5.8
++
++v1.5.8 closes a production-state consistency bug found while revalidating existing FortiClient, DISM and BitLocker goals after the v1.5.7 identifier-grounding fix. Older `last_staging_error` values could remain visible forever because a goal with an existing draft returned early whenever the newest research run contributed no new evidence. The old draft also continued to satisfy an article target even if it had never passed the current quality gate.
++
++## Staging revalidation
++
++- Goals persist `staging_draft_validated`, `staging_quality_gate_version` and a hashed `last_staging_attempt_signature`.
++- Existing drafts from an older gate are revalidated once against the current gate using already persisted relevant evidence.
++- Unchanged, already validated drafts are not regenerated on empty scheduler cycles.
++- Unchanged deterministic failures are not retried every cycle; the evidence signature prevents expensive LLM retry loops.
++- Transient transport/publisher failures remain retryable.
++- If current evidence no longer satisfies the quality threshold, the old draft is marked not validated and the stale error is replaced by the current quality state.
++
++## Goal progress semantics
++
++For article/draft targets, historical `staging_drafts_created` is audit history only. Progress is now based on whether the current stable staging draft exists and is validated under the current quality-gate version. This prevents `1/1 = 100%` for legacy or invalidated drafts.
++
++## Compatibility
++
++No destructive data migration is required. New fields are optional JSON fields and are populated by the next goal cycle. Existing goals, memories, synapses, research runs and staging drafts are retained.
+diff --git a/platform/neuroforge/internal/brain/goal_progress.go b/platform/neuroforge/internal/brain/goal_progress.go
+index 0dfa763..9fee91a 100644
+--- a/platform/neuroforge/internal/brain/goal_progress.go
++++ b/platform/neuroforge/internal/brain/goal_progress.go
+@@ -112,7 +112,10 @@ func (e *Engine) refreshGoalResearchProgress(goal *core.Goal, evaluation float64
+ 		if n, err := strconv.Atoi(m[1]); err == nil && n > 0 {
+ 			current, label := goal.ResearchEvidence, "quellengebundene Evidenzen"
+ 			if strings.Contains(target, "artikel") || strings.Contains(target, "article") || strings.Contains(target, "draft") || strings.Contains(target, "entwurf") {
+-				current, label = goal.StagingDraftsCreated, "Staging-Artikel"
++				current, label = 0, "validierte Staging-Artikel"
++				if goal.LastStagingDraftID != "" && goal.StagingDraftValidated && goal.StagingQualityGateVersion == stagingQualityGateVersion {
++					current = 1
++				}
+ 			} else {
+ 				evidenceTarget := strings.Contains(target, "wissensein") || strings.Contains(target, "evidenz") || strings.Contains(target, "claim") || strings.Contains(target, "eintr")
+ 				if !evidenceTarget && (strings.Contains(target, "quelle") || strings.Contains(target, "source")) {
+diff --git a/platform/neuroforge/internal/brain/goal_progress_test.go b/platform/neuroforge/internal/brain/goal_progress_test.go
+index 63f4ad2..2ad18ff 100644
+--- a/platform/neuroforge/internal/brain/goal_progress_test.go
++++ b/platform/neuroforge/internal/brain/goal_progress_test.go
+@@ -286,17 +286,17 @@ func TestResearchMaterialRelevanceRejectsOffTopicWebRTCForNVIDIA(t *testing.T) {
+ 	}
+ }
+ 
+-func TestGoalArticleTargetUsesCreatedStagingArticles(t *testing.T) {
++func TestGoalArticleTargetUsesCurrentValidatedStagingDraft(t *testing.T) {
+ 	s, err := store.New(t.TempDir())
+ 	if err != nil {
+ 		t.Fatal(err)
+ 	}
+ 	defer s.Close()
+-	g := &core.Goal{ID: "goal-articles", Title: "NVIDIA", Target: "20 hochwertige Wissensartikel", StagingDraftsCreated: 1}
++	g := &core.Goal{ID: "goal-articles", Title: "NVIDIA", Target: "20 hochwertige Wissensartikel", StagingDraftsCreated: 1, LastStagingDraftID: "KB-1", StagingDraftValidated: true, StagingQualityGateVersion: stagingQualityGateVersion}
+ 	e := &Engine{store: s}
+ 	e.refreshGoalResearchProgress(g, 0)
+-	if g.Progress < .049 || g.Progress > .051 || !strings.Contains(g.ProgressReason, "1/20 Staging-Artikel") {
+-		t.Fatalf("article target must count articles, got progress=%f reason=%q", g.Progress, g.ProgressReason)
++	if g.Progress < .049 || g.Progress > .051 || !strings.Contains(g.ProgressReason, "1/20 validierte Staging-Artikel") {
++		t.Fatalf("article target must count only a current validated draft, got progress=%f reason=%q", g.Progress, g.ProgressReason)
+ 	}
+ }
+ 
+@@ -630,3 +630,92 @@ func TestAuthoritativeDomainConfigurationRejectsOverbroadValues(t *testing.T) {
+ 		t.Fatalf("unsafe authority domains were not sanitized: %#v", cfg.AuthoritativeDomains)
+ 	}
+ }
++
++func TestStagingRetriesOldQualityFailureOnceAfterGateUpgrade(t *testing.T) {
++	requests := 0
++	kb := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
++		requests++
++		w.Header().Set("Content-Type", "application/json")
++		_ = json.NewEncoder(w).Encode(map[string]any{"staging": map[string]any{"key": "KB-AI-STAGING-OLD", "meta": map[string]any{"integration_action": "updated"}}})
++	}))
++	defer kb.Close()
++
++	s, err := store.New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	src := &core.KnowledgeSource{ID: "src-1", Type: "web", Title: "Fortinet 7200", URI: "https://community.fortinet.com/fortigate/7200", Trust: .9, Status: "ready"}
++	if err := s.UpsertSource(src); err != nil {
++		t.Fatal(err)
++	}
++	mem := &core.Memory{ID: "mem-1", Kind: "evidence", MemoryType: core.MemorySemantic, Text: "FortiClient SSLVPN error 7200 troubleshooting evidence.", Confidence: .8, Status: core.MemoryActive, Provenance: core.MemoryProvenance{Source: "web.page", GoalID: "goal-1", SourceID: src.ID}}
++	if err := s.AddMemory(mem); err != nil {
++		t.Fatal(err)
++	}
++	run, err := s.StartResearchRun("goal-1", "FortiClient SSLVPN 7200")
++	if err != nil {
++		t.Fatal(err)
++	}
++	_, _ = s.FinishResearchRun(run.ID, "completed", "")
++
++	e := &Engine{store: s, http: kb.Client()}
++	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: kb.URL, Token: "secret", MinEvidence: 1, MinSources: 1, SynthesisMode: "evidence"})
++	g := &core.Goal{
++		ID: "goal-1", Title: "FortiClient SSLVPN 7200", ResearchEvidence: 1, ResearchSources: 1,
++		LastStagingDraftID: "KB-AI-STAGING-OLD",
++		LastStagingError:   "staging synthesis introduced source-unverified identifiers: /portal-konfiguration",
++	}
++
++	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
++	if requests != 1 || g.LastStagingError != "" || !g.StagingDraftValidated || g.StagingQualityGateVersion != stagingQualityGateVersion {
++		t.Fatalf("old quality failure was not revalidated: requests=%d goal=%#v", requests, g)
++	}
++
++	// The same unchanged, already validated evidence must not be synthesized again.
++	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{RunID: run.ID})
++	if requests != 1 {
++		t.Fatalf("validated unchanged draft was republished: requests=%d", requests)
++	}
++}
++
++func TestArticleProgressRequiresCurrentValidatedDraft(t *testing.T) {
++	s, err := store.New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	e := &Engine{store: s}
++	g := &core.Goal{ID: "g1", Title: "Test", Target: "1 hochwertiger Wissensartikel", LastStagingDraftID: "KB-OLD", StagingDraftsCreated: 1}
++
++	e.refreshGoalResearchProgress(g, 0)
++	if g.Progress != 0 || !strings.Contains(g.ProgressReason, "0/1 validierte Staging-Artikel") {
++		t.Fatalf("unvalidated legacy draft must not satisfy article target: %#v", g)
++	}
++
++	g.StagingDraftValidated = true
++	g.StagingQualityGateVersion = stagingQualityGateVersion
++	e.refreshGoalResearchProgress(g, 0)
++	if g.Progress != 1 || !strings.Contains(g.ProgressReason, "1/1 validierte Staging-Artikel") {
++		t.Fatalf("current validated draft should satisfy target: %#v", g)
++	}
++}
++
++func TestStagingBelowThresholdInvalidatesLegacyDraftAndReplacesStaleError(t *testing.T) {
++	s, err := store.New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	e := &Engine{store: s}
++	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, URL: "http://knowledge.invalid", Token: "secret", MinEvidence: 4, MinSources: 2})
++	g := &core.Goal{
++		ID: "g1", LastStagingDraftID: "KB-OLD", StagingDraftValidated: true,
++		StagingQualityGateVersion: "staging-v2",
++		LastStagingError:          "staging synthesis introduced source-unverified identifiers: /portal-konfiguration",
++	}
++	e.maybePublishGoalDraft(context.Background(), g, ResearchResult{})
++	if g.StagingDraftValidated || g.StagingQualityGateVersion != stagingQualityGateVersion || !strings.Contains(g.LastStagingError, "quality gate not satisfied") {
++		t.Fatalf("legacy draft state was not invalidated/reconciled: %#v", g)
++	}
++}
+diff --git a/platform/neuroforge/internal/brain/staging.go b/platform/neuroforge/internal/brain/staging.go
+index fc82db1..4ae981e 100644
+--- a/platform/neuroforge/internal/brain/staging.go
++++ b/platform/neuroforge/internal/brain/staging.go
+@@ -3,6 +3,7 @@ package brain
+ import (
+ 	"bytes"
+ 	"context"
++	"crypto/sha256"
+ 	"encoding/json"
+ 	"errors"
+ 	"fmt"
+@@ -14,6 +15,8 @@ import (
+ 	"neuroforge/internal/core"
+ )
+ 
++const stagingQualityGateVersion = "staging-v3"
++
+ // StagingPublisherConfig configures the one-way governance bridge from
+ // autonomous research into the human-review knowledge staging area.
+ type StagingPublisherConfig struct {
+@@ -120,25 +123,25 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
+ 		return
+ 	}
+ 	if strings.TrimSpace(cfg.URL) == "" || strings.TrimSpace(cfg.Token) == "" {
++		goal.StagingDraftValidated = false
++		goal.StagingQualityGateVersion = stagingQualityGateVersion
+ 		goal.LastStagingError = "staging publisher enabled but URL/token is missing"
+ 		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.publish_error", Summary: "Research draft could not be published", Reason: goal.LastStagingError, Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
+ 		return
+ 	}
+-	if goal.LastStagingDraftID != "" && research.RunID != "" {
+-		if run, ok := e.store.GetResearchRun(research.RunID); ok && run.Stats.NewEvidence == 0 && run.Stats.Corroborations == 0 {
+-			// Avoid rewriting the same active staging draft every scheduler tick when
+-			// this cycle contributed no new information.
+-			return
+-		}
+-	}
+ 	if goal.ResearchEvidence < cfg.MinEvidence || goal.ResearchSources < cfg.MinSources || goal.ResearchCorroborations < cfg.MinCorroborations {
+-		goal.LastStagingError = ""
+-		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.not_ready", Summary: "Research has not reached staging quality gate", Reason: fmt.Sprintf("evidence=%d/%d sources=%d/%d corroborations=%d/%d", goal.ResearchEvidence, cfg.MinEvidence, goal.ResearchSources, cfg.MinSources, goal.ResearchCorroborations, cfg.MinCorroborations), Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
++		goal.StagingDraftValidated = false
++		goal.StagingQualityGateVersion = stagingQualityGateVersion
++		goal.LastStagingAttemptSignature = ""
++		goal.LastStagingError = fmt.Sprintf("staging quality gate not satisfied: evidence=%d/%d sources=%d/%d corroborations=%d/%d", goal.ResearchEvidence, cfg.MinEvidence, goal.ResearchSources, cfg.MinSources, goal.ResearchCorroborations, cfg.MinCorroborations)
++		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.not_ready", Summary: "Research has not reached staging quality gate", Reason: goal.LastStagingError, Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
+ 		return
+ 	}
+ 
+ 	evidence := e.collectGoalDraftEvidence(goal, cfg)
+ 	if len(evidence) == 0 {
++		goal.StagingDraftValidated = false
++		goal.StagingQualityGateVersion = stagingQualityGateVersion
+ 		goal.LastStagingError = "no active, goal-relevant source-backed evidence available for staging"
+ 		return
+ 	}
+@@ -158,15 +161,39 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
+ 		}
+ 	}
+ 	if len(selectedSources) < cfg.MinSources {
++		goal.StagingDraftValidated = false
++		goal.StagingQualityGateVersion = stagingQualityGateVersion
+ 		goal.LastStagingError = fmt.Sprintf("staging evidence diversity below threshold: relevant_sources=%d/%d", len(selectedSources), cfg.MinSources)
+ 		return
+ 	}
+ 	authoritativeSources, independentOrigins, sourceAudit := summarizeEvidenceAuthority(cfg, evidence)
+ 	if cfg.RequireAuthoritativeSource && authoritativeSources < cfg.MinAuthoritativeSources {
++		goal.StagingDraftValidated = false
++		goal.StagingQualityGateVersion = stagingQualityGateVersion
+ 		goal.LastStagingError = fmt.Sprintf("staging source authority below threshold: authoritative_sources=%d/%d", authoritativeSources, cfg.MinAuthoritativeSources)
+ 		_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.not_ready", Summary: "Research draft lacks authoritative sources", Reason: goal.LastStagingError, Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID}})
+ 		return
+ 	}
++
++	attemptSignature := stagingEvidenceSignature(evidence)
++	noNewInformation := false
++	if research.RunID != "" {
++		if run, ok := e.store.GetResearchRun(research.RunID); ok {
++			noNewInformation = run.Stats.NewEvidence == 0 && run.Stats.Corroborations == 0
++		}
++	}
++	if goal.LastStagingDraftID != "" && noNewInformation {
++		if goal.StagingDraftValidated && goal.StagingQualityGateVersion == stagingQualityGateVersion && strings.TrimSpace(goal.LastStagingError) == "" {
++			return
++		}
++		if goal.StagingQualityGateVersion == stagingQualityGateVersion && goal.LastStagingAttemptSignature == attemptSignature && deterministicStagingFailure(goal.LastStagingError) {
++			return
++		}
++	}
++	goal.StagingDraftValidated = false
++	goal.StagingQualityGateVersion = stagingQualityGateVersion
++	goal.LastStagingAttemptSignature = attemptSignature
++
+ 	draft, err := e.synthesizeGoalDraft(ctx, goal, evidence)
+ 	if err != nil {
+ 		goal.LastStagingError = err.Error()
+@@ -205,7 +232,7 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
+ 		"research_evidence_ids":          evidenceIDs,
+ 		"research_source_uris":           sourceURIs,
+ 		"source_authority":               sourceAudit,
+-		"quality_gate_version":           "staging-v2",
++		"quality_gate_version":           stagingQualityGateVersion,
+ 		"human_review_required":          true,
+ 	}
+ 	if draft.Quality != nil && draft.Quality.Verification != nil {
+@@ -245,9 +272,49 @@ func (e *Engine) maybePublishGoalDraft(ctx context.Context, goal *core.Goal, res
+ 	}
+ 	goal.LastStagingDraftID = out.Staging.Key
+ 	goal.LastStagingError = ""
++	goal.StagingDraftValidated = true
++	goal.StagingQualityGateVersion = stagingQualityGateVersion
++	goal.LastStagingAttemptSignature = attemptSignature
+ 	_ = e.store.AddKnowledgeEvent(core.KnowledgeEvent{Type: "staging.draft_" + firstNonEmpty(action, "created"), Summary: "Research proposal sent to human-review staging", Reason: "research quality gate satisfied", Actor: "goal-learning", Metadata: map[string]string{"goal_id": goal.ID, "staging_id": out.Staging.Key, "action": action}})
+ }
+ 
++func stagingEvidenceSignature(evidence []draftEvidence) string {
++	parts := make([]string, 0, len(evidence)*2+1)
++	parts = append(parts, stagingQualityGateVersion)
++	for _, ev := range evidence {
++		parts = append(parts, ev.Memory.ID, ev.Memory.Provenance.SourceID)
++		for _, src := range ev.CorroboratingSources {
++			if src != nil {
++				parts = append(parts, src.ID)
++			}
++		}
++	}
++	sort.Strings(parts[1:])
++	sum := sha256.Sum256([]byte(strings.Join(parts, "\x00")))
++	return fmt.Sprintf("%s:%x", stagingQualityGateVersion, sum[:12])
++}
++
++func deterministicStagingFailure(message string) bool {
++	m := strings.ToLower(strings.TrimSpace(message))
++	if m == "" {
++		return false
++	}
++	for _, prefix := range []string{
++		"staging synthesis ",
++		"invalid staging synthesis ",
++		"claim verification ",
++		"staging source authority ",
++		"staging evidence diversity ",
++		"no active, goal-relevant ",
++		"staging quality gate ",
++	} {
++		if strings.HasPrefix(m, prefix) {
++			return true
++		}
++	}
++	return strings.Contains(m, "source-unverified identifiers")
++}
++
+ func (e *Engine) collectGoalDraftEvidence(goal *core.Goal, cfg StagingPublisherConfig) []draftEvidence {
+ 	if goal == nil {
+ 		return nil
+@@ -412,7 +479,7 @@ func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evide
+ 			Text:   "Automatisch recherchiertes Evidence-Bundle. Keine Artikelsynthese; menschliche Prüfung ist zwingend erforderlich.\n\n" + evidencePack,
+ 			Answer: answer, Categories: []string{"Research", goal.Title}, Keywords: goalKeywords(goal), MinScore: .85,
+ 			IntegrationKey: "neuroforge-goal:" + goal.ID,
+-			Quality:        &stagingQualityMetadata{GateVersion: "staging-v2", AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit},
++			Quality:        &stagingQualityMetadata{GateVersion: stagingQualityGateVersion, AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit},
+ 		}, nil
+ 	}
+ 	if cfg.SynthesisMode != "llm" {
+@@ -473,7 +540,7 @@ func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evide
+ 		return stagingDraftPayload{}, err
+ 	}
+ 	auth, origins, audit := summarizeEvidenceAuthority(cfg, evidence)
+-	draft.Quality = &stagingQualityMetadata{GateVersion: "staging-v2", AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit}
++	draft.Quality = &stagingQualityMetadata{GateVersion: stagingQualityGateVersion, AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit}
+ 	if !cfg.VerifyClaims {
+ 		return draft, nil
+ 	}
+@@ -485,7 +552,7 @@ func (e *Engine) synthesizeGoalDraft(ctx context.Context, goal *core.Goal, evide
+ 			repairedReport, secondErr := e.verifyDraftClaims(ctx, goal, evidence, repairedDraft)
+ 			if secondErr == nil {
+ 				repairedReport.RepairApplied = true
+-				repairedDraft.Quality = &stagingQualityMetadata{GateVersion: "staging-v2", AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit, Verification: &repairedReport}
++				repairedDraft.Quality = &stagingQualityMetadata{GateVersion: stagingQualityGateVersion, AuthoritativeSources: auth, IndependentOrigins: origins, SourceAudit: audit, Verification: &repairedReport}
+ 				return repairedDraft, nil
+ 			}
+ 			verifyErr = fmt.Errorf("%v; grounded repair verification failed: %w", verifyErr, secondErr)
+diff --git a/platform/neuroforge/internal/core/types.go b/platform/neuroforge/internal/core/types.go
+index ce7d682..5cd39f3 100644
+--- a/platform/neuroforge/internal/core/types.go
++++ b/platform/neuroforge/internal/core/types.go
+@@ -523,36 +523,39 @@ type MaintenanceStatus struct {
+ }
+ 
+ type Goal struct {
+-	ID                     string    `json:"id"`
+-	Title                  string    `json:"title"`
+-	Description            string    `json:"description"`
+-	Status                 string    `json:"status"`
+-	Priority               int       `json:"priority"`
+-	Progress               float64   `json:"progress"`
+-	Target                 string    `json:"target,omitempty"`
+-	Prediction             string    `json:"prediction,omitempty"`
+-	NextAction             string    `json:"next_action,omitempty"`
+-	LastEvaluation         float64   `json:"last_evaluation,omitempty"`
+-	ProgressReason         string    `json:"progress_reason,omitempty"`
+-	ResearchEvidence       int       `json:"research_evidence,omitempty"`
+-	ResearchSources        int       `json:"research_sources,omitempty"`
+-	ResearchCorroborations int       `json:"research_corroborations,omitempty"`
+-	ResearchSourceIDs      []string  `json:"research_source_ids,omitempty"`
+-	StagingDraftsCreated   int       `json:"staging_drafts_created,omitempty"`
+-	StagingDraftsUpdated   int       `json:"staging_drafts_updated,omitempty"`
+-	LastStagingDraftID     string    `json:"last_staging_draft_id,omitempty"`
+-	LastStagingError       string    `json:"last_staging_error,omitempty"`
+-	MemoryIDs              []string  `json:"memory_ids,omitempty"`
+-	Tags                   []string  `json:"tags,omitempty"`
+-	CreatedAt              time.Time `json:"created_at"`
+-	UpdatedAt              time.Time `json:"updated_at"`
+-	LastCycleAt            time.Time `json:"last_cycle_at,omitempty"`
+-	AutoRun                bool      `json:"auto_run"`
+-	IntervalMinutes        int       `json:"interval_minutes,omitempty"`
+-	NextCycleAt            time.Time `json:"next_cycle_at,omitempty"`
+-	ResearchEnabled        bool      `json:"research_enabled"`
+-	ConsecutiveErrors      int       `json:"consecutive_errors,omitempty"`
+-	LastError              string    `json:"last_error,omitempty"`
++	ID                          string    `json:"id"`
++	Title                       string    `json:"title"`
++	Description                 string    `json:"description"`
++	Status                      string    `json:"status"`
++	Priority                    int       `json:"priority"`
++	Progress                    float64   `json:"progress"`
++	Target                      string    `json:"target,omitempty"`
++	Prediction                  string    `json:"prediction,omitempty"`
++	NextAction                  string    `json:"next_action,omitempty"`
++	LastEvaluation              float64   `json:"last_evaluation,omitempty"`
++	ProgressReason              string    `json:"progress_reason,omitempty"`
++	ResearchEvidence            int       `json:"research_evidence,omitempty"`
++	ResearchSources             int       `json:"research_sources,omitempty"`
++	ResearchCorroborations      int       `json:"research_corroborations,omitempty"`
++	ResearchSourceIDs           []string  `json:"research_source_ids,omitempty"`
++	StagingDraftsCreated        int       `json:"staging_drafts_created,omitempty"`
++	StagingDraftsUpdated        int       `json:"staging_drafts_updated,omitempty"`
++	LastStagingDraftID          string    `json:"last_staging_draft_id,omitempty"`
++	LastStagingError            string    `json:"last_staging_error,omitempty"`
++	StagingDraftValidated       bool      `json:"staging_draft_validated,omitempty"`
++	StagingQualityGateVersion   string    `json:"staging_quality_gate_version,omitempty"`
++	LastStagingAttemptSignature string    `json:"last_staging_attempt_signature,omitempty"`
++	MemoryIDs                   []string  `json:"memory_ids,omitempty"`
++	Tags                        []string  `json:"tags,omitempty"`
++	CreatedAt                   time.Time `json:"created_at"`
++	UpdatedAt                   time.Time `json:"updated_at"`
++	LastCycleAt                 time.Time `json:"last_cycle_at,omitempty"`
++	AutoRun                     bool      `json:"auto_run"`
++	IntervalMinutes             int       `json:"interval_minutes,omitempty"`
++	NextCycleAt                 time.Time `json:"next_cycle_at,omitempty"`
++	ResearchEnabled             bool      `json:"research_enabled"`
++	ConsecutiveErrors           int       `json:"consecutive_errors,omitempty"`
++	LastError                   string    `json:"last_error,omitempty"`
+ }
+ 
+ type LearningCycle struct {
+diff --git a/platform/neuroforge/openapi.yaml b/platform/neuroforge/openapi.yaml
+index e914aca..031fc51 100644
+--- a/platform/neuroforge/openapi.yaml
++++ b/platform/neuroforge/openapi.yaml
+@@ -456,6 +456,12 @@ components:
+           type: string
+         last_staging_error:
+           type: string
++        staging_draft_validated:
++          type: boolean
++        staging_quality_gate_version:
++          type: string
++        last_staging_attempt_signature:
++          type: string
+         memory_ids:
+           type: array
+           items:
