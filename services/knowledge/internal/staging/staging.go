@@ -33,6 +33,14 @@ type Result struct {
 	Meta     map[string]any `json:"meta"`
 }
 
+// IntegrationOptions carries idempotency and provenance metadata for machine-generated
+// proposals. IntegrationKey is stable for one producer/goal and causes active staging
+// to be updated instead of creating a new draft every research cycle.
+type IntegrationOptions struct {
+	IntegrationKey string
+	Metadata       map[string]any
+}
+
 type Summary struct {
 	Key                string   `json:"key"`
 	ID                 string   `json:"id"`
@@ -111,6 +119,12 @@ func (s *Store) Save(query, model string, draft Draft, autoReply bool, minScore 
 // SaveFromSource stores a proposal in the human-review staging area while
 // preserving the system that produced it. It never promotes into production.
 func (s *Store) SaveFromSource(query, source string, draft Draft, autoReply bool, minScore float64) (Result, error) {
+	return s.SaveFromIntegration(query, source, draft, autoReply, minScore, IntegrationOptions{})
+}
+
+// SaveFromIntegration stores or refreshes an active machine-generated staging draft.
+// A stable IntegrationKey makes the operation idempotent across autonomous cycles.
+func (s *Store) SaveFromIntegration(query, source string, draft Draft, autoReply bool, minScore float64, opts IntegrationOptions) (Result, error) {
 	draft.Title = clampString(draft.Title, 320)
 	draft.Text = clampString(draft.Text, 16000)
 	draft.Answer = clampString(draft.Answer, 32000)
@@ -151,6 +165,36 @@ func (s *Store) SaveFromSource(query, source string, draft Draft, autoReply bool
 		"language":            "de-DE",
 		"communication_style": "formal",
 	}
+	key := strings.TrimSpace(opts.IntegrationKey)
+	if key != "" {
+		doc["integration_key"] = clampString(key, 240)
+	}
+	for k, v := range opts.Metadata {
+		k = strings.TrimSpace(k)
+		if k == "" || k == "id" || k == "auto_reply" {
+			continue
+		}
+		doc[k] = v
+	}
+	if key != "" {
+		if existing, ok := s.findByIntegrationKey(key); ok {
+			doc["id"] = existing.Key
+			if oldCreated, exists := existing.Document["created_at"]; exists {
+				doc["created_at"] = oldCreated
+			}
+			doc["updated_at"] = now.Format(time.RFC3339)
+			if _, err := s.Update(existing.Key, doc); err != nil {
+				return Result{}, err
+			}
+			result, err := s.Get(existing.Key)
+			if err == nil {
+				result.Meta["integration_action"] = "updated"
+			}
+			return result, err
+		}
+	}
+	doc["created_at"] = now.Format(time.RFC3339)
+	doc["updated_at"] = now.Format(time.RFC3339)
 	if err := s.writeNew(id, doc); err != nil {
 		return Result{}, err
 	}
@@ -159,7 +203,29 @@ func (s *Store) SaveFromSource(query, source string, draft Draft, autoReply bool
 		return Result{}, err
 	}
 	result.Meta["generated_at"] = now.Format(time.RFC3339)
+	result.Meta["integration_action"] = "created"
 	return result, nil
+}
+
+func (s *Store) findByIntegrationKey(key string) (Result, bool) {
+	entries, err := os.ReadDir(s.dir)
+	if err != nil {
+		return Result{}, false
+	}
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.EqualFold(filepath.Ext(entry.Name()), ".json") {
+			continue
+		}
+		id := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
+		result, err := s.Get(id)
+		if err != nil {
+			continue
+		}
+		if strings.TrimSpace(fmt.Sprint(result.Document["integration_key"])) == strings.TrimSpace(key) {
+			return result, true
+		}
+	}
+	return Result{}, false
 }
 
 func (s *Store) Get(key string) (Result, error) {

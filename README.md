@@ -1,8 +1,17 @@
-# GLPI NeuroForge Mega v1.4.0
+# GLPI NeuroForge Mega v1.4.5
 
-> Release: **v1.4.4** · Legacy-Memory-ID-Reparatur und robuster Wissensraum-Graph für segmentbasierte Bestandsdaten.
+> Release: **v1.4.5** · korrigierter Research-Goal-Fortschritt und echte NeuroForge→Knowledge-Staging-Pipeline mit Human Review.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+
+
+## Research → Human-Review-Staging (v1.4.5)
+
+Autonome Research-Goals können ihre quellengebundene Evidenz jetzt tatsächlich in einen **KB-Staging-Entwurf** überführen. Die Bridge ist einseitig: NeuroForge darf ausschließlich `POST /api/integrations/staging` mit dem separaten `KB_INTEGRATION_TOKEN` verwenden; `auto_reply=false` wird serverseitig erzwungen und Produktivwissen bleibt menschlich freigabepflichtig.
+
+Der Fortschritt eines Research-Goals wird aus persistierten Research-Runs rekonstruiert (`new_evidence`, unabhängige Quellen, Corroborations) und nicht mehr nur durch eine starre `evaluation > 0.65`-Schwelle erhöht. Numerische Targets wie `100 quellengebundene Wissenseinträge` werden direkt gegen die passende Metrik gemessen. Frühere `goal-learning`-Memories werden aus der nächsten Goal-Evaluation ausgeschlossen, damit ein negativer Zyklus sich nicht selbst verstärkt.
+
+Staging-Entwürfe sind pro Goal idempotent: Solange ein Draft aktiv im Staging liegt, wird er bei neuer Evidenz aktualisiert statt dupliziert. Nach menschlicher Promotion/Archivierung kann später wieder ein neuer Draft entstehen.
 
 ## Unified Graph Explorer (v1.4.0)
 

@@ -32,6 +32,8 @@ type Engine struct {
 	electionDeadline  time.Time
 	observedHeartbeat time.Time
 	electionRunning   bool
+	stagingMu         sync.RWMutex
+	staging           StagingPublisherConfig
 }
 
 func New(s *store.Store, r *provider.Router, c *cost.Manager) *Engine {

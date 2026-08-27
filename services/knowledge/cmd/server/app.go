@@ -239,14 +239,16 @@ func (a *app) handleAIFallback(w http.ResponseWriter, r *http.Request) {
 }
 
 type integrationStagingRequest struct {
-	Source     string   `json:"source"`
-	Query      string   `json:"query"`
-	Title      string   `json:"title"`
-	Text       string   `json:"text"`
-	Answer     string   `json:"answer"`
-	Categories []string `json:"categories"`
-	Keywords   []string `json:"keywords"`
-	MinScore   *float64 `json:"min_score,omitempty"`
+	Source         string         `json:"source"`
+	Query          string         `json:"query"`
+	Title          string         `json:"title"`
+	Text           string         `json:"text"`
+	Answer         string         `json:"answer"`
+	Categories     []string       `json:"categories"`
+	Keywords       []string       `json:"keywords"`
+	MinScore       *float64       `json:"min_score,omitempty"`
+	IntegrationKey string         `json:"integration_key,omitempty"`
+	Metadata       map[string]any `json:"metadata,omitempty"`
 }
 
 func integrationBearerAuthorized(r *http.Request) (bool, bool) {
@@ -296,9 +298,9 @@ func (a *app) handleIntegrationStaging(w http.ResponseWriter, r *http.Request) {
 	if req.MinScore != nil {
 		minScore = *req.MinScore
 	}
-	result, err := a.staging.SaveFromSource(req.Query, req.Source, staging.Draft{
+	result, err := a.staging.SaveFromIntegration(req.Query, req.Source, staging.Draft{
 		Title: req.Title, Text: req.Text, Answer: req.Answer, Categories: req.Categories, Keywords: req.Keywords,
-	}, false, minScore)
+	}, false, minScore, staging.IntegrationOptions{IntegrationKey: req.IntegrationKey, Metadata: req.Metadata})
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())
 		return

@@ -424,3 +424,38 @@ func TestEditorBasicAuthDoesNotLeakCredentialsToIntegrationClient(t *testing.T) 
 		t.Fatalf("editor API unexpectedly bypassed basic auth: %d", itemsRR.Code)
 	}
 }
+
+func TestIntegrationDraftWithStableKeyUpdatesInsteadOfDuplicating(t *testing.T) {
+	t.Setenv("KB_INTEGRATION_TOKEN", "integration-secret")
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	st, err := staging.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	web, _ := fs.Sub(webFS, "web")
+	h := newApp(s, web).withStaging(st).routes()
+	post := func(answer string) {
+		payload := fmt.Sprintf(`{"source":"NeuroForge Research","query":"NVIDIA","title":"NVIDIA","answer":%q,"integration_key":"neuroforge-goal:g1","metadata":{"research_goal_id":"g1"}}`, answer)
+		req := httptest.NewRequest(http.MethodPost, "/api/integrations/staging", bytes.NewBufferString(payload))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer integration-secret")
+		rr := httptest.NewRecorder()
+		h.ServeHTTP(rr, req)
+		if rr.Code != http.StatusCreated {
+			t.Fatalf("status=%d body=%s", rr.Code, rr.Body.String())
+		}
+	}
+	post("erste Fassung")
+	post("zweite Fassung")
+	if st.Count() != 1 {
+		t.Fatalf("expected one active draft, got %d", st.Count())
+	}
+	items, _ := st.List(staging.Query{Page: 1, PageSize: 10})
+	got, _ := st.Get(items.Items[0].Key)
+	if got.Document["answer"] != "zweite Fassung" {
+		t.Fatalf("draft not refreshed: %#v", got.Document)
+	}
+}

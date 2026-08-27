@@ -177,6 +177,17 @@ func (s *Store) FinishResearchRun(runID, status, lastError string) (*core.Resear
 	return &cp, nil
 }
 
+func (s *Store) GetResearchRun(id string) (*core.ResearchRun, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	run := s.state.ResearchRuns[id]
+	if run == nil {
+		return nil, false
+	}
+	cp := cloneResearchRun(*run)
+	return &cp, true
+}
+
 func (s *Store) LatestResearchRun(goalID string) (*core.ResearchRun, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

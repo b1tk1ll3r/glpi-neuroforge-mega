@@ -83,6 +83,16 @@
       }
     },
     {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "kind": "file",
+      "label": "goal_progress.go",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "path": "platform/neuroforge/internal/brain/goal_progress.go"
+      }
+    },
+    {
       "id": "file:platform/neuroforge/internal/brain/policy.go",
       "kind": "file",
       "label": "policy.go",
@@ -100,6 +110,16 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "path": "platform/neuroforge/internal/brain/research_trace.go"
+      }
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go",
+      "kind": "file",
+      "label": "staging.go",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "path": "platform/neuroforge/internal/brain/staging.go"
       }
     },
     {
@@ -7330,7 +7350,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 524,
+        "line": 526,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7390,7 +7410,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 269,
+        "line": 271,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7426,7 +7446,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 495,
+        "line": 497,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7438,7 +7458,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 491,
+        "line": 493,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7450,7 +7470,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 549,
+        "line": 551,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7474,7 +7494,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 420,
+        "line": 422,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7486,7 +7506,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 386,
+        "line": 388,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7498,7 +7518,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 339,
+        "line": 341,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7510,7 +7530,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 311,
+        "line": 313,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7522,7 +7542,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 403,
+        "line": 405,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7534,7 +7554,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 361,
+        "line": 363,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7546,7 +7566,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 475,
+        "line": 477,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7618,7 +7638,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 560,
+        "line": 562,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7654,7 +7674,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 252,
+        "line": 254,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7786,7 +7806,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 582,
+        "line": 584,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7798,7 +7818,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 576,
+        "line": 578,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -8194,7 +8214,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 77,
+        "line": 85,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8206,7 +8226,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 291,
+        "line": 357,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8218,7 +8238,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 93,
+        "line": 101,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8230,7 +8250,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 285,
+        "line": 351,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8242,7 +8262,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 91,
+        "line": 99,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8254,7 +8274,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 165,
+        "line": 231,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8266,7 +8286,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 199,
+        "line": 265,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8278,7 +8298,19 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 107,
+        "line": 115,
+        "path": "services/knowledge/internal/staging/staging.go"
+      }
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
+      "kind": "function",
+      "label": "Store.SaveFromIntegration",
+      "group": "engineering",
+      "community": "kb-editor/internal/staging",
+      "meta": {
+        "exported": true,
+        "line": 127,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8290,7 +8322,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 113,
+        "line": 121,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8302,7 +8334,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 259,
+        "line": 325,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8314,7 +8346,19 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 295,
+        "line": 361,
+        "path": "services/knowledge/internal/staging/staging.go"
+      }
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "kind": "function",
+      "label": "Store.findByIntegrationKey",
+      "group": "engineering",
+      "community": "kb-editor/internal/staging",
+      "meta": {
+        "exported": false,
+        "line": 210,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8326,7 +8370,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 337,
+        "line": 403,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8338,7 +8382,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 317,
+        "line": 383,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8350,7 +8394,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 345,
+        "line": 411,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8362,7 +8406,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 512,
+        "line": 578,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8374,7 +8418,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 521,
+        "line": 587,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8386,7 +8430,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 536,
+        "line": 602,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8398,7 +8442,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 461,
+        "line": 527,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8410,7 +8454,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 405,
+        "line": 471,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8422,7 +8466,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 445,
+        "line": 511,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8434,7 +8478,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 435,
+        "line": 501,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8446,7 +8490,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 373,
+        "line": 439,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8458,7 +8502,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 474,
+        "line": 540,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8470,7 +8514,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 491,
+        "line": 557,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -9202,7 +9246,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 63,
+        "line": 65,
         "path": "services/control/main.go"
       }
     },
@@ -9250,7 +9294,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 70,
+        "line": 72,
         "path": "services/control/main.go"
       }
     },
@@ -9262,7 +9306,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 115,
+        "line": 117,
         "path": "services/control/main.go"
       }
     },
@@ -9274,7 +9318,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 158,
+        "line": 160,
         "path": "services/control/main.go"
       }
     },
@@ -9298,7 +9342,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 125,
+        "line": 127,
         "path": "services/control/main.go"
       }
     },
@@ -9382,7 +9426,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 129,
+        "line": 131,
         "path": "services/control/main.go"
       }
     },
@@ -9418,7 +9462,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 146,
+        "line": 148,
         "path": "services/control/main.go"
       }
     },
@@ -9454,7 +9498,7 @@
       "community": "mega-control",
       "meta": {
         "exported": false,
-        "line": 193,
+        "line": 195,
         "path": "services/control/main.go"
       }
     },
@@ -9538,6 +9582,18 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
+        "line": 57,
+        "path": "platform/neuroforge/cmd/server/main.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/cmd/server:maxIntMain",
+      "kind": "function",
+      "label": "maxIntMain",
+      "group": "engineering",
+      "community": "neuroforge/cmd/server",
+      "meta": {
+        "exported": false,
         "line": 50,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
@@ -9550,7 +9606,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 57,
+        "line": 64,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9622,7 +9678,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 986,
+        "line": 988,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9634,7 +9690,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 181,
+        "line": 183,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9711,6 +9767,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.ConfigureStagingPublisher",
+      "kind": "function",
+      "label": "Engine.ConfigureStagingPublisher",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": true,
+        "line": 29,
+        "path": "platform/neuroforge/internal/brain/staging.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.Consolidate",
       "kind": "function",
       "label": "Engine.Consolidate",
@@ -9718,7 +9786,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 727,
+        "line": 729,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9730,7 +9798,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 511,
+        "line": 513,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9742,7 +9810,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 435,
+        "line": 437,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9778,7 +9846,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 356,
+        "line": 358,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9790,8 +9858,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 263,
+        "line": 296,
         "path": "platform/neuroforge/internal/brain/v3.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.ReconcileGoalProgress",
+      "kind": "function",
+      "label": "Engine.ReconcileGoalProgress",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": true,
+        "line": 100,
+        "path": "platform/neuroforge/internal/brain/goal_progress.go"
       }
     },
     {
@@ -9814,7 +9894,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 297,
+        "line": 298,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -9826,7 +9906,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 117,
+        "line": 123,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -9850,7 +9930,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 913,
+        "line": 915,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9862,7 +9942,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 405,
+        "line": 438,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -9910,7 +9990,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 488,
+        "line": 490,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9922,7 +10002,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 1007,
+        "line": 1009,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9934,7 +10014,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 501,
+        "line": 503,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9970,7 +10050,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 105,
+        "line": 107,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9982,7 +10062,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 109,
+        "line": 111,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -9994,7 +10074,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 121,
+        "line": 123,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10020,6 +10100,18 @@
         "exported": false,
         "line": 206,
         "path": "platform/neuroforge/internal/brain/v4.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.collectGoalDraftEvidence",
+      "kind": "function",
+      "label": "Engine.collectGoalDraftEvidence",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 168,
+        "path": "platform/neuroforge/internal/brain/staging.go"
       }
     },
     {
@@ -10066,7 +10158,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 60,
+        "line": 62,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10078,7 +10170,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 965,
+        "line": 967,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10090,7 +10182,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 530,
+        "line": 532,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10114,7 +10206,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 447,
+        "line": 456,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -10162,8 +10254,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 976,
+        "line": 978,
         "path": "platform/neuroforge/internal/brain/brain.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "kind": "function",
+      "label": "Engine.maybePublishGoalDraft",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 78,
+        "path": "platform/neuroforge/internal/brain/staging.go"
       }
     },
     {
@@ -10191,6 +10295,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "kind": "function",
+      "label": "Engine.refreshGoalResearchProgress",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 16,
+        "path": "platform/neuroforge/internal/brain/goal_progress.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.reinforcePair",
       "kind": "function",
       "label": "Engine.reinforcePair",
@@ -10198,7 +10314,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 329,
+        "line": 331,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10210,7 +10326,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 641,
+        "line": 643,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10222,7 +10338,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 674,
+        "line": 676,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10234,7 +10350,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 364,
+        "line": 397,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10246,7 +10362,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 497,
+        "line": 544,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -10270,7 +10386,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 572,
+        "line": 574,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10287,6 +10403,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.stagingConfig",
+      "kind": "function",
+      "label": "Engine.stagingConfig",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 47,
+        "path": "platform/neuroforge/internal/brain/staging.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.synthesizeConsolidation",
       "kind": "function",
       "label": "Engine.synthesizeConsolidation",
@@ -10294,8 +10422,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 849,
+        "line": 851,
         "path": "platform/neuroforge/internal/brain/brain.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "kind": "function",
+      "label": "Engine.synthesizeGoalDraft",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 207,
+        "path": "platform/neuroforge/internal/brain/staging.go"
       }
     },
     {
@@ -10306,7 +10446,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 37,
+        "line": 39,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10318,7 +10458,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 572,
+        "line": 619,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -10330,7 +10470,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": true,
-        "line": 580,
+        "line": 627,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -10354,7 +10494,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 246,
+        "line": 279,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10366,7 +10506,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 315,
+        "line": 317,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10402,7 +10542,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 558,
+        "line": 605,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -10414,7 +10554,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 440,
+        "line": 449,
         "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
@@ -10426,8 +10566,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 868,
+        "line": 870,
         "path": "platform/neuroforge/internal/brain/brain.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:deterministicDraftAnswer",
+      "kind": "function",
+      "label": "deterministicDraftAnswer",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 248,
+        "path": "platform/neuroforge/internal/brain/staging.go"
       }
     },
     {
@@ -10438,7 +10590,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 221,
+        "line": 239,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10450,7 +10602,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 211,
+        "line": 229,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10462,7 +10614,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 401,
+        "line": 434,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10486,8 +10638,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 187,
+        "line": 193,
         "path": "platform/neuroforge/internal/brain/v3.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:filterGoalEvidenceHits",
+      "kind": "function",
+      "label": "filterGoalEvidenceHits",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 86,
+        "path": "platform/neuroforge/internal/brain/goal_progress.go"
       }
     },
     {
@@ -10498,8 +10662,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 431,
+        "line": 440,
         "path": "platform/neuroforge/internal/brain/v8.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:goalKeywords",
+      "kind": "function",
+      "label": "goalKeywords",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 266,
+        "path": "platform/neuroforge/internal/brain/staging.go"
       }
     },
     {
@@ -10522,7 +10698,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 394,
+        "line": 427,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10534,7 +10710,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 418,
+        "line": 420,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10546,7 +10722,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 939,
+        "line": 941,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10558,7 +10734,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 476,
+        "line": 509,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10570,7 +10746,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 231,
+        "line": 264,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10618,7 +10794,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 345,
+        "line": 378,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10630,8 +10806,20 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 326,
+        "line": 359,
         "path": "platform/neuroforge/internal/brain/v3.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/brain:researchQueryUseful",
+      "kind": "function",
+      "label": "researchQueryUseful",
+      "group": "engineering",
+      "community": "neuroforge/internal/brain",
+      "meta": {
+        "exported": false,
+        "line": 519,
+        "path": "platform/neuroforge/internal/brain/v8.go"
       }
     },
     {
@@ -10666,7 +10854,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 171,
+        "line": 173,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10678,7 +10866,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 355,
+        "line": 388,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10702,7 +10890,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 467,
+        "line": 500,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10738,7 +10926,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 162,
+        "line": 168,
         "path": "platform/neuroforge/internal/brain/v3.go"
       }
     },
@@ -10750,7 +10938,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 431,
+        "line": 433,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10762,7 +10950,7 @@
       "community": "neuroforge/internal/brain",
       "meta": {
         "exported": false,
-        "line": 888,
+        "line": 890,
         "path": "platform/neuroforge/internal/brain/brain.go"
       }
     },
@@ -10774,7 +10962,7 @@
       "community": "neuroforge/internal/core",
       "meta": {
         "exported": true,
-        "line": 664,
+        "line": 673,
         "path": "platform/neuroforge/internal/core/types.go"
       }
     },
@@ -10978,7 +11166,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 673,
+        "line": 679,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -10990,7 +11178,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 647,
+        "line": 653,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11026,7 +11214,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 669,
+        "line": 675,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11038,7 +11226,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 470,
+        "line": 476,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11062,7 +11250,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 525,
+        "line": 531,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11074,7 +11262,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 579,
+        "line": 585,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11158,7 +11346,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 636,
+        "line": 642,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11182,7 +11370,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 631,
+        "line": 637,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11194,7 +11382,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 473,
+        "line": 479,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11218,7 +11406,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 529,
+        "line": 535,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11230,7 +11418,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 592,
+        "line": 598,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11314,7 +11502,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 566,
+        "line": 572,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11350,7 +11538,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 659,
+        "line": 665,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11374,7 +11562,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 662,
+        "line": 668,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11866,7 +12054,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 730,
+        "line": 736,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11902,7 +12090,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 734,
+        "line": 740,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11914,7 +12102,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 705,
+        "line": 711,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -11974,7 +12162,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 683,
+        "line": 689,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12202,7 +12390,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 570,
+        "line": 576,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12274,7 +12462,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 512,
+        "line": 518,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13066,7 +13254,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 560,
+        "line": 570,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13078,7 +13266,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 291,
+        "line": 294,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13090,7 +13278,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 282,
+        "line": 285,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13114,7 +13302,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 527,
+        "line": 533,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13126,7 +13314,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 339,
+        "line": 342,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13138,7 +13326,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 638,
+        "line": 644,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13150,7 +13338,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 539,
+        "line": 545,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13162,7 +13350,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 508,
+        "line": 514,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13174,7 +13362,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 440,
+        "line": 446,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13186,7 +13374,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 475,
+        "line": 481,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13198,7 +13386,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 545,
+        "line": 551,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13210,7 +13398,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 603,
+        "line": 609,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13222,7 +13410,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 629,
+        "line": 635,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13234,7 +13422,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 203,
+        "line": 206,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13246,7 +13434,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 207,
+        "line": 210,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13258,7 +13446,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 369,
+        "line": 375,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13270,7 +13458,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 299,
+        "line": 302,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13282,7 +13470,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 314,
+        "line": 317,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -13342,7 +13530,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 97,
+        "line": 100,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -13378,7 +13566,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 773,
+        "line": 783,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13402,7 +13590,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1288,
+        "line": 1300,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13426,7 +13614,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1346,
+        "line": 1358,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13438,7 +13626,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 562,
+        "line": 572,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13522,7 +13710,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 578,
+        "line": 588,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13534,7 +13722,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1371,
+        "line": 1383,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13546,7 +13734,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 599,
+        "line": 609,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13570,7 +13758,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1133,
+        "line": 1145,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13582,7 +13770,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1086,
+        "line": 1098,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13618,7 +13806,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1393,
+        "line": 1405,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13666,7 +13854,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1333,
+        "line": 1345,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13678,7 +13866,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1413,
+        "line": 1425,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13726,8 +13914,20 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 839,
+        "line": 849,
         "path": "platform/neuroforge/internal/store/store.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.GetResearchRun",
+      "kind": "function",
+      "label": "Store.GetResearchRun",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": true,
+        "line": 180,
+        "path": "platform/neuroforge/internal/store/research_runs.go"
       }
     },
     {
@@ -13798,7 +13998,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 267,
+        "line": 274,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -13810,7 +14010,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 209,
+        "line": 212,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -13822,7 +14022,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 359,
+        "line": 382,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -13834,7 +14034,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 133,
+        "line": 136,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -13846,7 +14046,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 180,
+        "line": 191,
         "path": "platform/neuroforge/internal/store/research_runs.go"
       }
     },
@@ -13858,7 +14058,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1228,
+        "line": 1240,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13870,7 +14070,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1186,
+        "line": 1198,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13882,7 +14082,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1205,
+        "line": 1217,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -13978,7 +14178,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 113,
+        "line": 116,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -14002,7 +14202,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1320,
+        "line": 1332,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14026,7 +14226,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1050,
+        "line": 1062,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14038,7 +14238,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 199,
+        "line": 210,
         "path": "platform/neuroforge/internal/store/research_runs.go"
       }
     },
@@ -14098,7 +14298,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 894,
+        "line": 906,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14110,7 +14310,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1729,
+        "line": 1741,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14122,7 +14322,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1738,
+        "line": 1750,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14134,7 +14334,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 656,
+        "line": 666,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14146,7 +14346,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 590,
+        "line": 600,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14170,7 +14370,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1161,
+        "line": 1173,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14182,7 +14382,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1172,
+        "line": 1184,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14230,7 +14430,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1241,
+        "line": 1253,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14266,7 +14466,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1218,
+        "line": 1230,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14302,7 +14502,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1109,
+        "line": 1121,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14326,7 +14526,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 600,
+        "line": 610,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14338,7 +14538,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1234,
+        "line": 1246,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14350,7 +14550,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 663,
+        "line": 673,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14398,7 +14598,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1304,
+        "line": 1316,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14410,7 +14610,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1431,
+        "line": 1443,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14602,7 +14802,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 850,
+        "line": 860,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14686,7 +14886,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 525,
+        "line": 535,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14734,7 +14934,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 681,
+        "line": 691,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14770,7 +14970,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 545,
+        "line": 555,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14782,7 +14982,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 548,
+        "line": 558,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14806,7 +15006,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 686,
+        "line": 696,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14818,7 +15018,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 723,
+        "line": 733,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14878,7 +15078,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 900,
+        "line": 912,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14914,7 +15114,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 219,
+        "line": 230,
         "path": "platform/neuroforge/internal/store/research_runs.go"
       }
     },
@@ -14950,7 +15150,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1437,
+        "line": 1449,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15262,7 +15462,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 873,
+        "line": 885,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15298,7 +15498,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 673,
+        "line": 683,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15358,7 +15558,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1043,
+        "line": 1055,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15466,7 +15666,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 512,
+        "line": 522,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15574,7 +15774,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 89,
+        "line": 92,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -15730,7 +15930,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1079,
+        "line": 1091,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15754,7 +15954,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 203,
+        "line": 206,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -15766,7 +15966,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 204,
+        "line": 207,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -15778,7 +15978,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 207,
+        "line": 210,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -15790,7 +15990,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 206,
+        "line": 209,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -15802,7 +16002,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 205,
+        "line": 208,
         "path": "platform/neuroforge/internal/store/knowledge.go"
       }
     },
@@ -15814,7 +16014,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 552,
+        "line": 562,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15946,7 +16146,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 533,
+        "line": 543,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -19237,6 +19437,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:maxIntMain:defines",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "function:neuroforge/cmd/server:maxIntMain",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:run:defines",
       "from": "file:platform/neuroforge/cmd/server/main.go",
       "to": "function:neuroforge/cmd/server:run",
@@ -19753,6 +19959,66 @@
       "kind": "imports"
     },
     {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003efunction:neuroforge/internal/brain:Engine.ReconcileGoalProgress:defines",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "function:neuroforge/internal/brain:Engine.ReconcileGoalProgress",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003efunction:neuroforge/internal/brain:Engine.refreshGoalResearchProgress:defines",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003efunction:neuroforge/internal/brain:filterGoalEvidenceHits:defines",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "function:neuroforge/internal/brain:filterGoalEvidenceHits",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:fmt:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:fmt",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:neuroforge/internal/core:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:neuroforge/internal/core",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:neuroforge/internal/store:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:neuroforge/internal/store",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:neuroforge/internal/vector:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:neuroforge/internal/vector",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:regexp:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:regexp",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:strconv:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:strconv",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/goal_progress.go-\u003epackage:strings:imports",
+      "from": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "to": "package:strings",
+      "kind": "imports"
+    },
+    {
       "id": "file:platform/neuroforge/internal/brain/policy.go-\u003efunction:neuroforge/internal/brain:Engine.duplicateMemory:defines",
       "from": "file:platform/neuroforge/internal/brain/policy.go",
       "to": "function:neuroforge/internal/brain:Engine.duplicateMemory",
@@ -19846,6 +20112,108 @@
       "id": "file:platform/neuroforge/internal/brain/research_trace.go-\u003epackage:time:imports",
       "from": "file:platform/neuroforge/internal/brain/research_trace.go",
       "to": "package:time",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:Engine.ConfigureStagingPublisher:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:Engine.ConfigureStagingPublisher",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:Engine.collectGoalDraftEvidence:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:Engine.collectGoalDraftEvidence",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:Engine.maybePublishGoalDraft:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:Engine.stagingConfig:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:Engine.stagingConfig",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:Engine.synthesizeGoalDraft:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:deterministicDraftAnswer:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:deterministicDraftAnswer",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003efunction:neuroforge/internal/brain:goalKeywords:defines",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "function:neuroforge/internal/brain:goalKeywords",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:bytes:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:bytes",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:context:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:context",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:encoding/json:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:encoding/json",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:errors:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:errors",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:fmt:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:fmt",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:io:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:io",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:net/http:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:net/http",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:neuroforge/internal/core:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:neuroforge/internal/core",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:sort:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:sort",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/staging.go-\u003epackage:strings:imports",
+      "from": "file:platform/neuroforge/internal/brain/staging.go",
+      "to": "package:strings",
       "kind": "imports"
     },
     {
@@ -20392,6 +20760,12 @@
       "id": "file:platform/neuroforge/internal/brain/v8.go-\u003efunction:neuroforge/internal/brain:hashText:defines",
       "from": "file:platform/neuroforge/internal/brain/v8.go",
       "to": "function:neuroforge/internal/brain:hashText",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/brain/v8.go-\u003efunction:neuroforge/internal/brain:researchQueryUseful:defines",
+      "from": "file:platform/neuroforge/internal/brain/v8.go",
+      "to": "function:neuroforge/internal/brain:researchQueryUseful",
       "kind": "defines"
     },
     {
@@ -23230,6 +23604,12 @@
       "id": "file:platform/neuroforge/internal/store/research_runs.go-\u003efunction:neuroforge/internal/store:Store.FinishResearchRun:defines",
       "from": "file:platform/neuroforge/internal/store/research_runs.go",
       "to": "function:neuroforge/internal/store:Store.FinishResearchRun",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/research_runs.go-\u003efunction:neuroforge/internal/store:Store.GetResearchRun:defines",
+      "from": "file:platform/neuroforge/internal/store/research_runs.go",
+      "to": "function:neuroforge/internal/store:Store.GetResearchRun",
       "kind": "defines"
     },
     {
@@ -31651,6 +32031,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.SaveFromIntegration:defines",
+      "from": "file:services/knowledge/internal/staging/staging.go",
+      "to": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.SaveFromSource:defines",
       "from": "file:services/knowledge/internal/staging/staging.go",
       "to": "function:kb-editor/internal/staging:Store.SaveFromSource",
@@ -31666,6 +32052,12 @@
       "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.archive:defines",
       "from": "file:services/knowledge/internal/staging/staging.go",
       "to": "function:kb-editor/internal/staging:Store.archive",
+      "kind": "defines"
+    },
+    {
+      "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.findByIntegrationKey:defines",
+      "from": "file:services/knowledge/internal/staging/staging.go",
+      "to": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
       "kind": "defines"
     },
     {
@@ -43415,81 +43807,99 @@
       "label": "TrimSpace"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:New:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:New:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:New",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:Store.Get:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.Get:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:Store.Get",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:Store.writeNew:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.Update:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
+      "to": "function:kb-editor/internal/staging:Store.Update",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.findByIntegrationKey:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
+      "to": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.writeNew:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:Store.writeNew",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:clampString:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:clampString:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:clampString",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:clampStrings:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:clampStrings:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:clampStrings",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:extractUsefulQueryTokens:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:extractUsefulQueryTokens:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:extractUsefulQueryTokens",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:uniqueStrings:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:uniqueStrings:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:uniqueStrings",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003epackage:crypto/sha256:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003epackage:crypto/sha256:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "package:crypto/sha256",
       "kind": "calls_package",
       "label": "Sum256"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003epackage:encoding/hex:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003epackage:encoding/hex:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "package:encoding/hex",
       "kind": "calls_package",
       "label": "EncodeToString"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003epackage:fmt:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003epackage:fmt:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "package:fmt",
       "kind": "calls_package",
       "label": "Sprintf"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003epackage:strings:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003epackage:strings:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "package:strings",
       "kind": "calls_package",
       "label": "ToLower"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003epackage:time:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003epackage:time:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "package:time",
       "kind": "calls_package",
       "label": "Now"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.SaveFromSource-\u003efunction:kb-editor/internal/staging:Store.SaveFromIntegration:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromSource",
+      "to": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
+      "kind": "calls"
     },
     {
       "id": "function:kb-editor/internal/staging:Store.Update-\u003efunction:kb-editor/internal/staging:New:calls",
@@ -43562,6 +43972,40 @@
       "to": "package:time",
       "kind": "calls_package",
       "label": "Now"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.findByIntegrationKey-\u003efunction:kb-editor/internal/staging:Store.Get:calls",
+      "from": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "to": "function:kb-editor/internal/staging:Store.Get",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.findByIntegrationKey-\u003epackage:fmt:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Sprint"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.findByIntegrationKey-\u003epackage:os:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "ReadDir"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.findByIntegrationKey-\u003epackage:path/filepath:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Ext"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.findByIntegrationKey-\u003epackage:strings:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "EqualFold"
     },
     {
       "id": "function:kb-editor/internal/staging:Store.pathForKey-\u003efunction:kb-editor/internal/staging:New:calls",
@@ -45486,6 +45930,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:maxIntMain:calls",
+      "from": "function:neuroforge/cmd/server:run",
+      "to": "function:neuroforge/cmd/server:maxIntMain",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/cmd/server:run-\u003epackage:context:calls_package",
       "from": "function:neuroforge/cmd/server:run",
       "to": "package:context",
@@ -46205,6 +46655,12 @@
       "label": "EqualFold"
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.ReconcileGoalProgress-\u003efunction:neuroforge/internal/brain:Engine.refreshGoalResearchProgress:calls",
+      "from": "function:neuroforge/internal/brain:Engine.ReconcileGoalProgress",
+      "to": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.RepairCluster-\u003efunction:neuroforge/internal/brain:Engine.clusterLeaderURL:calls",
       "from": "function:neuroforge/internal/brain:Engine.RepairCluster",
       "to": "function:neuroforge/internal/brain:Engine.clusterLeaderURL",
@@ -46372,6 +46828,18 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.RunGoalCycle-\u003efunction:neuroforge/internal/brain:Engine.maybePublishGoalDraft:calls",
+      "from": "function:neuroforge/internal/brain:Engine.RunGoalCycle",
+      "to": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.RunGoalCycle-\u003efunction:neuroforge/internal/brain:Engine.refreshGoalResearchProgress:calls",
+      "from": "function:neuroforge/internal/brain:Engine.RunGoalCycle",
+      "to": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.RunGoalCycle-\u003efunction:neuroforge/internal/brain:Engine.replicateMemory:calls",
       "from": "function:neuroforge/internal/brain:Engine.RunGoalCycle",
       "to": "function:neuroforge/internal/brain:Engine.replicateMemory",
@@ -46417,6 +46885,12 @@
       "id": "function:neuroforge/internal/brain:Engine.RunGoalCycle-\u003efunction:neuroforge/internal/brain:evaluateGoalEvidence:calls",
       "from": "function:neuroforge/internal/brain:Engine.RunGoalCycle",
       "to": "function:neuroforge/internal/brain:evaluateGoalEvidence",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.RunGoalCycle-\u003efunction:neuroforge/internal/brain:filterGoalEvidenceHits:calls",
+      "from": "function:neuroforge/internal/brain:Engine.RunGoalCycle",
+      "to": "function:neuroforge/internal/brain:filterGoalEvidenceHits",
       "kind": "calls"
     },
     {
@@ -46867,6 +47341,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.goalResearchQueries-\u003efunction:neuroforge/internal/brain:researchQueryUseful:calls",
+      "from": "function:neuroforge/internal/brain:Engine.goalResearchQueries",
+      "to": "function:neuroforge/internal/brain:researchQueryUseful",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.goalResearchQueries-\u003efunction:neuroforge/internal/brain:researchTrace.emit:calls",
       "from": "function:neuroforge/internal/brain:Engine.goalResearchQueries",
       "to": "function:neuroforge/internal/brain:researchTrace.emit",
@@ -47119,6 +47599,72 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003efunction:neuroforge/internal/brain:Engine.collectGoalDraftEvidence:calls",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "function:neuroforge/internal/brain:Engine.collectGoalDraftEvidence",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003efunction:neuroforge/internal/brain:Engine.stagingConfig:calls",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "function:neuroforge/internal/brain:Engine.stagingConfig",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003efunction:neuroforge/internal/brain:Engine.synthesizeGoalDraft:calls",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003efunction:neuroforge/internal/brain:firstNonEmpty:calls",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "function:neuroforge/internal/brain:firstNonEmpty",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003epackage:bytes:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "package:bytes",
+      "kind": "calls_package",
+      "label": "NewReader"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003epackage:encoding/json:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "Marshal"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Sprintf"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003epackage:io:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "package:io",
+      "kind": "calls_package",
+      "label": "ReadAll"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003epackage:net/http:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "package:net/http",
+      "kind": "calls_package",
+      "label": "NewRequestWithContext"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.maybePublishGoalDraft",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
+    },
+    {
       "id": "function:neuroforge/internal/brain:Engine.newResearchTrace-\u003efunction:neuroforge/internal/brain:researchTrace.emit:calls",
       "from": "function:neuroforge/internal/brain:Engine.newResearchTrace",
       "to": "function:neuroforge/internal/brain:researchTrace.emit",
@@ -47183,6 +47729,34 @@
       "to": "package:time",
       "kind": "calls_package",
       "label": "Now"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Sprintf"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress-\u003epackage:neuroforge/internal/vector:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "to": "package:neuroforge/internal/vector",
+      "kind": "calls_package",
+      "label": "Clamp"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress-\u003epackage:strconv:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "to": "package:strconv",
+      "kind": "calls_package",
+      "label": "Atoi"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.refreshGoalResearchProgress",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
     },
     {
       "id": "function:neuroforge/internal/brain:Engine.remoteVectorSearch-\u003efunction:neuroforge/internal/brain:New:calls",
@@ -47459,6 +48033,57 @@
       "label": "TrimSpace"
     },
     {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003efunction:neuroforge/internal/brain:Engine.chatModelLimitOn:calls",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "function:neuroforge/internal/brain:Engine.chatModelLimitOn",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003efunction:neuroforge/internal/brain:New:calls",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "function:neuroforge/internal/brain:New",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003efunction:neuroforge/internal/brain:deterministicDraftAnswer:calls",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "function:neuroforge/internal/brain:deterministicDraftAnswer",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003efunction:neuroforge/internal/brain:goalKeywords:calls",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "function:neuroforge/internal/brain:goalKeywords",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003efunction:neuroforge/internal/brain:roleRoute:calls",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "function:neuroforge/internal/brain:roleRoute",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003epackage:encoding/json:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "Unmarshal"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Fprintf"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/brain:Engine.synthesizeGoalDraft",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
+    },
+    {
       "id": "function:neuroforge/internal/brain:ResearchDomain-\u003epackage:net/url:calls_package",
       "from": "function:neuroforge/internal/brain:ResearchDomain",
       "to": "package:net/url",
@@ -47521,6 +48146,13 @@
       "label": "TrimSpace"
     },
     {
+      "id": "function:neuroforge/internal/brain:deterministicDraftAnswer-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/brain:deterministicDraftAnswer",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "Join"
+    },
+    {
       "id": "function:neuroforge/internal/brain:deterministicPrediction-\u003epackage:fmt:calls_package",
       "from": "function:neuroforge/internal/brain:deterministicPrediction",
       "to": "package:fmt",
@@ -47575,6 +48207,20 @@
       "to": "package:strings",
       "kind": "calls_package",
       "label": "TrimSpace"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:goalKeywords-\u003epackage:sort:calls_package",
+      "from": "function:neuroforge/internal/brain:goalKeywords",
+      "to": "package:sort",
+      "kind": "calls_package",
+      "label": "Strings"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:goalKeywords-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/brain:goalKeywords",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "Fields"
     },
     {
       "id": "function:neuroforge/internal/brain:hashText-\u003epackage:crypto/sha256:calls_package",
@@ -47657,6 +48303,13 @@
       "from": "function:neuroforge/internal/brain:rendezvousShard",
       "to": "function:neuroforge/internal/brain:rendezvousScore",
       "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/brain:researchQueryUseful-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/brain:researchQueryUseful",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "ToLower"
     },
     {
       "id": "function:neuroforge/internal/brain:researchTrace.emit-\u003epackage:time:calls_package",
@@ -52504,6 +53157,12 @@
       "id": "function:neuroforge/internal/store:Store.GetMemory-\u003efunction:neuroforge/internal/store:cloneMemory:calls",
       "from": "function:neuroforge/internal/store:Store.GetMemory",
       "to": "function:neuroforge/internal/store:cloneMemory",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.GetResearchRun-\u003efunction:neuroforge/internal/store:cloneResearchRun:calls",
+      "from": "function:neuroforge/internal/store:Store.GetResearchRun",
+      "to": "function:neuroforge/internal/store:cloneResearchRun",
       "kind": "calls"
     },
     {
@@ -57591,6 +58250,12 @@
       "kind": "contains_file"
     },
     {
+      "id": "package:neuroforge/internal/brain-\u003efile:platform/neuroforge/internal/brain/goal_progress.go:contains_file",
+      "from": "package:neuroforge/internal/brain",
+      "to": "file:platform/neuroforge/internal/brain/goal_progress.go",
+      "kind": "contains_file"
+    },
+    {
       "id": "package:neuroforge/internal/brain-\u003efile:platform/neuroforge/internal/brain/policy.go:contains_file",
       "from": "package:neuroforge/internal/brain",
       "to": "file:platform/neuroforge/internal/brain/policy.go",
@@ -57600,6 +58265,12 @@
       "id": "package:neuroforge/internal/brain-\u003efile:platform/neuroforge/internal/brain/research_trace.go:contains_file",
       "from": "package:neuroforge/internal/brain",
       "to": "file:platform/neuroforge/internal/brain/research_trace.go",
+      "kind": "contains_file"
+    },
+    {
+      "id": "package:neuroforge/internal/brain-\u003efile:platform/neuroforge/internal/brain/staging.go:contains_file",
+      "from": "package:neuroforge/internal/brain",
+      "to": "file:platform/neuroforge/internal/brain/staging.go",
       "kind": "contains_file"
     },
     {
@@ -59404,10 +60075,10 @@
     }
   ],
   "meta": {
-    "edges": 6450,
+    "edges": 6525,
     "format_version": 1,
     "generator": "go-ast+compose",
     "modules": 4,
-    "nodes": 1652
+    "nodes": 1669
   }
 }

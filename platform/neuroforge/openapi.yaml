@@ -431,6 +431,31 @@ components:
           type: number
           minimum: -1
           maximum: 1
+        progress_reason:
+          type: string
+        research_evidence:
+          type: integer
+          minimum: 0
+        research_sources:
+          type: integer
+          minimum: 0
+        research_corroborations:
+          type: integer
+          minimum: 0
+        research_source_ids:
+          type: array
+          items:
+            type: string
+        staging_drafts_created:
+          type: integer
+          minimum: 0
+        staging_drafts_updated:
+          type: integer
+          minimum: 0
+        last_staging_draft_id:
+          type: string
+        last_staging_error:
+          type: string
         memory_ids:
           type: array
           items:

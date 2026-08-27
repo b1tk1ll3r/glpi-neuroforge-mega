@@ -63,3 +63,19 @@ The canonical `.env.example` now contains these settings explicitly.
 Never commit `.env`. The tracked file must remain `.env.example` only.
 If credentials were pasted into issue trackers, chats, CI logs, shell history or screenshots,
 rotate them before production use.
+
+## Research → Knowledge Staging (v1.4.5+)
+
+The autonomous research bridge is controlled independently from Research and Goal Learning:
+
+```env
+NEUROFORGE_KB_STAGING_ENABLED=true
+NEUROFORGE_KB_STAGING_MIN_EVIDENCE=4
+NEUROFORGE_KB_STAGING_MIN_SOURCES=2
+NEUROFORGE_KB_STAGING_MIN_CORROBORATIONS=0
+NEUROFORGE_KB_STAGING_MAX_EVIDENCE=12
+```
+
+`NEUROFORGE_KB_STAGING_URL` and `NEUROFORGE_KB_STAGING_TOKEN` are container-internal values owned by the root Compose file. The token is derived from the existing `KB_INTEGRATION_TOKEN`; do not duplicate it under a second operator-managed secret name.
+
+This bridge can only create/update **human-review staging**. The Knowledge service enforces `auto_reply=false` and does not expose production promotion through this integration token.

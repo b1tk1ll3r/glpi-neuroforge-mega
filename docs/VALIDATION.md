@@ -1,16 +1,16 @@
 # Validierung
 
-Stand: 26.08.2026 — Release v1.4.4
+Stand: 26.08.2026 — Release v1.4.5
 
 ## Umfang
 
 - 4 Go-Module im gemeinsamen `go.work`
-- 159 Go-Dateien
-- 47.489 Go-Codezeilen inklusive Tests
-- 281 `Test...`-Testfunktionen
+- 162 Go-Dateien
+- 48.303 Go-Codezeilen inklusive Tests
+- 289 `Test...`-Testfunktionen
 - 103 produktive Knowledge-JSON-Dateien
 - 8 Compose-Services inklusive optionalem SearXNG-Profil
-- reproduzierbarer Engineering-Snapshot: 1.652 Knoten / 6.450 Kanten
+- reproduzierbarer Engineering-Snapshot: 1.669 Knoten / 6.525 Kanten
 
 ## Vollständige Modulprüfung
 
@@ -81,3 +81,22 @@ Vor Produktivfreigabe bleiben Container-Smoke-Test, echte GLPI-/Research-Konnekt
 - NeuroForge `go test ./...`, `go vet ./...`, `go build ./...`: **OK**
 - NeuroForge `go test -race ./internal/store ./internal/httpapi`: **OK**
 - eingebettetes NeuroForge-JavaScript `node --check`: **OK**
+
+## v1.4.5-spezifische Prüfungen
+
+- Research→Knowledge-Bridge ist tatsächlich vom NeuroForge-Goal-Cycle bis `POST /api/integrations/staging` verdrahtet: **OK**
+- Knowledge-Staging erzwingt weiterhin `auto_reply=false`: **OK**
+- stabiler `integration_key` aktualisiert einen aktiven Goal-Draft statt Duplikate zu erzeugen: **OK**
+- Goal-Target `100 ... Wissenseinträge` wird gegen `new_evidence` statt fälschlich gegen Source-Anzahl gemessen: **OK**
+- historische Research-Runs werden zur Progress-Rekonstruktion herangezogen: **OK**
+- eigene `goal-learning`-/`goal-cycle`-Memories werden aus der nächsten Goal-Evaluation entfernt: **OK**
+- `NextAction`/Scheduler-Metatext wird nicht mehr als Research-Query verwendet; Screenshot-Fehlmuster `Review the strongest negative evidence ... next cycle` wird explizit abgewiesen: **OK**
+- persistente Goal-Zähler verhindern Progress-Rückschritt bei bounded/gekürzter Research-Run-Historie: **OK**
+- Staging-Publisher übermittelt Goal-/Run-/Evidence-/Source-Provenance und speichert Draft-ID/Fehler am Goal: **OK**
+- vorhandener Draft wird bei einem Zyklus ohne neue Evidenz/Corroboration nicht unnötig neu geschrieben: **OK**
+- NeuroForge `go test -race ./internal/brain ./internal/store ./internal/httpapi`: **OK**
+- Knowledge `go test -race ./internal/staging ./cmd/server`: **OK**
+- Control Center `go test -race ./...`: **OK**
+- NeuroForge- und Control-Center-JavaScript `node --check`: **OK**
+- Compose- und SearXNG-YAML Parse: **OK**
+- Upgrade-Patch `v1.4.4-to-v1.4.5.diff` wurde auf einen unveränderten v1.4.4-Stand mit `git apply --check` und `git apply` angewendet; NeuroForge Brain/Store/Server sowie Knowledge Staging/Server testen danach grün: **OK**

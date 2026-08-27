@@ -47,6 +47,13 @@ func envInt(name string) (int, bool) {
 	return v, true
 }
 
+func maxIntMain(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
 func main() {
 	if err := run(); err != nil {
 		log.Printf("fatal: %v", err)
@@ -191,6 +198,32 @@ func run() (retErr error) {
 	r := provider.NewRouter(s)
 	c := cost.New(s)
 	b := brain.New(s, r, c)
+	stagingCfg := brain.StagingPublisherConfig{
+		URL:   strings.TrimSpace(os.Getenv("NEUROFORGE_KB_STAGING_URL")),
+		Token: strings.TrimSpace(os.Getenv("NEUROFORGE_KB_STAGING_TOKEN")),
+	}
+	if v, ok := envBool("NEUROFORGE_KB_STAGING_ENABLED"); ok {
+		stagingCfg.Enabled = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MIN_EVIDENCE"); ok {
+		stagingCfg.MinEvidence = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MIN_SOURCES"); ok {
+		stagingCfg.MinSources = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MIN_CORROBORATIONS"); ok {
+		stagingCfg.MinCorroborations = v
+	}
+	if v, ok := envInt("NEUROFORGE_KB_STAGING_MAX_EVIDENCE"); ok {
+		stagingCfg.MaxEvidence = v
+	}
+	b.ConfigureStagingPublisher(stagingCfg)
+	if stagingCfg.Enabled {
+		log.Printf("KB human-review staging bridge enabled: %s (min evidence=%d, sources=%d, corroborations=%d)", stagingCfg.URL, maxIntMain(stagingCfg.MinEvidence, 4), maxIntMain(stagingCfg.MinSources, 2), maxIntMain(stagingCfg.MinCorroborations, 0))
+	}
+	if err := b.ReconcileGoalProgress(); err != nil {
+		return fmt.Errorf("reconcile persisted goal research progress: %w", err)
+	}
 	rootCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 	maintenanceCtx, stopMaintenance := context.WithCancel(rootCtx)

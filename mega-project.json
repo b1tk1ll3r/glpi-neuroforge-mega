@@ -12,7 +12,7 @@
   "vector_journal": "NFVJ2",
   "vector_compression": "SQAR adaptive with raw/DEFLATE fallback",
   "knowledge_authority": "knowledge JSON files",
-  "research_governance": "staging-only, human promotion required",
+  "research_governance": "source-backed research -> idempotent staging-only draft; human promotion required",
   "control_center": "read-only unified graph observability/navigation; writes delegated to scoped component APIs",
   "trust_boundaries": {
     "agent_to_neuroforge": "app_api_key",
@@ -28,7 +28,7 @@
     "schema": "Wiki/Schema.md",
     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
   },
-  "version": "1.4.4",
+  "version": "1.4.5",
   "controlled_learning": {
     "raw_chat_auto_learning": false,
     "validated_outcomes": [
@@ -72,5 +72,14 @@
     "codebase_memory_mcp": "optional developer-only",
     "control_agent_scope": "CONTROL_READ_TOKEN",
     "node_budgets": true
-  }
+  },
+  "research_staging": {
+    "enabled_by_default": true,
+    "integration_key": "neuroforge-goal:<goal-id>",
+    "auto_reply": false,
+    "default_min_evidence": 4,
+    "default_min_sources": 2,
+    "default_min_corroborations": 0
+  },
+  "goal_progress": "persisted research evidence/source/corroboration metrics; numeric target aware"
 }

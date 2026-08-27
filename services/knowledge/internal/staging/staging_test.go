@@ -82,3 +82,34 @@ func TestListUpdateAndSoftDelete(t *testing.T) {
 		t.Fatalf("deleted staging file should be gone, err=%v", err)
 	}
 }
+
+func TestIntegrationKeyUpdatesExistingDraft(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	first, err := s.SaveFromIntegration("vpn", "NeuroForge Research", Draft{Title: "VPN", Answer: "Erste Fassung"}, false, .85, IntegrationOptions{IntegrationKey: "neuroforge-goal:g1", Metadata: map[string]any{"research_goal_id": "g1"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := s.SaveFromIntegration("vpn", "NeuroForge Research", Draft{Title: "VPN", Answer: "Aktualisierte Fassung"}, false, .85, IntegrationOptions{IntegrationKey: "neuroforge-goal:g1", Metadata: map[string]any{"research_goal_id": "g1"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.Key != second.Key {
+		t.Fatalf("expected stable staging key, got %q then %q", first.Key, second.Key)
+	}
+	if second.Document["answer"] != "Aktualisierte Fassung" {
+		t.Fatalf("draft was not updated: %#v", second.Document)
+	}
+	if second.Document["auto_reply"] != false {
+		t.Fatalf("integration must remain auto_reply=false")
+	}
+	list, err := s.List(Query{Page: 1, PageSize: 10})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if list.Total != 1 {
+		t.Fatalf("expected one active staging draft, got %d", list.Total)
+	}
+}

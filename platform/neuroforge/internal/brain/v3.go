@@ -44,10 +44,16 @@ func (e *Engine) RunGoalCycle(ctx context.Context, goalID string) (core.Learning
 		return core.LearningCycle{}, err
 	}
 	hits, warnings := e.searchVectorFederated(ctx, emb.Vector, maxIntV3(4, cfg.Brain.RecallK), cfg.Brain.MinSimilarity, cfg.Brain.GraphBonus)
-	observation := summarizeObservation(hits, warnings)
-	evaluation := evaluateGoalEvidence(goal, hits)
-	prediction := deterministicPrediction(goal, hits, evaluation)
-	nextAction := deterministicNextAction(goal, hits, evaluation)
+	evidenceHits := filterGoalEvidenceHits(hits)
+	// A goal must be evaluated against external/source-backed knowledge, never its
+	// own previous goal-learning summaries. Otherwise negative cycles can feed
+	// themselves back forever even while research adds useful evidence.
+	evaluation := evaluateGoalEvidence(goal, evidenceHits)
+	e.refreshGoalResearchProgress(goal, evaluation)
+	evaluation = evaluateGoalEvidence(goal, evidenceHits)
+	observation := summarizeObservation(evidenceHits, warnings)
+	prediction := deterministicPrediction(goal, evidenceHits, evaluation)
+	nextAction := deterministicNextAction(goal, evidenceHits, evaluation)
 	costUSD := embedCost + researchResult.CostUSD
 	if cfg.Autonomy.UseLLM {
 		prompt := fmt.Sprintf("GOAL: %s\nDESCRIPTION: %s\nTARGET: %s\nPROGRESS: %.3f\nOBSERVATIONS:\n%s", goal.Title, goal.Description, goal.Target, goal.Progress, observation)
@@ -95,9 +101,9 @@ func (e *Engine) RunGoalCycle(ctx context.Context, goalID string) (core.Learning
 	goal.ConsecutiveErrors = 0
 	goal.LastError = ""
 	goal.MemoryIDs = appendUniqueV3(goal.MemoryIDs, mem.ID)
-	if evaluation > 0.65 && goal.Progress < 0.95 {
-		goal.Progress = vector.Clamp(goal.Progress+0.03, 0, 1)
-	}
+	// Human-review staging is a one-way governance boundary. Publishing failures
+	// are visible on the goal but never invalidate the durable research/learning cycle.
+	e.maybePublishGoalDraft(ctx, goal, researchResult)
 	if err := e.store.UpsertGoal(goal); err != nil {
 		return core.LearningCycle{}, err
 	}
@@ -185,6 +191,18 @@ func summarizeObservation(hits []store.SearchHit, warnings []string) string {
 }
 
 func evaluateGoalEvidence(goal *core.Goal, hits []store.SearchHit) float64 {
+	if goal.ResearchEnabled {
+		// Research goals measure knowledge acquisition, source diversity and
+		// corroboration. Early progress is not "negative evidence" merely because
+		// the target is not yet 50% complete.
+		sat := func(v, target int) float64 {
+			if target <= 0 {
+				return 0
+			}
+			return vector.Clamp(float64(v)/float64(target), 0, 1)
+		}
+		return vector.Clamp(.45*goal.Progress+.25*sat(goal.ResearchEvidence, 20)+.20*sat(goal.ResearchSources, 4)+.10*sat(goal.ResearchCorroborations, 2), 0, 1)
+	}
 	if len(hits) == 0 {
 		return vector.Clamp(goal.Progress*2-1, -1, 1)
 	}
@@ -219,6 +237,21 @@ func deterministicPrediction(goal *core.Goal, hits []store.SearchHit, eval float
 }
 
 func deterministicNextAction(goal *core.Goal, hits []store.SearchHit, eval float64) string {
+	if goal.ResearchEnabled {
+		if goal.Progress >= .999 {
+			return "Research target reached. Review the human-review staging draft and promote only verified content."
+		}
+		if goal.LastStagingDraftID != "" {
+			return "Review the staging draft, corroborate weak claims with independent sources, and continue toward the measurable target."
+		}
+		if goal.ResearchSources < 2 {
+			return "Add independent sources before synthesizing a human-review knowledge draft."
+		}
+		if goal.ResearchCorroborations == 0 {
+			return "Continue research with source diversity and seek independent corroboration; a staging draft may still be created for human review."
+		}
+		return "Continue source-backed research and refresh the human-review staging draft as new evidence arrives."
+	}
 	if len(hits) == 0 {
 		return "Collect a new observation that directly measures progress toward the target."
 	}
