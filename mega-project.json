@@ -28,7 +28,7 @@
     "schema": "Wiki/Schema.md",
     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
   },
-  "version": "1.5.3",
+  "version": "1.5.4",
   "controlled_learning": {
     "raw_chat_auto_learning": false,
     "validated_outcomes": [

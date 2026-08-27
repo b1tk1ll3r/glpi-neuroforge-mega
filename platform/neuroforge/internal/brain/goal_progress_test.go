@@ -341,3 +341,66 @@ func TestResearchMaterialRelevanceRequiresExactErrorCodeAndSubjectAnchor(t *test
 		})
 	}
 }
+
+func TestDecodeStagingSynthesisJSONAcceptsMarkdownFence(t *testing.T) {
+	var got struct {
+		Title, Text, Answer  string
+		Categories, Keywords []string
+	}
+	raw := "```json\n{\"title\":\"DISM 0x800f081f\",\"text\":\"source backed\",\"answer\":\"Use a matching repair source after verifying the component store.\",\"categories\":[\"Windows\"],\"keywords\":[\"0x800f081f\"]}\n```"
+	if err := decodeStagingSynthesisJSON(raw, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Title != "DISM 0x800f081f" || len(got.Categories) != 1 {
+		t.Fatalf("unexpected decode: %#v", got)
+	}
+}
+
+func TestDecodeStagingSynthesisJSONRepairsFencedMembersWithoutOuterBraces(t *testing.T) {
+	var got struct {
+		Title, Text, Answer  string
+		Categories, Keywords []string
+	}
+	raw := "```json\n\"title\":\"DISM 0x800f081f\",\n\"text\":\"source backed\",\n\"answer\":\"Use a matching repair source after verifying the component store.\",\n\"categories\":[\"Windows\"],\n\"keywords\":[\"0x800f081f\"]\n```"
+	if err := decodeStagingSynthesisJSON(raw, &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Answer == "" || got.Keywords[0] != "0x800f081f" {
+		t.Fatalf("unexpected decode: %#v", got)
+	}
+}
+
+func TestStagingSynthesisRetriesMalformedStructuredOutputOnce(t *testing.T) {
+	chatCalls := 0
+	s, e := policyTestEngine(t, func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/api/chat" {
+			http.NotFound(w, r)
+			return
+		}
+		chatCalls++
+		content := "```json\ntitle: DISM 0x800f081f\nanswer: malformed\n```"
+		if chatCalls == 2 {
+			content = `{"title":"Windows 11 DISM Fehler 0x800f081f","text":"Der Fehler 0x800f081f kann bei DISM auftreten. Die Reparaturquelle muss zur installierten Windows-Version passen.","answer":"Prüfen Sie zuerst die Windows-Version und verwenden Sie anschließend eine passende Reparaturquelle für DISM 0x800f081f.","categories":["Windows","DISM"],"keywords":["Windows 11","DISM","0x800f081f"]}`
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": content}, "prompt_eval_count": 2, "eval_count": 2})
+	})
+	e.ConfigureStagingPublisher(StagingPublisherConfig{Enabled: true, SynthesisMode: "llm"})
+	cfg := s.Config()
+	cfg.Autonomy.Provider = "ollama"
+	cfg.Autonomy.Model = cfg.Ollama[0].ChatModel
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	goal := &core.Goal{ID: "goal-dism", Title: "Windows 11 DISM Fehler 0x800f081f", Description: "Support-Wissensartikel zu DISM 0x800f081f"}
+	evidence := []draftEvidence{{Memory: core.Memory{Text: "Windows 11 DISM reports error 0x800f081f when required repair content cannot be found.", Confidence: .8, Provenance: core.MemoryProvenance{Source: "web.page"}}, Source: &core.KnowledgeSource{Title: "Microsoft DISM documentation", URI: "https://learn.microsoft.com/windows-hardware/manufacture/desktop/repair-a-windows-image"}}}
+	got, err := e.synthesizeGoalDraft(context.Background(), goal, evidence)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if chatCalls != 2 {
+		t.Fatalf("chat calls=%d want 2", chatCalls)
+	}
+	if !strings.Contains(got.Title, "0x800f081f") || got.Answer == "" {
+		t.Fatalf("unexpected draft: %#v", got)
+	}
+}

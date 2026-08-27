@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.3
+# GLPI NeuroForge Mega v1.5.4
 
-> Release: **v1.5.3** · Research-Relevanz-Hardening, nachvollziehbare Draft-Belegzahlen und Schutz vor doppelten aktiven Goals.
+> Release: **v1.5.4** · Robuste fail-closed Staging-Synthese für lokale LLMs: Markdown-Fences, eng begrenzte JSON-Normalisierung und genau ein syntax-only Repair-Retry.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
