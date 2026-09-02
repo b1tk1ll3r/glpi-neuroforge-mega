@@ -121,3 +121,9 @@ The synthesis call, syntax repair and grounding rewrite use `NEUROFORGE_KB_STAGI
 Claim verification checks all material article statements in batches of `NEUROFORGE_KB_STAGING_MAX_VERIFICATION_STATEMENTS`; the value is a batch size, not a total verification cap. A hard safety ceiling of 128 material statements remains. Staging persists `article_quality` with actual article/answer lengths, configured bounds, evidence count, prompt size, expansion status and synthesis token usage.
 
 Fortinet `support-forum` pages are treated as vendor-community evidence rather than authoritative primary documentation. Editorial `technical-tip` and `troubleshooting-tip` pages remain eligible as authoritative first-party material.
+
+### Master/Subagent Orchestrator & Knowledge Graph (v1.6.0)
+
+The master scheduler is controlled by `NEUROFORGE_WORKER_LEASE_SECONDS`, `NEUROFORGE_WORKER_HEARTBEAT_SECONDS`, `NEUROFORGE_WORKER_STALE_AFTER_SECONDS`, retry/backoff/queue/retention settings, and the graph-backfill limits shown in `.env.example`. Local workers use `NEUROFORGE_CPU_WORKER_CONCURRENCY` / `NEUROFORGE_GPU_WORKER_CONCURRENCY`; remote workers use `docker-compose.subagent.yml` with a reachable `NEUROFORGE_MASTER_URL` and unique `NEUROFORGE_CPU_WORKER_ID` / `NEUROFORGE_GPU_WORKER_ID`.
+
+`NEUROFORGE_OFFLOAD_CHAT` and `NEUROFORGE_OFFLOAD_EMBEDDINGS` prefer a live capability-compatible GPU subagent. If no compatible live subagent is available, NeuroForge continues through its normal provider router. Graph convergence is bounded by `NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE`, `NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED`, `NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE`, `NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER` and the retry cooldown. Multi-hop retrieval is bounded by `NEUROFORGE_GRAPH_MAX_HOPS`, `NEUROFORGE_GRAPH_HOP_DECAY`, `NEUROFORGE_GRAPH_MAX_EXPANSION` and `NEUROFORGE_GRAPH_MIN_EDGE_WEIGHT`.

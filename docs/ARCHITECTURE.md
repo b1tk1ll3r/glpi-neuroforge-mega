@@ -200,3 +200,7 @@ Die beiden Evidenzklassen werden absichtlich nicht vermischt. Outcome-Memories l
 Für source-begrenzte Exact-Fallbacks hält der Store einen rebuildbaren In-Memory-Index `Provenance.Source -> Memory IDs`. Damit wächst der Fallback mit der betreffenden Integration/Source statt mit dem gesamten Memory-Katalog. HNSW/Disk-PQ bleiben globale Kandidatenindizes.
 
 Die Qualitätsmessung ist vom Schreibpfad getrennt: `/api/quality/replay` ist read-only und evaluiert live die aktuelle Knowledge-/Outcome-Retrieval-Konfiguration gegen einen bereitgestellten historischen Fallkorpus.
+
+## v1.6.0 Master/Subagent consistency model
+
+NeuroForge owns the authoritative durable state. Subagents are stateless executors: they register capabilities, claim only compatible jobs and return lease-fenced results. Jobs and second-phase master applies are persisted through the normal WAL/checkpoint path, so restarts do not lose queued/retrying/apply-wait work. The graph backfill uses ANN candidate selection plus bounded exact relink jobs; pairwise synapses form an n:m adjacency graph and retrieval can traverse several bounded hops. See `MASTER-SUBAGENT-ORCHESTRATOR.md`.

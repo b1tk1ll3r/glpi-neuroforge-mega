@@ -209,6 +209,7 @@ func (s *Store) applyWALEvent(ev walEvent) error {
 			return err
 		}
 		s.state.Synapses[edgeKey(syn.A, syn.B)] = &syn
+		s.indexSynapseLocked(&syn)
 	case "synapse.replace":
 		var items []core.Synapse
 		if err := json.Unmarshal(ev.Data, &items); err != nil {
@@ -219,6 +220,7 @@ func (s *Store) applyWALEvent(ev walEvent) error {
 			x := items[i]
 			s.state.Synapses[edgeKey(x.A, x.B)] = &x
 		}
+		s.rebuildSynapseAdjLocked()
 	case "usage.add":
 		var x core.UsageEvent
 		if err := json.Unmarshal(ev.Data, &x); err != nil {
@@ -231,6 +233,14 @@ func (s *Store) applyWALEvent(ev walEvent) error {
 			return err
 		}
 		s.state.Jobs[x.ID] = &x
+	case "job.delete":
+		var ids []string
+		if err := json.Unmarshal(ev.Data, &ids); err != nil {
+			return err
+		}
+		for _, id := range ids {
+			delete(s.state.Jobs, id)
+		}
 	case "maintenance.set":
 		return json.Unmarshal(ev.Data, &s.state.Maintenance)
 	case "goal.upsert":

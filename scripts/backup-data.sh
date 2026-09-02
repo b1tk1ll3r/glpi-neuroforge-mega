@@ -10,11 +10,11 @@ dest="$DEST_ROOT/$stamp"
 mkdir -p "$dest"
 
 ./scripts/preflight.sh
-restart() { docker compose --env-file "$ENV_FILE" up -d knowledge neuroforge neuroforge-worker agent >/dev/null 2>&1 || true; }
+restart() { docker compose --env-file "$ENV_FILE" up -d knowledge neuroforge neuroforge-worker-cpu neuroforge-worker-gpu agent >/dev/null 2>&1 || true; }
 trap restart EXIT INT TERM
 
 echo "backup: entering short maintenance stop"
-docker compose --env-file "$ENV_FILE" stop neuroforge-worker agent neuroforge knowledge
+docker compose --env-file "$ENV_FILE" stop neuroforge-worker-cpu neuroforge-worker-gpu agent neuroforge knowledge
 docker compose --env-file "$ENV_FILE" create neuroforge agent >/dev/null
 mkdir -p "$dest/neuroforge-data" "$dest/agent-data" "$dest/knowledge" "$dest/staging" "$dest/knowledge-backups"
 docker compose --env-file "$ENV_FILE" cp neuroforge:/app/data/. "$dest/neuroforge-data/"

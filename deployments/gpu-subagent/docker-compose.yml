@@ -1,0 +1,118 @@
+name: neuroforge-gpu-subagent
+services:
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2}
+    restart: unless-stopped
+    gpus: all
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+    ports:
+    - ${OLLAMA_BIND_ADDRESS:-0.0.0.0}:${OLLAMA_HOST_PORT:-11434}:11434
+    volumes:
+    - ollama-data:/root/.ollama
+    security_opt:
+    - no-new-privileges:true
+    healthcheck:
+      test:
+      - CMD
+      - ollama
+      - list
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+  gpu-subagent:
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set
+      immutable IMAGE_TAG}
+    command:
+    - -server
+    - ${NEUROFORGE_MASTER_URL:?Set reachable NeuroForge master URL}
+    - -id
+    - ${NEUROFORGE_GPU_WORKER_ID:?Set GPU worker ID}
+    restart: unless-stopped
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set worker token shared
+        with master}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: gpu
+      NEUROFORGE_WORKER_CAPABILITIES: ${NEUROFORGE_GPU_WORKER_CAPABILITIES:-gpu,model.chat,model.embed}
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_GPU_WORKER_CONCURRENCY:-1}
+      NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
+      NEUROFORGE_WORKER_OLLAMA_URL: http://ollama:11434
+      NEUROFORGE_WORKER_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma4}
+      NEUROFORGE_WORKER_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+      NEUROFORGE_WORKER_OLLAMA_NUM_CTX: ${NEUROFORGE_OLLAMA_NUM_CTX:-8192}
+      NEUROFORGE_WORKER_OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+    depends_on:
+      ollama-model-chat-init:
+        condition: service_completed_successfully
+      ollama-model-embed-init:
+        condition: service_completed_successfully
+    read_only: true
+    tmpfs:
+    - /tmp:size=32m,mode=1777
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+  node-exporter:
+    profiles:
+    - monitoring
+    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.12.1}
+    restart: unless-stopped
+    command:
+    - --path.procfs=/host/proc
+    - --path.sysfs=/host/sys
+    - --path.rootfs=/rootfs
+    - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    ports:
+    - ${EXPORTER_BIND_ADDRESS:-0.0.0.0}:${NODE_EXPORTER_HOST_PORT:-9100}:9100
+    volumes:
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    - /:/rootfs:ro,rslave
+    read_only: true
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+  dcgm-exporter:
+    profiles:
+    - monitoring
+    image: ${DCGM_EXPORTER_IMAGE:-nvcr.io/nvidia/k8s/dcgm-exporter:4.6.0-4.8.3-distroless}
+    restart: unless-stopped
+    gpus: all
+    cap_add:
+    - SYS_ADMIN
+    ports:
+    - ${EXPORTER_BIND_ADDRESS:-0.0.0.0}:${DCGM_EXPORTER_HOST_PORT:-9400}:9400
+    security_opt:
+    - no-new-privileges:true
+  ollama-model-chat-init:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2}
+    restart: 'no'
+    command:
+    - pull
+    - ${OLLAMA_MODEL:-gemma4}
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+    security_opt:
+    - no-new-privileges:true
+  ollama-model-embed-init:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2}
+    restart: 'no'
+    command:
+    - pull
+    - ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+    security_opt:
+    - no-new-privileges:true
+volumes:
+  ollama-data: null

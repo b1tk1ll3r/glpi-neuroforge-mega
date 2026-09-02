@@ -242,6 +242,8 @@ func (s *Server) metricsEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	st := s.store.ObservabilitySnapshot()
+	orch := s.store.OrchestratorStatus()
+	graph := s.store.GraphStats()
 	costs := s.cost.Totals()
 	cfg := s.store.Config()
 	rt := currentRuntimeSnapshot()
@@ -269,11 +271,43 @@ func (s *Server) metricsEndpoint(w http.ResponseWriter, r *http.Request) {
 	promHeader(&b, "neuroforge_knowledge_events", "Current number of retained explainability/knowledge events.", "gauge")
 	promSample(&b, "neuroforge_knowledge_events", st.KnowledgeEvents)
 
-	promHeader(&b, "neuroforge_jobs", "Current worker jobs by bounded status class.", "gauge")
-	promSample(&b, "neuroforge_jobs", st.JobsQueued, "status", "queued")
-	promSample(&b, "neuroforge_jobs", st.JobsClaimed, "status", "claimed")
-	promSample(&b, "neuroforge_jobs", st.JobsDone, "status", "done")
-	promSample(&b, "neuroforge_jobs", st.JobsFailed, "status", "failed")
+	promHeader(&b, "neuroforge_jobs", "Current durable orchestrator jobs by status.", "gauge")
+	statuses := []string{"queued", "claimed", "retry_wait", "blocked", "apply_wait", "done", "failed", "canceled"}
+	for _, status := range statuses {
+		promSample(&b, "neuroforge_jobs", orch.JobsByStatus[status], "status", status)
+	}
+	promHeader(&b, "neuroforge_jobs_by_resource", "Current durable orchestrator jobs by resource class.", "gauge")
+	for resource, n := range orch.JobsByResource {
+		promSample(&b, "neuroforge_jobs_by_resource", n, "resource", resource)
+	}
+	promHeader(&b, "neuroforge_workers", "Registered subagents by resource class and liveness state.", "gauge")
+	workerCounts := map[string]int{}
+	for _, worker := range orch.Workers {
+		workerCounts[worker.ResourceClass+"\x00"+worker.Status]++
+	}
+	for key, n := range workerCounts {
+		parts := strings.SplitN(key, "\x00", 2)
+		promSample(&b, "neuroforge_workers", n, "resource", parts[0], "status", parts[1])
+	}
+	promHeader(&b, "neuroforge_worker_inflight", "Current claimed jobs per registered subagent.", "gauge")
+	promHeader(&b, "neuroforge_worker_capacity", "Configured concurrency capacity per registered subagent.", "gauge")
+	for _, worker := range orch.Workers {
+		promSample(&b, "neuroforge_worker_inflight", worker.Inflight, "worker", worker.ID, "resource", worker.ResourceClass)
+		promSample(&b, "neuroforge_worker_capacity", worker.MaxConcurrency, "worker", worker.ID, "resource", worker.ResourceClass)
+	}
+
+	promHeader(&b, "neuroforge_graph_memories", "Knowledge memories by graph linkage class.", "gauge")
+	promSample(&b, "neuroforge_graph_memories", graph.LinkedMemories, "state", "linked")
+	promSample(&b, "neuroforge_graph_memories", graph.IsolatedMemories, "state", "isolated")
+	promSample(&b, "neuroforge_graph_memories", graph.MultiLinked, "state", "multi_linked")
+	promHeader(&b, "neuroforge_graph_max_degree", "Maximum associative graph degree.", "gauge")
+	promSample(&b, "neuroforge_graph_max_degree", graph.MaxDegree)
+	promHeader(&b, "neuroforge_graph_average_degree", "Average associative graph degree.", "gauge")
+	promSample(&b, "neuroforge_graph_average_degree", strconv.FormatFloat(graph.AverageDegree, 'f', 6, 64))
+	promHeader(&b, "neuroforge_graph_connected_components", "Number of connected components in the associative graph.", "gauge")
+	promSample(&b, "neuroforge_graph_connected_components", graph.ConnectedComponents)
+	promHeader(&b, "neuroforge_graph_largest_component", "Memories in the largest connected component.", "gauge")
+	promSample(&b, "neuroforge_graph_largest_component", graph.LargestComponent)
 
 	promHeader(&b, "neuroforge_hnsw_nodes", "Current number of vectors in hot HNSW indexes.", "gauge")
 	promSample(&b, "neuroforge_hnsw_nodes", st.HNSWNodes)

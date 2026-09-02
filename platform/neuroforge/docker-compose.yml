@@ -29,28 +29,46 @@ services:
       retries: 4
       start_period: 10s
 
-  worker:
+  worker-cpu:
     build:
       context: .
       target: worker
-    command:
-      - -server
-      - http://neuroforge:8080
-      - -id
-      - worker-compose-1
+    command: ["-server", "http://neuroforge:8080", "-id", "cpu-compose-1"]
     environment:
       NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set a unique NeuroForge worker token}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: cpu
+      NEUROFORGE_WORKER_CAPABILITIES: cpu,vector.relink
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_CPU_WORKER_CONCURRENCY:-2}
     depends_on:
       neuroforge:
         condition: service_healthy
     restart: unless-stopped
     read_only: true
-    tmpfs:
-      - /tmp:size=32m,mode=1777
-    security_opt:
-      - no-new-privileges:true
-    cap_drop:
-      - ALL
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+
+  worker-gpu:
+    build:
+      context: .
+      target: worker
+    command: ["-server", "http://neuroforge:8080", "-id", "gpu-compose-1"]
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set a unique NeuroForge worker token}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: gpu
+      NEUROFORGE_WORKER_CAPABILITIES: gpu,model.chat,model.embed
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_GPU_WORKER_CONCURRENCY:-1}
+      NEUROFORGE_WORKER_OLLAMA_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      NEUROFORGE_WORKER_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
+      NEUROFORGE_WORKER_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+    depends_on:
+      neuroforge:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
 
 volumes:
   neuroforge-data:

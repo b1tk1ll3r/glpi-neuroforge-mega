@@ -6,7 +6,12 @@ services:
       context: ./platform/neuroforge
       target: server
     pull_policy: never
-  neuroforge-worker:
+  neuroforge-worker-cpu:
+    build:
+      context: ./platform/neuroforge
+      target: worker
+    pull_policy: never
+  neuroforge-worker-gpu:
     build:
       context: ./platform/neuroforge
       target: worker

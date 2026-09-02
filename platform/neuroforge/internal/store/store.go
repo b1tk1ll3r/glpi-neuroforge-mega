@@ -45,6 +45,8 @@ type Store struct {
 	clusterLogMu             sync.Mutex
 	clusterLog               *ClusterLog
 	provenanceSourceIDs      map[string]map[string]struct{}
+	workers                  map[string]core.WorkerState
+	synapseAdj               map[string]map[string]*core.Synapse
 }
 
 func New(dir string) (*Store, error) {
@@ -54,7 +56,7 @@ func New(dir string) (*Store, error) {
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, err
 	}
-	s := &Store{dir: dir, indexes: map[int]*vector.HNSW{}, diskIndexes: map[int]*vector.PQIndex{}, provenanceSourceIDs: map[string]map[string]struct{}{}}
+	s := &Store{dir: dir, indexes: map[int]*vector.HNSW{}, diskIndexes: map[int]*vector.PQIndex{}, provenanceSourceIDs: map[string]map[string]struct{}{}, workers: map[string]core.WorkerState{}, synapseAdj: map[string]map[string]*core.Synapse{}}
 	s.state = core.PersistedState{Config: core.DefaultConfig(), Memories: map[string]*core.Memory{}, Synapses: map[string]*core.Synapse{}, Jobs: map[string]*core.Job{}, Goals: map[string]*core.Goal{}, Sources: map[string]*core.KnowledgeSource{}, ResearchRuns: map[string]*core.ResearchRun{}}
 	_ = s.loadJSON(filepath.Join(dir, "state.json"), &s.state)
 	_ = s.loadJSON(filepath.Join(dir, "secrets.json"), &s.secrets)
@@ -111,6 +113,7 @@ func New(dir string) (*Store, error) {
 	if err := s.replayWAL(); err != nil {
 		return nil, err
 	}
+	s.rebuildSynapseAdjLocked()
 	applyNewDefaults(&s.state.Config)
 	if s.state.Cluster.Term < s.state.Config.Cluster.Term {
 		s.state.Cluster.Term = s.state.Config.Cluster.Term
@@ -234,6 +237,18 @@ func applyNewDefaults(c *core.Config) {
 	}
 	if c.Brain.TypeWeights == nil {
 		c.Brain.TypeWeights = d.Brain.TypeWeights
+	}
+	if c.Brain.GraphMaxHops == 0 {
+		c.Brain.GraphMaxHops = d.Brain.GraphMaxHops
+	}
+	if c.Brain.GraphHopDecay == 0 {
+		c.Brain.GraphHopDecay = d.Brain.GraphHopDecay
+	}
+	if c.Brain.GraphMaxExpansion == 0 {
+		c.Brain.GraphMaxExpansion = d.Brain.GraphMaxExpansion
+	}
+	if c.Brain.GraphMinEdgeWeight == 0 {
+		c.Brain.GraphMinEdgeWeight = d.Brain.GraphMinEdgeWeight
 	}
 	if c.Brain.LearningPolicy.MaxMemoryTextChars == 0 && c.Brain.LearningPolicy.DuplicateSimilarity == 0 && c.Brain.LearningPolicy.SemanticMinConfirmations == 0 {
 		c.Brain.LearningPolicy = d.Brain.LearningPolicy
@@ -483,6 +498,65 @@ func applyNewDefaults(c *core.Config) {
 	}
 	if c.Cluster.LogSegmentBytes == 0 {
 		c.Cluster.LogSegmentBytes = d.Cluster.LogSegmentBytes
+	}
+	if c.Worker.LeaseSeconds == 0 {
+		c.Worker.LeaseSeconds = d.Worker.LeaseSeconds
+	}
+	if c.Worker.HeartbeatSeconds == 0 && c.Worker.StaleAfterSeconds == 0 && c.Worker.DefaultMaxAttempts == 0 {
+		legacyLease := c.Worker.LeaseSeconds
+		c.Worker = d.Worker
+		if legacyLease > 0 {
+			c.Worker.LeaseSeconds = legacyLease
+		}
+	} else {
+		if c.Worker.HeartbeatSeconds == 0 {
+			c.Worker.HeartbeatSeconds = d.Worker.HeartbeatSeconds
+		}
+		if c.Worker.StaleAfterSeconds == 0 {
+			c.Worker.StaleAfterSeconds = d.Worker.StaleAfterSeconds
+		}
+		if c.Worker.DefaultMaxAttempts == 0 {
+			c.Worker.DefaultMaxAttempts = d.Worker.DefaultMaxAttempts
+		}
+		if c.Worker.RetryBackoffSeconds == 0 {
+			c.Worker.RetryBackoffSeconds = d.Worker.RetryBackoffSeconds
+		}
+		if c.Worker.MaxQueuedJobs == 0 {
+			c.Worker.MaxQueuedJobs = d.Worker.MaxQueuedJobs
+		}
+		if c.Worker.MasterApplyMaxAttempts == 0 {
+			c.Worker.MasterApplyMaxAttempts = d.Worker.MasterApplyMaxAttempts
+		}
+		if c.Worker.MasterApplyBackoffSeconds == 0 {
+			c.Worker.MasterApplyBackoffSeconds = d.Worker.MasterApplyBackoffSeconds
+		}
+		if c.Worker.JobRetentionHours == 0 {
+			c.Worker.JobRetentionHours = d.Worker.JobRetentionHours
+		}
+		if c.Worker.MaxTerminalJobs == 0 {
+			c.Worker.MaxTerminalJobs = d.Worker.MaxTerminalJobs
+		}
+		if c.Worker.GraphBackfillIntervalS == 0 {
+			c.Worker.GraphBackfillIntervalS = d.Worker.GraphBackfillIntervalS
+		}
+		if c.Worker.GraphBackfillBatchSize == 0 {
+			c.Worker.GraphBackfillBatchSize = d.Worker.GraphBackfillBatchSize
+		}
+		if c.Worker.GraphBackfillMaxQueued == 0 {
+			c.Worker.GraphBackfillMaxQueued = d.Worker.GraphBackfillMaxQueued
+		}
+		if c.Worker.GraphBackfillMinDegree == 0 {
+			c.Worker.GraphBackfillMinDegree = d.Worker.GraphBackfillMinDegree
+		}
+		if c.Worker.GraphCandidateMultiplier == 0 {
+			c.Worker.GraphCandidateMultiplier = d.Worker.GraphCandidateMultiplier
+		}
+		if c.Worker.GraphRetryAfterMinutes == 0 {
+			c.Worker.GraphRetryAfterMinutes = d.Worker.GraphRetryAfterMinutes
+		}
+		if c.Worker.DistributedInferenceWaitS == 0 {
+			c.Worker.DistributedInferenceWaitS = d.Worker.DistributedInferenceWaitS
+		}
 	}
 }
 
@@ -1010,51 +1084,7 @@ func (s *Store) searchVectorLocked(q []float32, k int, min float64, graphBonus f
 	if len(hits) > k {
 		hits = hits[:k]
 	}
-	if graphBonus > 0 && len(hits) > 0 {
-		base := map[string]float64{}
-		for _, h := range hits {
-			base[h.Memory.ID] = h.Score
-		}
-		for _, syn := range s.state.Synapses {
-			var to string
-			if _, ok := base[syn.A]; ok {
-				to = syn.B
-			} else if _, ok := base[syn.B]; ok {
-				to = syn.A
-			} else {
-				continue
-			}
-			meta, ok := s.state.Memories[to]
-			if !ok || !memorySearchable(meta) {
-				continue
-			}
-			m, fullOK := s.fullMemoryForReadLocked(to)
-			if !fullOK || len(m.Vector) != len(q) {
-				continue
-			}
-			bonus := graphBonus * syn.Weight
-			found := false
-			for i := range hits {
-				if hits[i].Memory.ID == to {
-					hits[i].GraphBoost += bonus
-					hits[i].Score += bonus
-					found = true
-					break
-				}
-			}
-			if !found && len(hits) < k {
-				sim := vector.Cosine(q, m.Vector)
-				if sim >= min {
-					baseScore := sim * 0.5
-					hits = append(hits, SearchHit{Memory: cloneMemory(m), Similarity: sim, BaseScore: baseScore, GraphBoost: bonus, Score: bonus + baseScore, TypeWeight: 1, SalienceFactor: 1, ConfidenceFactor: 1, CandidateSource: "synapse"})
-				}
-			}
-		}
-		sort.Slice(hits, func(i, j int) bool { return hits[i].Score > hits[j].Score })
-		if len(hits) > k {
-			hits = hits[:k]
-		}
-	}
+	hits = s.graphExpandLocked(q, hits, k, min, graphBonus)
 	return hits
 }
 
@@ -1066,32 +1096,7 @@ func edgeKey(a, b string) string {
 }
 
 func (s *Store) Reinforce(a, b string, similarity, delta, decayPerDay, maxWeight float64) error {
-	if a == "" || b == "" || a == b {
-		return nil
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	if s.state.Memories[a] == nil || s.state.Memories[b] == nil {
-		return nil
-	}
-	key := edgeKey(a, b)
-	now := time.Now().UTC()
-	syn, ok := s.state.Synapses[key]
-	if !ok {
-		syn = &core.Synapse{A: a, B: b, Similarity: similarity, LastUpdated: now}
-		s.state.Synapses[key] = syn
-	}
-	days := now.Sub(syn.LastUpdated).Hours() / 24
-	if days > 0 && decayPerDay > 0 {
-		syn.Weight *= pow(1-decayPerDay, days)
-	}
-	syn.Weight = vector.Clamp(syn.Weight+delta, -maxWeight, maxWeight)
-	if similarity > syn.Similarity {
-		syn.Similarity = similarity
-	}
-	syn.Activations++
-	syn.LastUpdated = now
-	return s.commitLocked("synapse.upsert", *syn)
+	return s.ReinforceRelation(a, b, "association", similarity, delta, decayPerDay, maxWeight)
 }
 
 func pow(base, exp float64) float64 {
@@ -1113,6 +1118,7 @@ func (s *Store) DecayAndPruneSynapses(decayPerDay, pruneBelow float64) (int, err
 			syn.LastUpdated = now
 		}
 		if pruneBelow > 0 && math.Abs(syn.Weight) < pruneBelow {
+			s.unindexSynapseLocked(syn)
 			delete(s.state.Synapses, key)
 			pruned++
 		}
@@ -1348,66 +1354,6 @@ func (s *Store) RecentUsage(limit int) []core.UsageEvent {
 	return out
 }
 
-func (s *Store) EnqueueJob(kind string, payload any) (*core.Job, error) {
-	b, err := json.Marshal(payload)
-	if err != nil {
-		return nil, err
-	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	now := time.Now().UTC()
-	j := &core.Job{ID: NewID("job"), Type: kind, Payload: b, Status: "queued", CreatedAt: now, UpdatedAt: now}
-	s.state.Jobs[j.ID] = j
-	return j, s.commitLocked("job.upsert", *j)
-}
-
-func (s *Store) ClaimJob(worker string, lease time.Duration) (*core.Job, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	now := time.Now().UTC()
-	var chosen *core.Job
-	for _, j := range s.state.Jobs {
-		if j.Status == "claimed" && !j.LeaseUntil.IsZero() && now.After(j.LeaseUntil) {
-			j.Status = "queued"
-			j.ClaimedBy = ""
-		}
-		if j.Status == "queued" && (chosen == nil || j.CreatedAt.Before(chosen.CreatedAt)) {
-			chosen = j
-		}
-	}
-	if chosen == nil {
-		return nil, nil
-	}
-	chosen.Status = "claimed"
-	chosen.ClaimedBy = worker
-	chosen.LeaseUntil = now.Add(lease)
-	chosen.UpdatedAt = now
-	cp := *chosen
-	return &cp, s.commitLocked("job.upsert", cp)
-}
-
-func (s *Store) CompleteJob(id, worker string, result json.RawMessage, jobErr string) (*core.Job, error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	j, ok := s.state.Jobs[id]
-	if !ok {
-		return nil, errors.New("job not found")
-	}
-	if j.ClaimedBy != worker {
-		return nil, errors.New("job claimed by another worker")
-	}
-	j.Result = result
-	j.Error = jobErr
-	j.UpdatedAt = time.Now().UTC()
-	if jobErr != "" {
-		j.Status = "failed"
-	} else {
-		j.Status = "done"
-	}
-	cp := *j
-	return &cp, s.commitLocked("job.upsert", cp)
-}
-
 func (s *Store) DeleteMemory(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -1421,6 +1367,7 @@ func (s *Store) DeleteMemory(id string) error {
 	}
 	for k, x := range s.state.Synapses {
 		if x.A == id || x.B == id {
+			s.unindexSynapseLocked(x)
 			delete(s.state.Synapses, k)
 		}
 	}
@@ -1458,6 +1405,9 @@ func (s *Store) validateConfigLocked(c core.Config) error {
 	}
 	if c.Brain.MinSimilarity < -1 || c.Brain.MinSimilarity > 1 {
 		return errors.New("brain.min_similarity must be -1..1")
+	}
+	if c.Brain.GraphMaxHops < 1 || c.Brain.GraphMaxHops > 6 || c.Brain.GraphHopDecay <= 0 || c.Brain.GraphHopDecay > 1 || c.Brain.GraphMaxExpansion < 1 || c.Brain.GraphMaxExpansion > 5000 || c.Brain.GraphMinEdgeWeight < 0 || c.Brain.GraphMinEdgeWeight > c.Brain.MaxSynapseWeight {
+		return errors.New("invalid brain graph traversal configuration")
 	}
 	if c.Brain.Index.Enabled {
 		mode := indexMode(c)
@@ -1655,6 +1605,18 @@ func (s *Store) validateConfigLocked(c core.Config) error {
 		if !c.Cluster.AutoElection && c.Cluster.Term < s.state.Cluster.Term {
 			return fmt.Errorf("cluster.term %d cannot be lower than persisted term %d", c.Cluster.Term, s.state.Cluster.Term)
 		}
+	}
+	if c.Worker.LeaseSeconds < 10 || c.Worker.LeaseSeconds > 3600 || c.Worker.HeartbeatSeconds < 2 || c.Worker.HeartbeatSeconds >= c.Worker.LeaseSeconds || c.Worker.StaleAfterSeconds < c.Worker.HeartbeatSeconds || c.Worker.StaleAfterSeconds > 7200 {
+		return errors.New("invalid worker lease/heartbeat/stale timing")
+	}
+	if c.Worker.DefaultMaxAttempts < 1 || c.Worker.DefaultMaxAttempts > 20 || c.Worker.RetryBackoffSeconds < 1 || c.Worker.RetryBackoffSeconds > 3600 || c.Worker.MaxQueuedJobs < 16 || c.Worker.MaxQueuedJobs > 1000000 || c.Worker.MasterApplyMaxAttempts < 1 || c.Worker.MasterApplyMaxAttempts > 20 || c.Worker.MasterApplyBackoffSeconds < 1 || c.Worker.MasterApplyBackoffSeconds > 3600 || c.Worker.JobRetentionHours < 1 || c.Worker.JobRetentionHours > 8760 || c.Worker.MaxTerminalJobs < 100 || c.Worker.MaxTerminalJobs > 1000000 {
+		return errors.New("invalid worker retry/queue/retention configuration")
+	}
+	if c.Worker.GraphBackfillIntervalS < 2 || c.Worker.GraphBackfillIntervalS > 3600 || c.Worker.GraphBackfillBatchSize < 1 || c.Worker.GraphBackfillBatchSize > 4096 || c.Worker.GraphBackfillMaxQueued < 1 || c.Worker.GraphBackfillMaxQueued > c.Worker.MaxQueuedJobs || c.Worker.GraphBackfillMinDegree < 1 || c.Worker.GraphBackfillMinDegree > 100 || c.Worker.GraphCandidateMultiplier < 2 || c.Worker.GraphCandidateMultiplier > 64 || c.Worker.GraphRetryAfterMinutes < 1 || c.Worker.GraphRetryAfterMinutes > 43200 {
+		return errors.New("invalid worker graph backfill configuration")
+	}
+	if c.Worker.DistributedInferenceWaitS < 5 || c.Worker.DistributedInferenceWaitS > 3600 {
+		return errors.New("worker.distributed_inference_wait_seconds must be 5..3600")
 	}
 	if c.OpenAI.DailyBudgetUSD < 0 || c.OpenAI.MonthlyBudgetUSD < 0 {
 		return errors.New("budgets must be >= 0")

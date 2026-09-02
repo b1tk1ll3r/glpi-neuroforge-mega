@@ -1,0 +1,57 @@
+# Remote NeuroForge subagents. Run this file on additional CPU/GPU hosts.
+# Examples:
+#   docker compose -f docker-compose.subagent.yml --profile cpu up -d
+#   docker compose -f docker-compose.subagent.yml --profile gpu up -d
+# The master URL must be reachable from this host/container.
+name: neuroforge-subagents
+services:
+  cpu-subagent:
+    profiles: [cpu]
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.0}
+    command:
+      - -server
+      - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
+      - -id
+      - ${NEUROFORGE_CPU_WORKER_ID:-cpu-${HOSTNAME:-remote}}
+    restart: unless-stopped
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set the worker token shared with the master}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: cpu
+      NEUROFORGE_WORKER_CAPABILITIES: ${NEUROFORGE_CPU_WORKER_CAPABILITIES:-cpu,vector.relink}
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_CPU_WORKER_CONCURRENCY:-2}
+      NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+
+  gpu-subagent:
+    profiles: [gpu]
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.0}
+    command:
+      - -server
+      - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
+      - -id
+      - ${NEUROFORGE_GPU_WORKER_ID:-gpu-${HOSTNAME:-remote}}
+    restart: unless-stopped
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set the worker token shared with the master}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: gpu
+      NEUROFORGE_WORKER_CAPABILITIES: ${NEUROFORGE_GPU_WORKER_CAPABILITIES:-gpu,model.chat,model.embed}
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_GPU_WORKER_CONCURRENCY:-1}
+      NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
+      NEUROFORGE_WORKER_OLLAMA_URL: ${NEUROFORGE_WORKER_OLLAMA_URL:?Set Ollama URL reachable from the GPU subagent}
+      NEUROFORGE_WORKER_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
+      NEUROFORGE_WORKER_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+      NEUROFORGE_WORKER_OLLAMA_NUM_CTX: ${NEUROFORGE_OLLAMA_NUM_CTX:-8192}
+      NEUROFORGE_WORKER_OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    extra_hosts:
+      - host.docker.internal:host-gateway

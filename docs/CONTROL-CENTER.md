@@ -46,3 +46,7 @@ Die eigentlichen Laufzeitmetriken und Einzelfall-Evidenzen bleiben beim Agenten 
 ## v1.4 Unified Graph Explorer
 
 The Control Center remains read-only. Its graph views use a dedicated Agent `CONTROL_READ_TOKEN` and the scoped NeuroForge app key. The Engineering Graph is embedded from a reproducible Go AST/Compose snapshot; optional Codebase Memory MCP is developer-only. See `UNIFIED-GRAPH.md`.
+
+## v1.6.0 Orchestrator / Knowledge Graph
+
+The read-only Control Center queries scoped NeuroForge endpoints for scheduler and graph state. It displays leader/follower role, online/stale subagents, queue states (`queued`, `claimed`, `retry_wait`, `blocked`, `apply_wait`, `failed`) and graph connectivity (`isolated`, `linked`, `multi_linked`, average/max degree, components). Administrative retry/cancel/backfill actions remain on the separately authenticated NeuroForge admin API and are not exposed by Control Center.

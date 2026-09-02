@@ -115,3 +115,69 @@ func (s *Server) adminPutLearningPolicy(w http.ResponseWriter, r *http.Request) 
 	})
 	s.json(w, http.StatusOK, q)
 }
+
+func (s *Server) adminGraphStatus(w http.ResponseWriter, r *http.Request) {
+	s.json(w, http.StatusOK, map[string]any{
+		"graph":        s.store.GraphStats(),
+		"orchestrator": s.store.OrchestratorStatus(),
+		"config": map[string]any{
+			"max_hops":            s.store.Config().Brain.GraphMaxHops,
+			"hop_decay":           s.store.Config().Brain.GraphHopDecay,
+			"max_expansion":       s.store.Config().Brain.GraphMaxExpansion,
+			"min_edge_weight":     s.store.Config().Brain.GraphMinEdgeWeight,
+			"backfill_enabled":    s.store.Config().Worker.GraphBackfillEnabled,
+			"backfill_min_degree": s.store.Config().Worker.GraphBackfillMinDegree,
+			"backfill_max_queued": s.store.Config().Worker.GraphBackfillMaxQueued,
+		},
+	})
+}
+
+func (s *Server) adminGraphBackfill(w http.ResponseWriter, r *http.Request) {
+	planned, err := s.brain.PlanGraphBackfill()
+	if err != nil {
+		s.err(w, http.StatusInternalServerError, err)
+		return
+	}
+	s.json(w, http.StatusAccepted, map[string]any{"ok": true, "planned": planned, "graph": s.store.GraphStats()})
+}
+
+func (s *Server) adminOrchestratorStatus(w http.ResponseWriter, r *http.Request) {
+	s.json(w, http.StatusOK, s.store.OrchestratorStatus())
+}
+
+func (s *Server) adminOrchestratorJobs(w http.ResponseWriter, r *http.Request) {
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	s.json(w, http.StatusOK, s.store.JobsSnapshot(limit, r.URL.Query().Get("status"), r.URL.Query().Get("type")))
+}
+
+func (s *Server) adminOrchestratorRetry(w http.ResponseWriter, r *http.Request) {
+	job, err := s.store.RetryJob(r.PathValue("id"))
+	if err != nil {
+		s.err(w, http.StatusConflict, err)
+		return
+	}
+	s.json(w, http.StatusOK, job)
+}
+
+func (s *Server) adminOrchestratorCancel(w http.ResponseWriter, r *http.Request) {
+	var q struct {
+		Reason string `json:"reason"`
+	}
+	// Empty bodies are valid for an operator cancellation; malformed non-empty
+	// JSON is not.
+	if r.ContentLength != 0 {
+		if err := decode(r, &q); err != nil {
+			s.err(w, http.StatusBadRequest, err)
+			return
+		}
+	}
+	if strings.TrimSpace(q.Reason) == "" {
+		q.Reason = "canceled by administrator"
+	}
+	if err := s.store.CancelJob(r.PathValue("id"), q.Reason); err != nil {
+		s.err(w, http.StatusNotFound, err)
+		return
+	}
+	job, _ := s.store.Job(r.PathValue("id"))
+	s.json(w, http.StatusOK, job)
+}

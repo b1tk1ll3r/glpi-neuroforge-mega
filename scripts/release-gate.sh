@@ -5,6 +5,7 @@ cd "$ROOT"
 ./scripts/preflight.sh --static
 ./scripts/check-compose-env.py
 ./scripts/secret-scan.sh
+make engineering-graph-check
 for module in platform/neuroforge services/agent services/knowledge services/control; do
   echo "release-gate: $module: test"
   (cd "$module" && go test ./...)

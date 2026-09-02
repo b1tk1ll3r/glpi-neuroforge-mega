@@ -9,10 +9,10 @@ HELPER_IMAGE=${BACKUP_HELPER_IMAGE:-busybox:1.36}
 ./scripts/preflight.sh
 getv() { sed -n "s/^$1=//p" "$ENV_FILE" | tail -n1 | tr -d '\r'; }
 
-restart() { docker compose --env-file "$ENV_FILE" up -d knowledge neuroforge neuroforge-worker agent >/dev/null 2>&1 || true; }
+restart() { docker compose --env-file "$ENV_FILE" up -d knowledge neuroforge neuroforge-worker-cpu neuroforge-worker-gpu agent >/dev/null 2>&1 || true; }
 trap restart EXIT INT TERM
 
-docker compose --env-file "$ENV_FILE" stop neuroforge-worker agent neuroforge knowledge
+docker compose --env-file "$ENV_FILE" stop neuroforge-worker-cpu neuroforge-worker-gpu agent neuroforge knowledge
 docker compose --env-file "$ENV_FILE" create neuroforge agent >/dev/null
 volume_for() {
   service=$1; destination=$2

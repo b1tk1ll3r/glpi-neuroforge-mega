@@ -16,6 +16,10 @@ components:
     WorkerKey:
       type: http
       scheme: bearer
+    ControlReadKey:
+      type: http
+      scheme: bearer
+      description: Scoped read token used by the Control Center for graph/orchestrator status.
     AdminToken:
       type: apiKey
       in: header
@@ -1324,13 +1328,46 @@ paths:
       responses:
         '200':
           description: Open truth-key conflicts
+  /api/v1/integrations/graph/status:
+    get:
+      security:
+      - ControlReadKey: []
+      - AppKey: []
+      - AdminToken: []
+      description: Structural knowledge-graph health and graph/backfill configuration.
+      responses:
+        '200':
+          description: Graph statistics including linked/isolated/multi-linked nodes and connected components.
+  /api/v1/integrations/orchestrator/status:
+    get:
+      security:
+      - ControlReadKey: []
+      - AppKey: []
+      - AdminToken: []
+      description: Read-only master/subagent scheduler status, workers, queues and offload settings.
+      responses:
+        '200': {description: Orchestrator status}
+  /api/v1/worker/register:
+    post:
+      security:
+      - WorkerKey: []
+      description: Register or refresh a capability-bearing CPU/GPU subagent.
+      responses:
+        '200': {description: Worker state}
+  /api/v1/worker/heartbeat:
+    post:
+      security:
+      - WorkerKey: []
+      description: Refresh worker liveness and renew matching active leases using lease-token fencing.
+      responses:
+        '200': {description: Worker state}
   /api/v1/worker/claim:
     post:
       security:
       - WorkerKey: []
       responses:
         '200':
-          description: Claimed CPU job
+          description: Highest-priority compatible leased job for this worker resource/capability set.
         '204':
           description: No job available
   /api/v1/worker/complete:
@@ -1339,7 +1376,9 @@ paths:
       - WorkerKey: []
       responses:
         '200':
-          description: Job completion accepted
+          description: Lease-fenced result accepted. Master-state mutations may enter durable apply_wait before done.
+        '409':
+          description: Stale/expired lease, wrong worker, or job no longer claimable.
   /internal/v1/cluster/request-vote:
     post:
       security:
@@ -1554,6 +1593,54 @@ paths:
       responses:
         '200':
           description: Secrets updated
+  /admin/api/graph/status:
+    get:
+      security: [{AdminToken: []}]
+      responses:
+        '200': {description: Graph and orchestrator status with effective graph configuration}
+  /admin/api/graph/backfill:
+    post:
+      security: [{AdminToken: []}]
+      responses:
+        '202': {description: Bounded graph-backfill planning cycle accepted}
+  /admin/api/orchestrator/status:
+    get:
+      security: [{AdminToken: []}]
+      responses:
+        '200': {description: Master/subagent scheduler status}
+  /admin/api/orchestrator/jobs:
+    get:
+      security: [{AdminToken: []}]
+      parameters:
+      - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 5000}}
+      - {name: status, in: query, schema: {type: string}}
+      - {name: type, in: query, schema: {type: string}}
+      responses:
+        '200': {description: Bounded job list without large payload/result bodies}
+  /admin/api/orchestrator/jobs/{id}/retry:
+    post:
+      security: [{AdminToken: []}]
+      parameters:
+      - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        '200': {description: Failed/canceled job reset to queued}
+        '409': {description: Job is not retryable from its current state}
+  /admin/api/orchestrator/jobs/{id}/cancel:
+    post:
+      security: [{AdminToken: []}]
+      parameters:
+      - {name: id, in: path, required: true, schema: {type: string}}
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason: {type: string}
+      responses:
+        '200': {description: Non-terminal job canceled and any active lease fenced}
+        '404': {description: Job not found}
   /admin/api/provider-health:
     post:
       security:

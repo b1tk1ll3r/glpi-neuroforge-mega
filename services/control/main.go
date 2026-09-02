@@ -105,6 +105,8 @@ func main() {
 	mux.HandleFunc("GET /api/graph/learning", s.handleLearningGraph)
 	mux.HandleFunc("GET /api/graph/research", s.handleResearchGraph)
 	mux.HandleFunc("GET /api/graph/brain", s.handleBrainGraph)
+	mux.HandleFunc("GET /api/neuroforge/orchestrator", s.handleNeuroForgeOrchestrator)
+	mux.HandleFunc("GET /api/neuroforge/graph-status", s.handleNeuroForgeGraphStatus)
 	mux.HandleFunc("GET /api/graph/engineering", s.handleEngineeringGraph)
 	mux.HandleFunc("GET /api/graph/impact", s.handleEngineeringImpact)
 	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
@@ -142,6 +144,14 @@ func main() {
 		log.Printf("control graceful shutdown failed: %v", err)
 		_ = srv.Close()
 	}
+}
+
+func (s *server) handleNeuroForgeOrchestrator(w http.ResponseWriter, r *http.Request) {
+	s.proxyJSON(w, r, s.neuroforgeURL+"/api/v1/integrations/orchestrator/status", bearerHeader(s.neuroforgeKey))
+}
+
+func (s *server) handleNeuroForgeGraphStatus(w http.ResponseWriter, r *http.Request) {
+	s.proxyJSON(w, r, s.neuroforgeURL+"/api/v1/integrations/graph/status", bearerHeader(s.neuroforgeKey))
 }
 
 func validateControlSecrets() error {

@@ -3,10 +3,14 @@ package brain
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"regexp"
 	"sort"
@@ -87,6 +91,12 @@ func (e *Engine) embed(ctx context.Context, text string) (provider.EmbedResult, 
 	if route == "" {
 		route = "auto"
 	}
+	if (route == "auto" || route == "ollama") && nodeID == "" {
+		if res, used, offloadErr := e.distributedEmbed(ctx, model, text); used && offloadErr == nil {
+			costUSD, recErr := e.cost.Record(res.Provider, res.Model, "embedding", res.Usage)
+			return res, costUSD, recErr
+		}
+	}
 	if route == "auto" {
 		res, err := e.router.EmbedOn(ctx, "ollama", model, nodeID, text)
 		if err == nil {
@@ -159,6 +169,12 @@ func (e *Engine) chatModelLimitOnMode(ctx context.Context, providerName, model, 
 	}
 	if route == "" {
 		route = "auto"
+	}
+	if (route == "auto" || route == "ollama") && nodeID == "" {
+		if res, used, offloadErr := e.distributedChat(ctx, model, instructions, input, maxOutput, jsonMode); used && offloadErr == nil {
+			costUSD, recErr := e.cost.Record(res.Provider, res.Model, "chat", res.Usage)
+			return res, costUSD, recErr
+		}
 	}
 	if route == "auto" {
 		var res provider.ChatResult
@@ -986,15 +1002,19 @@ func minFloat(a, b float64) float64 {
 }
 
 type relinkPayload struct {
-	TargetID      string            `json:"target_id"`
-	Target        []float32         `json:"target"`
-	Candidates    []relinkCandidate `json:"candidates"`
-	K             int               `json:"k"`
-	MinSimilarity float64           `json:"min_similarity"`
+	TargetID          string            `json:"target_id"`
+	TargetVersion     int64             `json:"target_version"`
+	TargetFingerprint string            `json:"target_fingerprint"`
+	Target            []float32         `json:"target"`
+	Candidates        []relinkCandidate `json:"candidates"`
+	K                 int               `json:"k"`
+	MinSimilarity     float64           `json:"min_similarity"`
 }
 type relinkCandidate struct {
-	ID     string    `json:"id"`
-	Vector []float32 `json:"vector"`
+	ID          string    `json:"id"`
+	Version     int64     `json:"version"`
+	Fingerprint string    `json:"fingerprint"`
+	Vector      []float32 `json:"vector"`
 }
 type RelinkResult struct {
 	TargetID  string `json:"target_id"`
@@ -1004,16 +1024,49 @@ type RelinkResult struct {
 	} `json:"neighbors"`
 }
 
+func vectorFingerprint(v []float32) string {
+	h := sha256.New()
+	var buf [4]byte
+	for _, x := range v {
+		binary.LittleEndian.PutUint32(buf[:], math.Float32bits(x))
+		_, _ = h.Write(buf[:])
+	}
+	sum := h.Sum(nil)
+	return hex.EncodeToString(sum[:12])
+}
+
+var errObsoleteRelink = errors.New("obsolete vector.relink result")
+
 func (e *Engine) enqueueRelink(m *core.Memory) (*core.Job, error) {
 	cfg := e.store.Config()
-	snap := e.store.MemoriesSnapshot()
-	p := relinkPayload{TargetID: m.ID, Target: m.Vector, K: cfg.Brain.RecallK, MinSimilarity: cfg.Brain.MinSimilarity}
-	for _, x := range snap {
-		if x.ID != m.ID && len(x.Vector) == len(m.Vector) {
-			p.Candidates = append(p.Candidates, relinkCandidate{ID: x.ID, Vector: x.Vector})
-		}
+	if m == nil || m.ID == "" || len(m.Vector) == 0 {
+		return nil, errors.New("relink target requires id and vector")
 	}
-	return e.store.EnqueueJob("vector.relink", p)
+	mult := cfg.Worker.GraphCandidateMultiplier
+	if mult < 2 {
+		mult = 4
+	}
+	candidateK := cfg.Brain.RecallK * mult
+	if candidateK < cfg.Brain.RecallK+4 {
+		candidateK = cfg.Brain.RecallK + 4
+	}
+	if candidateK > 256 {
+		candidateK = 256
+	}
+	hits := e.store.SearchVector(m.Vector, candidateK+1, cfg.Brain.MinSimilarity, 0)
+	p := relinkPayload{TargetID: m.ID, TargetVersion: m.Version, TargetFingerprint: vectorFingerprint(m.Vector), Target: append([]float32(nil), m.Vector...), K: cfg.Brain.RecallK, MinSimilarity: cfg.Brain.MinSimilarity}
+	for _, h := range hits {
+		if h.Memory.ID == m.ID || len(h.Memory.Vector) != len(m.Vector) {
+			continue
+		}
+		p.Candidates = append(p.Candidates, relinkCandidate{ID: h.Memory.ID, Version: h.Memory.Version, Fingerprint: vectorFingerprint(h.Memory.Vector), Vector: append([]float32(nil), h.Memory.Vector...)})
+	}
+	return e.store.EnqueueJobSpec(store.JobSpec{
+		Type: "vector.relink", Payload: p, Priority: 20, ResourceClass: "cpu",
+		RequiredCapabilities: []string{"cpu", "vector.relink"},
+		RequiresMasterApply:  true,
+		IdempotencyKey:       "vector.relink:" + m.ID + ":v" + strconv.FormatInt(m.Version, 10),
+	})
 }
 func (e *Engine) localRelink(m *core.Memory) error {
 	cfg := e.store.Config()
@@ -1026,20 +1079,53 @@ func (e *Engine) localRelink(m *core.Memory) error {
 	return nil
 }
 func (e *Engine) ApplyJobResult(j *core.Job) error {
-	if j.Type != "vector.relink" || j.Status != "done" {
+	if j == nil || j.Type != "vector.relink" || (j.Status != "done" && j.Status != "apply_wait") {
 		return nil
+	}
+	var p relinkPayload
+	if err := json.Unmarshal(j.Payload, &p); err != nil {
+		return fmt.Errorf("decode relink payload during master apply: %w", err)
+	}
+	current, ok := e.store.GetMemory(p.TargetID)
+	if !ok || current.Version != p.TargetVersion || vectorFingerprint(current.Vector) != p.TargetFingerprint {
+		// The worker computed against an older delete/recreate or memory version.
+		// Treat the result as obsolete rather than poisoning the current graph; the
+		// backfill planner will schedule the current version again.
+		return errObsoleteRelink
 	}
 	var r RelinkResult
 	if err := json.Unmarshal(j.Result, &r); err != nil {
 		return err
 	}
+	if r.TargetID != p.TargetID {
+		return fmt.Errorf("relink result target %q does not match payload target %q", r.TargetID, p.TargetID)
+	}
+	candidateMeta := make(map[string]relinkCandidate, len(p.Candidates))
+	for _, c := range p.Candidates {
+		candidateMeta[c.ID] = c
+	}
 	sort.Slice(r.Neighbors, func(i, j int) bool { return r.Neighbors[i].Similarity > r.Neighbors[j].Similarity })
 	for _, n := range r.Neighbors {
-		if err := e.reinforcePair(r.TargetID, n.ID, n.Similarity, n.Similarity); err != nil {
+		meta, expected := candidateMeta[n.ID]
+		if !expected {
+			// A worker may only return neighbors from the bounded master-selected
+			// candidate set. Rejecting extras closes a trust-boundary gap.
+			continue
+		}
+		neighbor, ok := e.store.GetMemory(n.ID)
+		if !ok || neighbor.Version != meta.Version || vectorFingerprint(neighbor.Vector) != meta.Fingerprint {
+			continue
+		}
+		cfg := e.store.Config()
+		delta := cfg.Brain.LearningRate * n.Similarity
+		if delta <= 0 {
+			delta = n.Similarity
+		}
+		if err := e.store.UpsertRelationEvidence(r.TargetID, n.ID, "semantic_similarity", n.Similarity, delta, cfg.Brain.MaxSynapseWeight); err != nil {
 			return err
 		}
 	}
-	return nil
+	return e.store.MarkGraphLinked(r.TargetID)
 }
 
 // SearchByProvenanceSources embeds text once and searches only the requested

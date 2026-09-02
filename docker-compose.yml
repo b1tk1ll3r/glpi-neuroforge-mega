@@ -33,7 +33,7 @@ services:
     cap_drop:
     - ALL
   neuroforge:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
     command:
     - -data
     - /app/data
@@ -54,6 +54,32 @@ services:
       NEUROFORGE_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
       NEUROFORGE_OLLAMA_NUM_CTX: ${NEUROFORGE_OLLAMA_NUM_CTX:-8192}
       NEUROFORGE_OLLAMA_NUM_PREDICT: ${NEUROFORGE_OLLAMA_NUM_PREDICT:-0}
+      # Durable master/subagent scheduler and graph convergence.
+      NEUROFORGE_WORKER_LEASE_SECONDS: ${NEUROFORGE_WORKER_LEASE_SECONDS:-120}
+      NEUROFORGE_WORKER_HEARTBEAT_SECONDS: ${NEUROFORGE_WORKER_HEARTBEAT_SECONDS:-15}
+      NEUROFORGE_WORKER_STALE_AFTER_SECONDS: ${NEUROFORGE_WORKER_STALE_AFTER_SECONDS:-60}
+      NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS: ${NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS:-3}
+      NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS: ${NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS:-15}
+      NEUROFORGE_WORKER_MAX_QUEUED_JOBS: ${NEUROFORGE_WORKER_MAX_QUEUED_JOBS:-5000}
+      NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS: ${NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS:-5}
+      NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS: ${NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS:-5}
+      NEUROFORGE_WORKER_JOB_RETENTION_HOURS: ${NEUROFORGE_WORKER_JOB_RETENTION_HOURS:-168}
+      NEUROFORGE_WORKER_MAX_TERMINAL_JOBS: ${NEUROFORGE_WORKER_MAX_TERMINAL_JOBS:-20000}
+      NEUROFORGE_GRAPH_BACKFILL_ENABLED: ${NEUROFORGE_GRAPH_BACKFILL_ENABLED:-true}
+      NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS: ${NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS:-10}
+      NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE: ${NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE:-64}
+      NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED: ${NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED:-256}
+      NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE: ${NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE:-3}
+      NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER: ${NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER:-6}
+      NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES: ${NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES:-360}
+      NEUROFORGE_GRAPH_REQUIRE_WORKER: ${NEUROFORGE_GRAPH_REQUIRE_WORKER:-true}
+      NEUROFORGE_GRAPH_MAX_HOPS: ${NEUROFORGE_GRAPH_MAX_HOPS:-3}
+      NEUROFORGE_GRAPH_HOP_DECAY: ${NEUROFORGE_GRAPH_HOP_DECAY:-0.60}
+      NEUROFORGE_GRAPH_MAX_EXPANSION: ${NEUROFORGE_GRAPH_MAX_EXPANSION:-64}
+      NEUROFORGE_GRAPH_MIN_EDGE_WEIGHT: ${NEUROFORGE_GRAPH_MIN_EDGE_WEIGHT:-0.05}
+      NEUROFORGE_OFFLOAD_CHAT: ${NEUROFORGE_OFFLOAD_CHAT:-true}
+      NEUROFORGE_OFFLOAD_EMBEDDINGS: ${NEUROFORGE_OFFLOAD_EMBEDDINGS:-true}
+      NEUROFORGE_DISTRIBUTED_INFERENCE_WAIT_SECONDS: ${NEUROFORGE_DISTRIBUTED_INFERENCE_WAIT_SECONDS:-180}
       NEUROFORGE_READINESS_OLLAMA_LIVE: ${NEUROFORGE_READINESS_OLLAMA_LIVE:-true}
       NEUROFORGE_CONTROLLED_LEARNING: ${NEUROFORGE_CONTROLLED_LEARNING:-true}
       NEUROFORGE_GOAL_LEARNING_ENABLED: ${NEUROFORGE_GOAL_LEARNING_ENABLED:-false}
@@ -115,16 +141,20 @@ services:
       retries: 8
       start_period: 15s
     stop_grace_period: 35s
-  neuroforge-worker:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
+  neuroforge-worker-cpu:
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
     command:
     - -server
     - http://neuroforge:8080
     - -id
-    - mega-worker-1
+    - mega-cpu-1
     restart: unless-stopped
     environment:
       NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set a unique NeuroForge worker token}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: cpu
+      NEUROFORGE_WORKER_CAPABILITIES: cpu,vector.relink
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_CPU_WORKER_CONCURRENCY:-2}
+      NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
     depends_on:
       neuroforge:
         condition: service_healthy
@@ -135,8 +165,41 @@ services:
     - no-new-privileges:true
     cap_drop:
     - ALL
+
+  neuroforge-worker-gpu:
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
+    command:
+    - -server
+    - http://neuroforge:8080
+    - -id
+    - mega-gpu-1
+    restart: unless-stopped
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set a unique NeuroForge worker token}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: gpu
+      NEUROFORGE_WORKER_CAPABILITIES: gpu,model.chat,model.embed
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_GPU_WORKER_CONCURRENCY:-1}
+      NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
+      NEUROFORGE_WORKER_OLLAMA_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      NEUROFORGE_WORKER_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
+      NEUROFORGE_WORKER_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
+      NEUROFORGE_WORKER_OLLAMA_NUM_CTX: ${NEUROFORGE_OLLAMA_NUM_CTX:-8192}
+      NEUROFORGE_WORKER_OLLAMA_KEEP_ALIVE: ${OLLAMA_KEEP_ALIVE:-10m}
+    depends_on:
+      neuroforge:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    read_only: true
+    tmpfs:
+    - /tmp:size=32m,mode=1777
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+
   agent-data-init:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
     restart: 'no'
     user: 0:0
     volumes:
@@ -149,7 +212,7 @@ services:
     - CHOWN
     - FOWNER
   agent:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
     restart: unless-stopped
     environment:
       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
@@ -370,7 +433,7 @@ services:
       start_period: 10s
     stop_grace_period: 20s
   knowledge:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
     restart: unless-stopped
     environment:
       APP_MODE: ${KB_APP_MODE:-editor}
@@ -411,7 +474,7 @@ services:
     - ALL
     stop_grace_period: 35s
   control:
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.5.9}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
     restart: unless-stopped
     environment:
       CONTROL_ADDR: :8070

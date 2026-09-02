@@ -254,6 +254,108 @@ func run() (retErr error) {
 		}
 	}
 
+	// Master/subagent orchestrator and graph bootstrap. Every option is explicit
+	// and environment-owned only when set, preserving admin-managed config otherwise.
+	workerEnv := []string{
+		"NEUROFORGE_WORKER_LEASE_SECONDS", "NEUROFORGE_WORKER_HEARTBEAT_SECONDS", "NEUROFORGE_WORKER_STALE_AFTER_SECONDS",
+		"NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS", "NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS", "NEUROFORGE_WORKER_MAX_QUEUED_JOBS",
+		"NEUROFORGE_WORKER_JOB_RETENTION_HOURS", "NEUROFORGE_WORKER_MAX_TERMINAL_JOBS",
+		"NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS", "NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS",
+		"NEUROFORGE_GRAPH_BACKFILL_ENABLED", "NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS", "NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE",
+		"NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED", "NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE", "NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER",
+		"NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES", "NEUROFORGE_GRAPH_REQUIRE_WORKER", "NEUROFORGE_GRAPH_MAX_HOPS",
+		"NEUROFORGE_GRAPH_HOP_DECAY", "NEUROFORGE_GRAPH_MAX_EXPANSION", "NEUROFORGE_GRAPH_MIN_EDGE_WEIGHT",
+		"NEUROFORGE_OFFLOAD_CHAT", "NEUROFORGE_OFFLOAD_EMBEDDINGS", "NEUROFORGE_DISTRIBUTED_INFERENCE_WAIT_SECONDS",
+	}
+	hasWorkerEnv := false
+	for _, name := range workerEnv {
+		if _, ok := os.LookupEnv(name); ok {
+			hasWorkerEnv = true
+			break
+		}
+	}
+	if hasWorkerEnv {
+		cfg := s.Config()
+		if v, ok := envInt("NEUROFORGE_WORKER_LEASE_SECONDS"); ok {
+			cfg.Worker.LeaseSeconds = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_HEARTBEAT_SECONDS"); ok {
+			cfg.Worker.HeartbeatSeconds = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_STALE_AFTER_SECONDS"); ok {
+			cfg.Worker.StaleAfterSeconds = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS"); ok {
+			cfg.Worker.DefaultMaxAttempts = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS"); ok {
+			cfg.Worker.RetryBackoffSeconds = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_MAX_QUEUED_JOBS"); ok {
+			cfg.Worker.MaxQueuedJobs = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_JOB_RETENTION_HOURS"); ok {
+			cfg.Worker.JobRetentionHours = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_MAX_TERMINAL_JOBS"); ok {
+			cfg.Worker.MaxTerminalJobs = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS"); ok {
+			cfg.Worker.MasterApplyMaxAttempts = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS"); ok {
+			cfg.Worker.MasterApplyBackoffSeconds = v
+		}
+		if v, ok := envBool("NEUROFORGE_GRAPH_BACKFILL_ENABLED"); ok {
+			cfg.Worker.GraphBackfillEnabled = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS"); ok {
+			cfg.Worker.GraphBackfillIntervalS = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE"); ok {
+			cfg.Worker.GraphBackfillBatchSize = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED"); ok {
+			cfg.Worker.GraphBackfillMaxQueued = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE"); ok {
+			cfg.Worker.GraphBackfillMinDegree = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER"); ok {
+			cfg.Worker.GraphCandidateMultiplier = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES"); ok {
+			cfg.Worker.GraphRetryAfterMinutes = v
+		}
+		if v, ok := envBool("NEUROFORGE_GRAPH_REQUIRE_WORKER"); ok {
+			cfg.Worker.RequireWorkerForGraph = v
+		}
+		if v, ok := envBool("NEUROFORGE_OFFLOAD_CHAT"); ok {
+			cfg.Worker.OffloadChat = v
+		}
+		if v, ok := envBool("NEUROFORGE_OFFLOAD_EMBEDDINGS"); ok {
+			cfg.Worker.OffloadEmbeddings = v
+		}
+		if v, ok := envInt("NEUROFORGE_DISTRIBUTED_INFERENCE_WAIT_SECONDS"); ok {
+			cfg.Worker.DistributedInferenceWaitS = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_MAX_HOPS"); ok {
+			cfg.Brain.GraphMaxHops = v
+		}
+		if v, ok := envFloat("NEUROFORGE_GRAPH_HOP_DECAY"); ok {
+			cfg.Brain.GraphHopDecay = v
+		}
+		if v, ok := envInt("NEUROFORGE_GRAPH_MAX_EXPANSION"); ok {
+			cfg.Brain.GraphMaxExpansion = v
+		}
+		if v, ok := envFloat("NEUROFORGE_GRAPH_MIN_EDGE_WEIGHT"); ok {
+			cfg.Brain.GraphMinEdgeWeight = v
+		}
+		if err := s.UpdateConfig(cfg); err != nil {
+			return fmt.Errorf("apply orchestrator/graph environment bootstrap: %w", err)
+		}
+	}
+
 	r := provider.NewRouter(s)
 	c := cost.New(s)
 	b := brain.New(s, r, c)
@@ -336,6 +438,7 @@ func run() (retErr error) {
 	maintenanceCtx, stopMaintenance := context.WithCancel(rootCtx)
 	defer stopMaintenance()
 	go b.RunV6Maintenance(maintenanceCtx)
+	go b.RunOrchestrator(maintenanceCtx)
 	api := httpapi.New(s, b, r, c)
 	if v, ok := envBool("NEUROFORGE_READINESS_OLLAMA_LIVE"); ok {
 		api.SetReadinessOllamaLive(v)

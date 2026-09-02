@@ -61,6 +61,7 @@ type KnowledgeList struct {
 type KnowledgeEdge struct {
 	A           string    `json:"a"`
 	B           string    `json:"b"`
+	Relations   []string  `json:"relations,omitempty"`
 	Weight      float64   `json:"weight"`
 	Similarity  float64   `json:"similarity"`
 	Activations int64     `json:"activations"`
@@ -368,7 +369,7 @@ func (s *Store) KnowledgeGraph(center string, depth, maxNodes int) KnowledgeGrap
 	}
 	for _, syn := range s.state.Synapses {
 		if selected[syn.A] && selected[syn.B] {
-			out.Edges = append(out.Edges, KnowledgeEdge{A: syn.A, B: syn.B, Weight: syn.Weight, Similarity: syn.Similarity, Activations: syn.Activations, LastUpdated: syn.LastUpdated})
+			out.Edges = append(out.Edges, KnowledgeEdge{A: syn.A, B: syn.B, Relations: append([]string(nil), syn.Relations...), Weight: syn.Weight, Similarity: syn.Similarity, Activations: syn.Activations, LastUpdated: syn.LastUpdated})
 		}
 	}
 	sort.Slice(out.Edges, func(i, j int) bool { return out.Edges[i].Weight > out.Edges[j].Weight })
@@ -397,7 +398,7 @@ func (s *Store) KnowledgeMemoryDetail(id string) (KnowledgeMemoryDetail, bool) {
 		} else {
 			continue
 		}
-		out.Edges = append(out.Edges, KnowledgeEdge{A: syn.A, B: syn.B, Weight: syn.Weight, Similarity: syn.Similarity, Activations: syn.Activations, LastUpdated: syn.LastUpdated})
+		out.Edges = append(out.Edges, KnowledgeEdge{A: syn.A, B: syn.B, Relations: append([]string(nil), syn.Relations...), Weight: syn.Weight, Similarity: syn.Similarity, Activations: syn.Activations, LastUpdated: syn.LastUpdated})
 		if !seenNeighbor[other] {
 			if om, ok := s.fullMemoryForReadLocked(other); ok {
 				out.Neighbors = append(out.Neighbors, memoryPreview(om))

@@ -173,6 +173,10 @@ type Config struct {
 		DecayPerDay          float64            `json:"decay_per_day"`
 		MaxSynapseWeight     float64            `json:"max_synapse_weight"`
 		GraphBonus           float64            `json:"graph_bonus"`
+		GraphMaxHops         int                `json:"graph_max_hops"`
+		GraphHopDecay        float64            `json:"graph_hop_decay"`
+		GraphMaxExpansion    int                `json:"graph_max_expansion"`
+		GraphMinEdgeWeight   float64            `json:"graph_min_edge_weight"`
 		MaxContextMemories   int                `json:"max_context_memories"`
 		AutoLearn            bool               `json:"auto_learn"`
 		ExternalRelinkWorker bool               `json:"external_relink_worker"`
@@ -388,7 +392,27 @@ type Config struct {
 	} `json:"api"`
 
 	Worker struct {
-		LeaseSeconds int `json:"lease_seconds"`
+		LeaseSeconds              int  `json:"lease_seconds"`
+		HeartbeatSeconds          int  `json:"heartbeat_seconds"`
+		StaleAfterSeconds         int  `json:"stale_after_seconds"`
+		DefaultMaxAttempts        int  `json:"default_max_attempts"`
+		RetryBackoffSeconds       int  `json:"retry_backoff_seconds"`
+		MaxQueuedJobs             int  `json:"max_queued_jobs"`
+		MasterApplyMaxAttempts    int  `json:"master_apply_max_attempts"`
+		MasterApplyBackoffSeconds int  `json:"master_apply_backoff_seconds"`
+		JobRetentionHours         int  `json:"job_retention_hours"`
+		MaxTerminalJobs           int  `json:"max_terminal_jobs"`
+		GraphBackfillEnabled      bool `json:"graph_backfill_enabled"`
+		GraphBackfillIntervalS    int  `json:"graph_backfill_interval_seconds"`
+		GraphBackfillBatchSize    int  `json:"graph_backfill_batch_size"`
+		GraphBackfillMaxQueued    int  `json:"graph_backfill_max_queued"`
+		GraphBackfillMinDegree    int  `json:"graph_backfill_min_degree"`
+		GraphCandidateMultiplier  int  `json:"graph_candidate_multiplier"`
+		GraphRetryAfterMinutes    int  `json:"graph_retry_after_minutes"`
+		RequireWorkerForGraph     bool `json:"require_worker_for_graph"`
+		OffloadChat               bool `json:"offload_chat"`
+		OffloadEmbeddings         bool `json:"offload_embeddings"`
+		DistributedInferenceWaitS int  `json:"distributed_inference_wait_seconds"`
 	} `json:"worker"`
 }
 
@@ -469,6 +493,9 @@ type Memory struct {
 	ConsolidationCount int              `json:"consolidation_count,omitempty"`
 	EvidenceSourceIDs  []string         `json:"evidence_source_ids,omitempty"`
 	EvidenceCount      int              `json:"evidence_count,omitempty"`
+	GraphLinkedAt      time.Time        `json:"graph_linked_at,omitempty"`
+	GraphDegree        int              `json:"graph_degree,omitempty"`
+	GraphVersion       int64            `json:"graph_version,omitempty"`
 	Provenance         MemoryProvenance `json:"provenance,omitempty"`
 }
 
@@ -477,6 +504,7 @@ type Synapse struct {
 	B           string    `json:"b"`
 	Weight      float64   `json:"weight"`
 	Similarity  float64   `json:"similarity"`
+	Relations   []string  `json:"relations,omitempty"`
 	Activations int64     `json:"activations"`
 	LastUpdated time.Time `json:"last_updated"`
 }
@@ -494,16 +522,50 @@ type UsageEvent struct {
 }
 
 type Job struct {
-	ID         string          `json:"id"`
-	Type       string          `json:"type"`
-	Payload    json.RawMessage `json:"payload"`
-	Result     json.RawMessage `json:"result,omitempty"`
-	Status     string          `json:"status"`
-	ClaimedBy  string          `json:"claimed_by,omitempty"`
-	LeaseUntil time.Time       `json:"lease_until,omitempty"`
-	Error      string          `json:"error,omitempty"`
-	CreatedAt  time.Time       `json:"created_at"`
-	UpdatedAt  time.Time       `json:"updated_at"`
+	ID                   string          `json:"id"`
+	Type                 string          `json:"type"`
+	Payload              json.RawMessage `json:"payload"`
+	Result               json.RawMessage `json:"result,omitempty"`
+	Status               string          `json:"status"`
+	Priority             int             `json:"priority,omitempty"`
+	ResourceClass        string          `json:"resource_class,omitempty"`
+	RequiredCapabilities []string        `json:"required_capabilities,omitempty"`
+	IdempotencyKey       string          `json:"idempotency_key,omitempty"`
+	ParentJobID          string          `json:"parent_job_id,omitempty"`
+	DependsOn            []string        `json:"depends_on,omitempty"`
+	Attempts             int             `json:"attempts,omitempty"`
+	MaxAttempts          int             `json:"max_attempts,omitempty"`
+	BackoffSeconds       int             `json:"backoff_seconds,omitempty"`
+	TimeoutSeconds       int             `json:"timeout_seconds,omitempty"`
+	RequiresMasterApply  bool            `json:"requires_master_apply,omitempty"`
+	ApplyAttempts        int             `json:"apply_attempts,omitempty"`
+	MaxApplyAttempts     int             `json:"max_apply_attempts,omitempty"`
+	ApplyBackoffSeconds  int             `json:"apply_backoff_seconds,omitempty"`
+	ApplyNextAttemptAt   time.Time       `json:"apply_next_attempt_at,omitempty"`
+	ApplyError           string          `json:"apply_error,omitempty"`
+	ClaimedBy            string          `json:"claimed_by,omitempty"`
+	LeaseToken           string          `json:"lease_token,omitempty"`
+	LeaseUntil           time.Time       `json:"lease_until,omitempty"`
+	NextAttemptAt        time.Time       `json:"next_attempt_at,omitempty"`
+	StartedAt            time.Time       `json:"started_at,omitempty"`
+	FinishedAt           time.Time       `json:"finished_at,omitempty"`
+	Error                string          `json:"error,omitempty"`
+	CreatedAt            time.Time       `json:"created_at"`
+	UpdatedAt            time.Time       `json:"updated_at"`
+}
+
+type WorkerState struct {
+	ID             string            `json:"id"`
+	ResourceClass  string            `json:"resource_class"`
+	Capabilities   []string          `json:"capabilities"`
+	Labels         map[string]string `json:"labels,omitempty"`
+	MaxConcurrency int               `json:"max_concurrency"`
+	Inflight       int               `json:"inflight"`
+	Version        string            `json:"version,omitempty"`
+	Hostname       string            `json:"hostname,omitempty"`
+	LastHeartbeat  time.Time         `json:"last_heartbeat"`
+	RegisteredAt   time.Time         `json:"registered_at"`
+	Status         string            `json:"status"`
 }
 
 type MaintenanceStatus struct {
@@ -688,6 +750,10 @@ func DefaultConfig() Config {
 	c.Brain.DecayPerDay = 0.01
 	c.Brain.MaxSynapseWeight = 4.0
 	c.Brain.GraphBonus = 0.15
+	c.Brain.GraphMaxHops = 3
+	c.Brain.GraphHopDecay = 0.60
+	c.Brain.GraphMaxExpansion = 64
+	c.Brain.GraphMinEdgeWeight = 0.05
 	c.Brain.MaxContextMemories = 8
 	c.Brain.AutoLearn = true
 	c.Brain.ExternalRelinkWorker = true
@@ -850,5 +916,25 @@ func DefaultConfig() Config {
 	c.Cluster.LogSegmentBytes = 64 << 20
 	c.API.RequireKey = true
 	c.Worker.LeaseSeconds = 120
+	c.Worker.HeartbeatSeconds = 15
+	c.Worker.StaleAfterSeconds = 60
+	c.Worker.DefaultMaxAttempts = 3
+	c.Worker.RetryBackoffSeconds = 15
+	c.Worker.MaxQueuedJobs = 5000
+	c.Worker.MasterApplyMaxAttempts = 5
+	c.Worker.MasterApplyBackoffSeconds = 5
+	c.Worker.JobRetentionHours = 168
+	c.Worker.MaxTerminalJobs = 20000
+	c.Worker.GraphBackfillEnabled = true
+	c.Worker.GraphBackfillIntervalS = 10
+	c.Worker.GraphBackfillBatchSize = 64
+	c.Worker.GraphBackfillMaxQueued = 512
+	c.Worker.GraphBackfillMinDegree = 3
+	c.Worker.GraphCandidateMultiplier = 6
+	c.Worker.GraphRetryAfterMinutes = 360
+	c.Worker.RequireWorkerForGraph = true
+	c.Worker.OffloadChat = false
+	c.Worker.OffloadEmbeddings = false
+	c.Worker.DistributedInferenceWaitS = 180
 	return c
 }

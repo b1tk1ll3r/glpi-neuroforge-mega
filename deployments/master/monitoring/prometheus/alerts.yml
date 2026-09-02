@@ -1,0 +1,58 @@
+groups:
+  - name: neuroforge-production
+    rules:
+      - alert: NeuroForgeMasterDown
+        expr: up{job="neuroforge"} == 0
+        for: 1m
+        labels: {severity: critical}
+        annotations:
+          summary: "NeuroForge Master is down"
+          description: "Prometheus cannot scrape the NeuroForge Master for more than 1 minute."
+
+      - alert: NeuroForgeCPUWorkerMissing
+        expr: sum(neuroforge_workers{resource="cpu",status="online"}) < 1
+        for: 2m
+        labels: {severity: critical}
+        annotations:
+          summary: "No online CPU subagent"
+          description: "Graph relink/backfill jobs cannot converge without a CPU worker."
+
+      - alert: NeuroForgeGPUWorkerMissing
+        expr: sum(neuroforge_workers{resource="gpu",status="online"}) < 1
+        for: 2m
+        labels: {severity: warning}
+        annotations:
+          summary: "No online GPU subagent"
+          description: "Distributed chat/embed jobs have no online GPU worker."
+
+      - alert: NeuroForgeFailedJobs
+        expr: neuroforge_jobs{status="failed"} > 0
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge has failed durable jobs"
+          description: "At least one orchestrator job has remained failed for 5 minutes."
+
+      - alert: NeuroForgeApplyWaitStuck
+        expr: neuroforge_jobs{status="apply_wait"} > 0
+        for: 10m
+        labels: {severity: critical}
+        annotations:
+          summary: "Master apply phase appears stuck"
+          description: "A durable job has remained in apply_wait for more than 10 minutes."
+
+      - alert: NeuroForgeQueueHigh
+        expr: neuroforge_jobs{status="queued"} > 1000
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge queue is high"
+          description: "More than 1000 jobs have remained queued for 10 minutes."
+
+      - alert: NeuroForgeGraphHighlyIsolated
+        expr: (neuroforge_graph_memories{state="isolated"} / clamp_min(neuroforge_memories, 1)) > 0.80 and on() neuroforge_memories > 1000
+        for: 30m
+        labels: {severity: warning}
+        annotations:
+          summary: "Knowledge graph remains highly isolated"
+          description: "More than 80% of memories are still isolated after 30 minutes."

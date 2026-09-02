@@ -1,6 +1,6 @@
-# GLPI NeuroForge Mega v1.5.9
+# GLPI NeuroForge Mega v1.6.0
 
-> Release: **v1.5.9** · Article-Depth-Hardening: quellengebundene Staging-Drafts erhalten ein eigenes Context-/Output-Budget, Mindesttiefe und eine messbare Vollartikel-Qualitätsprüfung; `answer` bleibt bewusst die kompakte operative Zusammenfassung.
+> Release: **v1.6.0** · Durable Master/Subagent Orchestration + Knowledge-Graph Convergence: CPU-/GPU-Arbeit wird capability-basiert, lease-gefenced und persistent geplant; importierte Memories werden bounded zu einem n:m-Synapsengraphen verknüpft und Retrieval kann mehrere Hops traversieren.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
@@ -12,6 +12,19 @@ Autonome Research-Goals können ihre quellengebundene Evidenz jetzt tatsächlich
 Der Fortschritt eines Research-Goals wird aus persistierten Research-Runs rekonstruiert (`new_evidence`, unabhängige Quellen, Corroborations) und nicht mehr nur durch eine starre `evaluation > 0.65`-Schwelle erhöht. Numerische Targets wie `100 quellengebundene Wissenseinträge` werden direkt gegen die passende Metrik gemessen. Frühere `goal-learning`-Memories werden aus der nächsten Goal-Evaluation ausgeschlossen, damit ein negativer Zyklus sich nicht selbst verstärkt.
 
 Staging-Entwürfe sind pro Goal idempotent: Solange ein Draft aktiv im Staging liegt, wird er bei neuer Evidenz aktualisiert statt dupliziert. Nach menschlicher Promotion/Archivierung kann später wieder ein neuer Draft entstehen.
+
+## Master / Subagents + n:m Knowledge Graph (v1.6.0)
+
+NeuroForge ist jetzt der autoritative **Master/Orchestrator**. CPU- und GPU-Subagents registrieren Resource-Class, Capabilities und Parallelitätsgrenzen, ziehen passende persistente Jobs und arbeiten unter Heartbeat/Lease-Fencing. Queue, Retry/Backoff, Dependencies, Idempotency und `apply_wait` überleben Master-Neustarts. Abgelaufene Lease-Tokens dürfen keine verspäteten Ergebnisse mehr schreiben; Relink-Ergebnisse sind zusätzlich an Memory-Version und Vector-Fingerprint gebunden.
+
+Der bisherige Knowledge-Import endet nicht mehr bei isolierten Vector-Memories. Ein bounded Graph-Backfill nutzt ANN nur zur Kandidatenauswahl und delegiert exakte Relink-Arbeit an CPU-Subagents. Ein Memory kann mehrere Synapsen besitzen; Graphmetriken messen u.a. isolierte, verknüpfte und mehrfach verknüpfte Memories, Durchschnitts-/Maximalgrad und Connected Components. Retrieval kann konfigurierbar mehrere Synapsen-Hops mit Decay verfolgen.
+
+Lokale Standardrollen:
+
+- `neuroforge-worker-cpu`: `cpu,vector.relink`
+- `neuroforge-worker-gpu`: `gpu,model.chat,model.embed`
+
+Zusätzliche Hosts können mit `docker-compose.subagent.yml` angebunden werden. Das Control Center bleibt read-only und zeigt Master-, Worker-, Queue- und Graphzustand. Details: [`docs/MASTER-SUBAGENT-ORCHESTRATOR.md`](docs/MASTER-SUBAGENT-ORCHESTRATOR.md).
 
 ## Unified Graph Explorer (v1.4.0)
 

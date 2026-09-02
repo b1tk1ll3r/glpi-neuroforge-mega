@@ -26,6 +26,13 @@
 - lokales Outcome-Audit mit `pending|learned|failed`, Retry und unveränderlicher Revisionskette
 - Stale-Run-Schutz gegen Lernen aus überholten GLPI-Ticketzuständen
 - getrennte Schalter für Research/SearXNG und zeitgesteuerte Autonomie
+- persistenter Master/Subagent-Orchestrator mit Resource-/Capability-Routing, Priorität, DAG-Dependencies, Retry/Backoff und Idempotenz
+- Heartbeat/Lease-Fencing inklusive Expiry-Prüfung und stale-result Schutz
+- zweiphasiger `apply_wait`-Commit für Worker-Ergebnisse, die autoritativen Master-State verändern
+- CPU-Subagents für `vector.relink`, GPU-Subagents für `model.chat`/`model.embed`, optional remote über `docker-compose.subagent.yml`
+- bounded Knowledge-Graph-Backfill für importierte Memories (ANN-Kandidaten statt O(N²))
+- echte n:m-Adjamenz, Relationstypen, Multi-Hop-Retrieval und Graph-Health-Metriken
+- Memory-Version + Vector-Fingerprint-Fencing gegen Delete/Recreate-Races während Relink
 
 ## Bewusst nicht automatisiert
 

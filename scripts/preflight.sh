@@ -16,6 +16,12 @@ if grep -Eq '^[[:space:]]+env_file:' docker-compose.yml; then fail "production d
 for image in neuroforge neuroforge-worker agent agent-data-init knowledge control; do
   grep -Fq "git.send.nrw/sendnrw/glpi-neuroforge-mega-${image}:\${IMAGE_TAG:" docker-compose.yml || fail "registry image mapping missing for ${image}"
 done
+for service in neuroforge-worker-cpu neuroforge-worker-gpu; do
+  grep -Eq "^[[:space:]]{2}${service}:" docker-compose.yml || fail "production compose is missing ${service}"
+done
+[ -f docker-compose.subagent.yml ] || fail "docker-compose.subagent.yml is missing"
+if grep -Eq '^[[:space:]]+build:|^[[:space:]]+env_file:' docker-compose.subagent.yml; then fail "remote subagent compose contains build/env_file"; fi
+grep -Fq 'glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:' docker-compose.subagent.yml || fail "remote subagent image is not pinned by IMAGE_TAG"
 
 if [ "$STATIC_ONLY" = true ]; then
   if grep -Eq '^IMAGE_TAG[[:space:]]*=[[:space:]]*latest([[:space:]]|$)' .env.example; then fail ".env.example sets IMAGE_TAG=latest"; fi

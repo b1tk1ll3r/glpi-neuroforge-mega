@@ -1,0 +1,46 @@
+name: neuroforge-cpu-subagent
+services:
+  cpu-subagent:
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set
+      immutable IMAGE_TAG}
+    command:
+    - -server
+    - ${NEUROFORGE_MASTER_URL:?Set reachable NeuroForge master URL}
+    - -id
+    - ${NEUROFORGE_CPU_WORKER_ID:?Set CPU worker ID}
+    restart: unless-stopped
+    environment:
+      NEUROFORGE_WORKER_TOKEN: ${NEUROFORGE_WORKER_TOKEN:?Set worker token shared
+        with master}
+      NEUROFORGE_WORKER_RESOURCE_CLASS: cpu
+      NEUROFORGE_WORKER_CAPABILITIES: ${NEUROFORGE_CPU_WORKER_CAPABILITIES:-cpu,vector.relink}
+      NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_CPU_WORKER_CONCURRENCY:-2}
+      NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
+    read_only: true
+    tmpfs:
+    - /tmp:size=32m,mode=1777
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+  node-exporter:
+    profiles:
+    - monitoring
+    image: ${NODE_EXPORTER_IMAGE:-prom/node-exporter:v1.12.1}
+    restart: unless-stopped
+    command:
+    - --path.procfs=/host/proc
+    - --path.sysfs=/host/sys
+    - --path.rootfs=/rootfs
+    - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    ports:
+    - ${EXPORTER_BIND_ADDRESS:-0.0.0.0}:${NODE_EXPORTER_HOST_PORT:-9100}:9100
+    volumes:
+    - /proc:/host/proc:ro
+    - /sys:/host/sys:ro
+    - /:/rootfs:ro,rslave
+    read_only: true
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL

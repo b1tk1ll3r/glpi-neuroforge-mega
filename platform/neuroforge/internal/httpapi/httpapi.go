@@ -92,6 +92,8 @@ func (s *Server) routes() {
 	s.mux.Handle("POST /api/v1/integrations/outcomes/search", s.integrationAuth(http.HandlerFunc(s.integrationValidatedOutcomeSearch)))
 	s.mux.Handle("GET /api/v1/integrations/graph/research", s.controlReadAuth(http.HandlerFunc(s.integrationResearchGraph)))
 	s.mux.Handle("GET /api/v1/integrations/graph/brain", s.controlReadAuth(http.HandlerFunc(s.integrationBrainGraph)))
+	s.mux.Handle("GET /api/v1/integrations/graph/status", s.controlReadAuth(http.HandlerFunc(s.integrationGraphStatus)))
+	s.mux.Handle("GET /api/v1/integrations/orchestrator/status", s.controlReadAuth(http.HandlerFunc(s.integrationOrchestratorStatus)))
 
 	s.mux.Handle("POST /internal/v1/cluster/request-vote", s.clusterAuth(http.HandlerFunc(s.clusterRequestVote)))
 	s.mux.Handle("POST /internal/v1/cluster/heartbeat", s.clusterAuth(http.HandlerFunc(s.clusterHeartbeat)))
@@ -102,6 +104,8 @@ func (s *Server) routes() {
 	s.mux.Handle("GET /internal/v1/cluster/decision/{id}", s.clusterAuth(http.HandlerFunc(s.clusterDecision)))
 	s.mux.Handle("GET /internal/v1/cluster/status", s.clusterAuth(http.HandlerFunc(s.clusterStatus)))
 
+	s.mux.Handle("POST /api/v1/worker/register", s.workerAuth(http.HandlerFunc(s.workerRegister)))
+	s.mux.Handle("POST /api/v1/worker/heartbeat", s.workerAuth(http.HandlerFunc(s.workerHeartbeat)))
 	s.mux.Handle("POST /api/v1/worker/claim", s.workerAuth(http.HandlerFunc(s.workerClaim)))
 	s.mux.Handle("POST /api/v1/worker/complete", s.workerAuth(http.HandlerFunc(s.workerComplete)))
 
@@ -138,6 +142,12 @@ func (s *Server) routes() {
 	s.mux.Handle("GET /admin/api/knowledge/memories", s.adminAuth(http.HandlerFunc(s.adminKnowledgeMemories)))
 	s.mux.Handle("GET /admin/api/knowledge/memory/{id}", s.adminAuth(http.HandlerFunc(s.adminKnowledgeMemory)))
 	s.mux.Handle("GET /admin/api/knowledge/graph", s.adminAuth(http.HandlerFunc(s.adminKnowledgeGraph)))
+	s.mux.Handle("GET /admin/api/graph/status", s.adminAuth(http.HandlerFunc(s.adminGraphStatus)))
+	s.mux.Handle("POST /admin/api/graph/backfill", s.adminAuth(http.HandlerFunc(s.adminGraphBackfill)))
+	s.mux.Handle("GET /admin/api/orchestrator/status", s.adminAuth(http.HandlerFunc(s.adminOrchestratorStatus)))
+	s.mux.Handle("GET /admin/api/orchestrator/jobs", s.adminAuth(http.HandlerFunc(s.adminOrchestratorJobs)))
+	s.mux.Handle("POST /admin/api/orchestrator/jobs/{id}/retry", s.adminAuth(http.HandlerFunc(s.adminOrchestratorRetry)))
+	s.mux.Handle("POST /admin/api/orchestrator/jobs/{id}/cancel", s.adminAuth(http.HandlerFunc(s.adminOrchestratorCancel)))
 	s.mux.Handle("GET /admin/api/knowledge/events", s.adminAuth(http.HandlerFunc(s.adminKnowledgeEvents)))
 	s.mux.Handle("POST /admin/api/knowledge/search", s.adminAuth(http.HandlerFunc(s.adminKnowledgeSearch)))
 	s.mux.Handle("GET /admin/api/learning-policy", s.adminAuth(http.HandlerFunc(s.adminGetLearningPolicy)))
@@ -418,10 +428,84 @@ func (s *Server) stats(w http.ResponseWriter, r *http.Request) {
 	s.json(w, 200, map[string]any{"stats": s.store.Stats(), "cost": s.cost.Totals()})
 }
 
-func (s *Server) workerClaim(w http.ResponseWriter, r *http.Request) {
-	var q struct {
-		WorkerID string `json:"worker_id"`
+func (s *Server) integrationGraphStatus(w http.ResponseWriter, r *http.Request) {
+	cfg := s.store.Config()
+	s.json(w, http.StatusOK, map[string]any{
+		"stats": s.store.GraphStats(),
+		"config": map[string]any{
+			"max_hops": cfg.Brain.GraphMaxHops, "hop_decay": cfg.Brain.GraphHopDecay,
+			"max_expansion": cfg.Brain.GraphMaxExpansion, "min_edge_weight": cfg.Brain.GraphMinEdgeWeight,
+			"backfill_enabled": cfg.Worker.GraphBackfillEnabled, "backfill_min_degree": cfg.Worker.GraphBackfillMinDegree,
+		},
+	})
+}
+
+func (s *Server) integrationOrchestratorStatus(w http.ResponseWriter, r *http.Request) {
+	cfg := s.store.Config()
+	s.json(w, http.StatusOK, map[string]any{
+		"leader": s.store.IsOrchestratorLeader(),
+		"status": s.store.OrchestratorStatus(),
+		"config": map[string]any{
+			"lease_seconds": cfg.Worker.LeaseSeconds, "heartbeat_seconds": cfg.Worker.HeartbeatSeconds,
+			"stale_after_seconds": cfg.Worker.StaleAfterSeconds, "max_queued_jobs": cfg.Worker.MaxQueuedJobs,
+			"offload_chat": cfg.Worker.OffloadChat, "offload_embeddings": cfg.Worker.OffloadEmbeddings,
+		},
+	})
+}
+
+type workerRequest struct {
+	WorkerID       string            `json:"worker_id"`
+	ResourceClass  string            `json:"resource_class,omitempty"`
+	Capabilities   []string          `json:"capabilities,omitempty"`
+	Labels         map[string]string `json:"labels,omitempty"`
+	MaxConcurrency int               `json:"max_concurrency,omitempty"`
+	Version        string            `json:"version,omitempty"`
+	Hostname       string            `json:"hostname,omitempty"`
+	ActiveLeases   map[string]string `json:"active_leases,omitempty"`
+}
+
+func workerHeartbeatFromRequest(q workerRequest) store.WorkerHeartbeat {
+	return store.WorkerHeartbeat{
+		ID: q.WorkerID, ResourceClass: q.ResourceClass, Capabilities: q.Capabilities,
+		Labels: q.Labels, MaxConcurrency: q.MaxConcurrency, Version: q.Version,
+		Hostname: q.Hostname, ActiveLeases: q.ActiveLeases,
 	}
+}
+
+func (s *Server) workerRegister(w http.ResponseWriter, r *http.Request) {
+	var q workerRequest
+	if err := decode(r, &q); err != nil {
+		s.err(w, http.StatusBadRequest, err)
+		return
+	}
+	state, err := s.store.RegisterWorker(workerHeartbeatFromRequest(q))
+	if err != nil {
+		s.err(w, http.StatusBadRequest, err)
+		return
+	}
+	s.json(w, http.StatusOK, state)
+}
+
+func (s *Server) workerHeartbeat(w http.ResponseWriter, r *http.Request) {
+	var q workerRequest
+	if err := decode(r, &q); err != nil {
+		s.err(w, http.StatusBadRequest, err)
+		return
+	}
+	lease := s.store.Config().Worker.LeaseSeconds
+	if lease < 10 {
+		lease = 120
+	}
+	state, err := s.store.HeartbeatWorker(workerHeartbeatFromRequest(q), time.Duration(lease)*time.Second)
+	if err != nil {
+		s.err(w, http.StatusBadRequest, err)
+		return
+	}
+	s.json(w, http.StatusOK, state)
+}
+
+func (s *Server) workerClaim(w http.ResponseWriter, r *http.Request) {
+	var q workerRequest
 	if err := decode(r, &q); err != nil {
 		s.err(w, 400, err)
 		return
@@ -434,7 +518,7 @@ func (s *Server) workerClaim(w http.ResponseWriter, r *http.Request) {
 	if lease < 10 {
 		lease = 120
 	}
-	j, err := s.store.ClaimJob(q.WorkerID, time.Duration(lease)*time.Second)
+	j, err := s.store.ClaimJobForWorker(workerHeartbeatFromRequest(q), time.Duration(lease)*time.Second)
 	if err != nil {
 		s.err(w, 500, err)
 		return
@@ -445,27 +529,33 @@ func (s *Server) workerClaim(w http.ResponseWriter, r *http.Request) {
 	}
 	s.json(w, 200, j)
 }
+
 func (s *Server) workerComplete(w http.ResponseWriter, r *http.Request) {
 	var q struct {
-		WorkerID string          `json:"worker_id"`
-		JobID    string          `json:"job_id"`
-		Result   json.RawMessage `json:"result"`
-		Error    string          `json:"error"`
+		WorkerID   string          `json:"worker_id"`
+		JobID      string          `json:"job_id"`
+		LeaseToken string          `json:"lease_token,omitempty"`
+		Result     json.RawMessage `json:"result"`
+		Error      string          `json:"error"`
 	}
 	if err := decode(r, &q); err != nil {
 		s.err(w, 400, err)
 		return
 	}
-	j, err := s.store.CompleteJob(q.JobID, q.WorkerID, q.Result, q.Error)
+	j, err := s.store.CompleteJobLease(q.JobID, q.WorkerID, q.LeaseToken, q.Result, q.Error)
 	if err != nil {
-		s.err(w, 400, err)
+		s.err(w, 409, err)
 		return
 	}
-	if err := s.brain.ApplyJobResult(j); err != nil {
-		s.err(w, 500, err)
-		return
+	if j.Status == "apply_wait" && s.store.IsOrchestratorLeader() {
+		// Best-effort eager second phase. Any failure remains durable as apply_wait
+		// and is retried by the orchestrator; the worker must not recompute it.
+		_ = s.brain.ApplyAndFinalizeJob(j)
+		if cur, ok := s.store.Job(j.ID); ok {
+			j = cur
+		}
 	}
-	s.json(w, 200, map[string]bool{"ok": true})
+	s.json(w, 200, map[string]any{"ok": true, "status": j.Status, "attempts": j.Attempts, "apply_attempts": j.ApplyAttempts, "apply_error": j.ApplyError, "next_attempt_at": j.NextAttemptAt, "apply_next_attempt_at": j.ApplyNextAttemptAt})
 }
 
 func (s *Server) adminStatus(w http.ResponseWriter, r *http.Request) {

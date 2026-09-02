@@ -129,6 +129,7 @@ func (s *Store) DeleteMemoriesBatch(ids []string) error {
 		}
 		for key, syn := range s.state.Synapses {
 			if syn.A == id || syn.B == id {
+				s.unindexSynapseLocked(syn)
 				delete(s.state.Synapses, key)
 			}
 		}
