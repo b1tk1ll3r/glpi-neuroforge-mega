@@ -398,6 +398,7 @@ type Config struct {
 		DefaultMaxAttempts        int  `json:"default_max_attempts"`
 		RetryBackoffSeconds       int  `json:"retry_backoff_seconds"`
 		MaxQueuedJobs             int  `json:"max_queued_jobs"`
+		MaxQueuedPayloadMB        int  `json:"max_queued_payload_mb"`
 		MasterApplyMaxAttempts    int  `json:"master_apply_max_attempts"`
 		MasterApplyBackoffSeconds int  `json:"master_apply_backoff_seconds"`
 		JobRetentionHours         int  `json:"job_retention_hours"`
@@ -921,14 +922,15 @@ func DefaultConfig() Config {
 	c.Worker.DefaultMaxAttempts = 3
 	c.Worker.RetryBackoffSeconds = 15
 	c.Worker.MaxQueuedJobs = 5000
+	c.Worker.MaxQueuedPayloadMB = 128
 	c.Worker.MasterApplyMaxAttempts = 5
 	c.Worker.MasterApplyBackoffSeconds = 5
-	c.Worker.JobRetentionHours = 168
-	c.Worker.MaxTerminalJobs = 20000
+	c.Worker.JobRetentionHours = 24
+	c.Worker.MaxTerminalJobs = 2000
 	c.Worker.GraphBackfillEnabled = true
 	c.Worker.GraphBackfillIntervalS = 10
-	c.Worker.GraphBackfillBatchSize = 64
-	c.Worker.GraphBackfillMaxQueued = 512
+	c.Worker.GraphBackfillBatchSize = 16
+	c.Worker.GraphBackfillMaxQueued = 64
 	c.Worker.GraphBackfillMinDegree = 3
 	c.Worker.GraphCandidateMultiplier = 6
 	c.Worker.GraphRetryAfterMinutes = 360

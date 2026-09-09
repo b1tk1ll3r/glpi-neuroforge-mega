@@ -1,0 +1,20 @@
+name: glpi-ai-ollama-core
+services:
+  ollama:
+    image: ${OLLAMA_IMAGE:-ollama/ollama:0.33.2}
+    restart: unless-stopped
+    ports:
+      - ${OLLAMA_BIND_IP:-127.0.0.1}:${OLLAMA_HOST_PORT:-11434}:11434
+    volumes:
+      - ${CORE_DATA_ROOT:-../../runtime}/ollama:/root/.ollama
+    networks:
+      core:
+        aliases:
+          - ollama
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  core:
+    external: true
+    name: ${CORE_NETWORK:-glpi-ai-core}

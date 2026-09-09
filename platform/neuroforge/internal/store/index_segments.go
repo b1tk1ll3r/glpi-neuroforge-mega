@@ -211,41 +211,28 @@ func (s *Store) writeSegmentedIndexSnapshotLocked() error {
 		return nil
 	}
 
-	current := s.currentSnapshotsLocked()
+	currentShadow := make(map[int]indexSnapshotShadow, len(s.indexes))
 	delta := indexDeltaBundle{Revision: s.state.Revision, Dimensions: map[string]indexDimensionDelta{}}
 	dims := map[int]bool{}
-	for dim := range current {
+	for dim := range s.indexes {
 		dims[dim] = true
 	}
 	for dim := range s.indexShadow {
 		dims[dim] = true
 	}
 	for dim := range dims {
-		cur, curOK := current[dim]
+		idx, curOK := s.indexes[dim]
 		prev, prevOK := s.indexShadow[dim]
 		key := strconv.Itoa(dim)
-		if !curOK {
+		if !curOK || idx == nil {
 			delta.Dimensions[key] = indexDimensionDelta{DeletedDimension: true}
 			continue
 		}
-		d := indexDimensionDelta{Config: cur.Config, EntryID: cur.EntryID, MaxLevel: cur.MaxLevel}
-		curIDs := map[string]bool{}
-		for _, n := range cur.Nodes {
-			curIDs[n.ID] = true
-			h := hashSnapshotNode(n)
-			if ph, ok := prev.Nodes[n.ID]; !prevOK || !ok || ph != h {
-				d.Upserts = append(d.Upserts, n)
-			}
-		}
-		if prevOK {
-			for id := range prev.Nodes {
-				if !curIDs[id] {
-					d.Deletes = append(d.Deletes, id)
-				}
-			}
-		}
-		sort.Strings(d.Deletes)
-		if !prevOK || len(d.Upserts) > 0 || len(d.Deletes) > 0 || prev.EntryID != cur.EntryID || prev.MaxLevel != cur.MaxLevel || prev.Config != cur.Config {
+		vprev := vector.HNSWShadow{Config: prev.Config, EntryID: prev.EntryID, MaxLevel: prev.MaxLevel, Nodes: prev.Nodes}
+		cur, upserts, deletes := idx.Delta(vprev)
+		currentShadow[dim] = indexSnapshotShadow{Config: cur.Config, EntryID: cur.EntryID, MaxLevel: cur.MaxLevel, Nodes: cur.Nodes}
+		d := indexDimensionDelta{Config: cur.Config, EntryID: cur.EntryID, MaxLevel: cur.MaxLevel, Upserts: upserts, Deletes: deletes}
+		if !prevOK || len(upserts) > 0 || len(deletes) > 0 || prev.EntryID != cur.EntryID || prev.MaxLevel != cur.MaxLevel || prev.Config != cur.Config {
 			delta.Dimensions[key] = d
 		}
 	}
@@ -258,7 +245,7 @@ func (s *Store) writeSegmentedIndexSnapshotLocked() error {
 	if err := writeAtomic(manifestPath, 0600, &manifest); err != nil {
 		return err
 	}
-	s.indexShadow = buildIndexShadow(current)
+	s.indexShadow = currentShadow
 	s.indexSnapshotRevision = s.state.Revision
 	s.indexDeltaCount = len(manifest.Deltas)
 	return nil

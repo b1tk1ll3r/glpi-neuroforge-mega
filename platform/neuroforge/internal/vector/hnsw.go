@@ -679,6 +679,50 @@ type HNSWShadow struct {
 	Nodes    map[string][32]byte
 }
 
+func (h *HNSW) nodeFingerprintLocked(n *hnswNode) [32]byte {
+	hash := sha256.New()
+	writeHashString(hash, n.ID)
+	writeHashU32(hash, uint32(n.Level))
+	writeHashU32(hash, uint32(len(n.Vector)))
+	var b [4]byte
+	for _, x := range n.Vector {
+		binary.LittleEndian.PutUint32(b[:], math.Float32bits(x))
+		_, _ = hash.Write(b[:])
+	}
+	for level := 0; level <= n.Level; level++ {
+		writeHashU32(hash, uint32(level))
+		edges := n.Neighbors[level]
+		writeHashU32(hash, uint32(len(edges)))
+		for _, edge := range edges {
+			idx := int(edge.idx)
+			if idx >= 0 && idx < len(h.nodes) {
+				writeHashString(hash, h.nodes[idx].ID)
+			}
+		}
+	}
+	var sum [32]byte
+	copy(sum[:], hash.Sum(nil))
+	return sum
+}
+
+func (h *HNSW) snapshotNodeLocked(n *hnswNode) HNSWSnapshotNode {
+	cn := HNSWSnapshotNode{ID: n.ID, Vector: append([]float32(nil), n.Vector...), Level: n.Level, Neighbors: map[int][]string{}}
+	for level, ids := range n.Neighbors {
+		if len(ids) == 0 {
+			continue
+		}
+		refs := make([]string, 0, len(ids))
+		for _, edge := range ids {
+			idx := int(edge.idx)
+			if idx >= 0 && idx < len(h.nodes) {
+				refs = append(refs, h.nodes[idx].ID)
+			}
+		}
+		cn.Neighbors[level] = refs
+	}
+	return cn
+}
+
 func (h *HNSW) Shadow() HNSWShadow {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
@@ -688,31 +732,39 @@ func (h *HNSW) Shadow() HNSWShadow {
 	}
 	out := HNSWShadow{Config: h.cfg, EntryID: entryID, MaxLevel: h.maxLevel, Nodes: make(map[string][32]byte, len(h.nodes))}
 	for _, n := range h.nodes {
-		hash := sha256.New()
-		writeHashString(hash, n.ID)
-		writeHashU32(hash, uint32(n.Level))
-		writeHashU32(hash, uint32(len(n.Vector)))
-		var b [4]byte
-		for _, x := range n.Vector {
-			binary.LittleEndian.PutUint32(b[:], math.Float32bits(x))
-			_, _ = hash.Write(b[:])
-		}
-		for level := 0; level <= n.Level; level++ {
-			writeHashU32(hash, uint32(level))
-			edges := n.Neighbors[level]
-			writeHashU32(hash, uint32(len(edges)))
-			for _, edge := range edges {
-				idx := int(edge.idx)
-				if idx >= 0 && idx < len(h.nodes) {
-					writeHashString(hash, h.nodes[idx].ID)
-				}
-			}
-		}
-		var sum [32]byte
-		copy(sum[:], hash.Sum(nil))
-		out.Nodes[n.ID] = sum
+		out.Nodes[n.ID] = h.nodeFingerprintLocked(n)
 	}
 	return out
+}
+
+// Delta returns only nodes whose vector/graph representation changed since prev,
+// plus a compact hash shadow for the current graph. Unlike Snapshot(), this does
+// not deep-copy every vector on each checkpoint, which keeps bulk-ingest memory
+// bounded as the HNSW grows.
+func (h *HNSW) Delta(prev HNSWShadow) (HNSWShadow, []HNSWSnapshotNode, []string) {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	entryID := ""
+	if h.entry >= 0 && h.entry < len(h.nodes) {
+		entryID = h.nodes[h.entry].ID
+	}
+	cur := HNSWShadow{Config: h.cfg, EntryID: entryID, MaxLevel: h.maxLevel, Nodes: make(map[string][32]byte, len(h.nodes))}
+	upserts := make([]HNSWSnapshotNode, 0)
+	for _, n := range h.nodes {
+		fp := h.nodeFingerprintLocked(n)
+		cur.Nodes[n.ID] = fp
+		if old, ok := prev.Nodes[n.ID]; !ok || old != fp {
+			upserts = append(upserts, h.snapshotNodeLocked(n))
+		}
+	}
+	deletes := make([]string, 0)
+	for id := range prev.Nodes {
+		if _, ok := cur.Nodes[id]; !ok {
+			deletes = append(deletes, id)
+		}
+	}
+	sort.Strings(deletes)
+	return cur, upserts, deletes
 }
 
 func writeHashString(w io.Writer, s string) {

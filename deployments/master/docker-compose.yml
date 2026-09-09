@@ -23,7 +23,7 @@ services:
     - ALL
   neuroforge:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG
-      to an immutable release tag, for example 1.6.0}
+      to an immutable release tag, for example 1.6.2}
     command:
     - -data
     - /app/data
@@ -57,14 +57,15 @@ services:
       NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS: ${NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS:-3}
       NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS: ${NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS:-15}
       NEUROFORGE_WORKER_MAX_QUEUED_JOBS: ${NEUROFORGE_WORKER_MAX_QUEUED_JOBS:-5000}
+      NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB: ${NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB:-128}
       NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS: ${NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS:-5}
       NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS: ${NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS:-5}
-      NEUROFORGE_WORKER_JOB_RETENTION_HOURS: ${NEUROFORGE_WORKER_JOB_RETENTION_HOURS:-168}
-      NEUROFORGE_WORKER_MAX_TERMINAL_JOBS: ${NEUROFORGE_WORKER_MAX_TERMINAL_JOBS:-20000}
+      NEUROFORGE_WORKER_JOB_RETENTION_HOURS: ${NEUROFORGE_WORKER_JOB_RETENTION_HOURS:-24}
+      NEUROFORGE_WORKER_MAX_TERMINAL_JOBS: ${NEUROFORGE_WORKER_MAX_TERMINAL_JOBS:-2000}
       NEUROFORGE_GRAPH_BACKFILL_ENABLED: ${NEUROFORGE_GRAPH_BACKFILL_ENABLED:-true}
       NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS: ${NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS:-10}
-      NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE: ${NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE:-64}
-      NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED: ${NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED:-256}
+      NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE: ${NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE:-16}
+      NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED: ${NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED:-64}
       NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE: ${NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE:-3}
       NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER: ${NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER:-6}
       NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES: ${NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES:-360}
@@ -137,7 +138,7 @@ services:
     stop_grace_period: 35s
   agent-data-init:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set
-      IMAGE_TAG to an immutable release tag, for example 1.6.0}
+      IMAGE_TAG to an immutable release tag, for example 1.6.2}
     restart: 'no'
     user: 0:0
     volumes:
@@ -151,7 +152,7 @@ services:
     - FOWNER
   agent:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG
-      to an immutable release tag, for example 1.6.0}
+      to an immutable release tag, for example 1.6.2}
     restart: unless-stopped
     environment:
       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
@@ -373,7 +374,7 @@ services:
     stop_grace_period: 20s
   knowledge:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG
-      to an immutable release tag, for example 1.6.0}
+      to an immutable release tag, for example 1.6.2}
     restart: unless-stopped
     environment:
       APP_MODE: ${KB_APP_MODE:-editor}
@@ -414,7 +415,7 @@ services:
     stop_grace_period: 35s
   control:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG
-      to an immutable release tag, for example 1.6.0}
+      to an immutable release tag, for example 1.6.2}
     restart: unless-stopped
     environment:
       CONTROL_ADDR: :8070
@@ -543,7 +544,7 @@ services:
     - prometheus-secrets:/etc/prometheus-secrets:ro
     depends_on:
       neuroforge:
-        condition: service_healthy
+        condition: service_started
       prometheus-secrets-init:
         condition: service_completed_successfully
       prometheus-config-init:

@@ -1,4 +1,17 @@
 # Changelog
+- v1.6.1 hotfix: streaming authoritative checkpoint I/O avoids full raw/encoded `state.json` copies during load/save.
+- v1.6.1 hotfix: corrupt `state.json`/`secrets.json` fail closed instead of being silently ignored.
+- v1.6.1 hotfix: completed `vector.relink` blobs are compacted during WAL replay as well as checkpoint migration.
+
+## v0.8.3
+
+- Crash-/Recovery-Hardening für große Knowledge-Korpora und Graph-Backfills.
+- Streaming-Migration entfernt historische `vector.relink`-Payloads vor dem vollständigen Checkpoint-Unmarshal.
+- Erfolgreiche Relink-Jobs verwerfen Target-/Candidate-Vektoren sofort nach Master-Apply.
+- Queue-Payload-Budget schützt den Master vor ungebremstem transientem Job-State.
+- HNSW-Deltas kopieren nur veränderte Nodes statt bei jedem Checkpoint den kompletten Index.
+- Checkpoint-Reihenfolge index-first verhindert `state.json`-Vorlauf nach Crash in der Indexpersistenz.
+- Bootstrap-HTTP und Startup-Phasenlogs machen lange Recovery sichtbar.
 
 ## v0.8.2
 

@@ -1,8 +1,8 @@
-# NeuroForge v0.8.2
+# NeuroForge v0.8.3
 
 NeuroForge ist eine persistente, assoziativ lernende KI-Schicht in Go. Ollama und optional OpenAI liefern Inferenz/Embeddings; NeuroForge besitzt den dauerhaften Wissenszustand: Vektoren, HNSW/Disk-PQ-Recall, Synapsen, Rewards, Provenance, Konflikte, Konsolidierung, Goals und Learning Cycles.
 
-**v0.8.2 erweitert den Production-/Explainability-Stand um einen source-grounded Lernpfad, Dokument-/Text-Ingestion, SearXNG-Research und ein vollständig neu gestaltetes CSS/Vanilla-JS-Admin-UI mit responsive Knowledge-Graph und Level-of-Detail (LOD).** Wissen soll nicht nur gespeichert, sondern als Kette `Quelle → Evidence → Recall → Learning` nachvollziehbar sein.
+**v0.8.3 übernimmt den v0.8.2-Funktionsumfang und härtet große Bulk-/Graph-Workloads gegen Speicher- und Recovery-Spitzen. v0.8.2 erweitert den Production-/Explainability-Stand um einen source-grounded Lernpfad, Dokument-/Text-Ingestion, SearXNG-Research und ein vollständig neu gestaltetes CSS/Vanilla-JS-Admin-UI mit responsive Knowledge-Graph und Level-of-Detail (LOD).** Wissen soll nicht nur gespeichert, sondern als Kette `Quelle → Evidence → Recall → Learning` nachvollziehbar sein.
 
 
 ## Neu in v0.8.2: Live Research pro Goal

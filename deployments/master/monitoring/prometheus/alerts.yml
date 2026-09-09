@@ -56,3 +56,19 @@ groups:
         annotations:
           summary: "Knowledge graph remains highly isolated"
           description: "More than 80% of memories are still isolated after 30 minutes."
+
+      - alert: NeuroForgePendingPayloadHigh
+        expr: neuroforge_job_payload_bytes{state="pending"} > 104857600
+        for: 5m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge pending job payload memory is high"
+          description: "Pending durable job payload/result bytes exceed 100 MiB for 5 minutes; backfill should remain below the v1.6.2 safety budget."
+
+      - alert: NeuroForgeTerminalPayloadHigh
+        expr: neuroforge_job_payload_bytes{state="terminal"} > 67108864
+        for: 10m
+        labels: {severity: warning}
+        annotations:
+          summary: "NeuroForge terminal job payload retention is high"
+          description: "Terminal job payload/result bytes exceed 64 MiB. Completed vector.relink jobs should be compacted automatically in v1.6.2."

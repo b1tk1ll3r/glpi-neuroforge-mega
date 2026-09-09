@@ -1,0 +1,36 @@
+name: glpi-ai-knowledge-core
+services:
+  knowledge:
+    image: ${KNOWLEDGE_IMAGE:-git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:-1.6.2}}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      APP_MODE: ${KB_APP_MODE:-editor}
+      DATA_DIR: /data/knowledge
+      BACKUP_DIR: /data/backups
+      STAGING_DIR: /data/staging
+      LISTEN_ADDR: :8080
+      BRAIN_ACTIVITY_URL: ""
+      BRAIN_ACTIVITY_API_KEY: ""
+    ports:
+      - ${KNOWLEDGE_BIND_IP:-127.0.0.1}:${KNOWLEDGE_HOST_PORT:-9981}:8080
+    volumes:
+      - ${CORE_DATA_ROOT:-../../runtime}/knowledge:/data/knowledge:rw
+      - ${CORE_DATA_ROOT:-../../runtime}/staging:/data/staging:rw
+      - ${CORE_DATA_ROOT:-../../runtime}/backups:/data/backups:rw
+    networks:
+      - core
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    stop_grace_period: 35s
+
+networks:
+  core:
+    external: true
+    name: ${CORE_NETWORK:-glpi-ai-core}

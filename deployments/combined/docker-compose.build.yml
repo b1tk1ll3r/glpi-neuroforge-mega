@@ -1,0 +1,14 @@
+services:
+  agent-data-init:
+    image: glpi-ai-agent-data-init-local:1.6.2
+    build:
+      context: ../../services/agent
+      target: data-init
+  agent:
+    image: glpi-ai-agent-local:1.6.2
+    build:
+      context: ../../services/agent
+  knowledge:
+    image: glpi-ai-knowledge-local:1.6.2
+    build:
+      context: ../../services/knowledge

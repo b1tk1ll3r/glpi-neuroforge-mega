@@ -59,7 +59,7 @@ func (s *Server) routes() {
 	s.mux.HandleFunc("GET /healthz", s.livez)
 	s.mux.HandleFunc("GET /livez", s.livez)
 	s.mux.HandleFunc("GET /readyz", s.readyz)
-	s.mux.HandleFunc("GET /version", func(w http.ResponseWriter, r *http.Request) { s.json(w, 200, map[string]any{"version": "0.8.2"}) })
+	s.mux.HandleFunc("GET /version", func(w http.ResponseWriter, r *http.Request) { s.json(w, 200, map[string]any{"version": "0.8.3"}) })
 	s.mux.Handle("POST /api/v1/chat", s.appAuth(http.HandlerFunc(s.chat)))
 	s.mux.Handle("POST /api/v1/learn", s.appAuth(http.HandlerFunc(s.learn)))
 	s.mux.Handle("POST /api/v1/search", s.appAuth(http.HandlerFunc(s.search)))
@@ -882,7 +882,7 @@ func (s *Server) requestLimits(next http.Handler) http.Handler {
 }
 
 func (s *Server) livez(w http.ResponseWriter, r *http.Request) {
-	s.json(w, http.StatusOK, map[string]any{"ok": true, "status": "alive", "time": time.Now().UTC(), "version": "0.8.2"})
+	s.json(w, http.StatusOK, map[string]any{"ok": true, "status": "alive", "time": time.Now().UTC(), "version": "0.8.3"})
 }
 
 func configuredModelAvailable(models map[string]bool, configured string) bool {

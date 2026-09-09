@@ -1,16 +1,29 @@
-# Distributed Deployment Kits (v1.6.0)
+# Deployment Kits — GLPI NeuroForge Mega v1.6.2
 
-This directory contains three independent deployment kits:
+This repository intentionally supports both the complete NeuroForge platform and stripped standalone operation.
 
-- `master/` - authoritative NeuroForge Master plus Agent, Knowledge, Control, optional SearXNG and optional Prometheus/Grafana.
-- `cpu-subagent/` - CPU worker for `vector.relink` / graph convergence.
-- `gpu-subagent/` - GPU worker plus local Ollama for `model.chat` and `model.embed`.
+## Complete / distributed platform
 
-The generated `NEUROFORGE_WORKER_TOKEN` is identical in all three `.env` files. Replace the RFC 5737 example IP addresses (`192.0.2.x`) with real reachable addresses before starting.
+- `master/` — authoritative NeuroForge Master plus GLPI Agent, Knowledge, Control, optional SearXNG, Prometheus and Grafana. Remote CPU/GPU workers connect to this node.
+- `cpu-subagent/` — disposable CPU worker with `cpu,vector.relink` capabilities.
+- `gpu-subagent/` — disposable GPU worker plus Ollama with `gpu,model.chat,model.embed` capabilities.
 
-Recommended order:
-1. GPU subagent: `docker compose --profile monitoring up -d`
-2. CPU subagent: `docker compose --profile monitoring up -d`
-3. Master: fill GLPI credentials, then `docker compose --profile research --profile monitoring up -d`
+The Master is the only authoritative owner of NeuroForge state. CPU/GPU workers use leases, heartbeats and fenced job completion.
 
-Only the Master holds authoritative NeuroForge state. Workers are disposable execution nodes.
+## Standalone core operation
+
+- `agent/` — GLPI Agent with local Knowledge vector backend; no NeuroForge, Control or Research dependency.
+- `knowledge/` — standalone Knowledge editor/service.
+- `ollama/` — standalone Ollama runtime.
+- `combined/` — Agent + Knowledge + Ollama on one host, still without NeuroForge.
+
+The standalone Agent and Knowledge kits share `runtime/knowledge` by default. The Agent mounts it read-only; Knowledge mounts it read-write.
+
+## Release rules
+
+- Project images are pinned by `IMAGE_TAG=1.6.2`; production compose files do not require `latest`.
+- Replace every `CHANGE_ME_...` placeholder before startup.
+- Never use `docker compose down -v` during an in-place upgrade unless loss of persistent state is intended.
+- For a v1.6.0/v1.6.1 NeuroForge data volume, keep the volume: v1.6.2 includes the v1.6.1 recovery/OOM hotfixes and startup compaction path.
+
+See each role's README/preflight and the root `README.md` for startup order.

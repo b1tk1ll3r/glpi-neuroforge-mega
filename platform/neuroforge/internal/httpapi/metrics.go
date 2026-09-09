@@ -276,6 +276,9 @@ func (s *Server) metricsEndpoint(w http.ResponseWriter, r *http.Request) {
 	for _, status := range statuses {
 		promSample(&b, "neuroforge_jobs", orch.JobsByStatus[status], "status", status)
 	}
+	promHeader(&b, "neuroforge_job_payload_bytes", "Durable orchestrator payload/result bytes retained in memory and checkpoints.", "gauge")
+	promSample(&b, "neuroforge_job_payload_bytes", orch.PendingPayloadBytes, "state", "pending")
+	promSample(&b, "neuroforge_job_payload_bytes", orch.TerminalPayloadBytes, "state", "terminal")
 	promHeader(&b, "neuroforge_jobs_by_resource", "Current durable orchestrator jobs by resource class.", "gauge")
 	for resource, n := range orch.JobsByResource {
 		promSample(&b, "neuroforge_jobs_by_resource", n, "resource", resource)

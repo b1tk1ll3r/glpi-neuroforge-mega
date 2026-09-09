@@ -169,7 +169,7 @@ func FetchResource(ctx context.Context, cfg FetchConfig, rawURL string) (Resourc
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown,text/csv,application/json;q=0.9,*/*;q=0.2")
 	ua := strings.TrimSpace(cfg.UserAgent)
 	if ua == "" {
-		ua = "NeuroForge/0.8.2 research bot"
+		ua = "NeuroForge/0.8.3 research bot"
 	}
 	req.Header.Set("User-Agent", ua)
 	resp, err := client.Do(req)

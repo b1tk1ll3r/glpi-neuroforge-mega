@@ -23,7 +23,11 @@ fi
 
 # Private keys and common live-token shapes must not be committed. Placeholders in
 # templates/docs are intentionally allowed.
-if grep -E '(^|/)\.env$|\.pem$|\.p12$|\.pfx$|(^|/)id_rsa$|(^|/)id_ed25519$' "$FILES" >/dev/null; then
+# Distributed deployment bundles intentionally contain three complete `.env`
+# templates. They must remain placeholder-only; every other private env/key file
+# is still forbidden.
+if grep -E '(^|/)\.env$|\.pem$|\.p12$|\.pfx$|(^|/)id_rsa$|(^|/)id_ed25519$' "$FILES" \
+    | grep -Ev '^deployments/(master|cpu-subagent|gpu-subagent|agent|knowledge|ollama|combined)/\.env$' >/dev/null; then
   bad "private environment/key material found"
 fi
 
@@ -46,6 +50,30 @@ else
     cat "$TOKENS" >&2; bad "token-like credential found"
   fi
 fi
+
+# Checked-in deployment .env files are templates, never live configuration.
+for envf in \
+  deployments/master/.env \
+  deployments/cpu-subagent/.env \
+  deployments/gpu-subagent/.env \
+  deployments/agent/.env \
+  deployments/knowledge/.env \
+  deployments/ollama/.env \
+  deployments/combined/.env; do
+  [ -f "$envf" ] || continue
+  if awk -F= '
+    /^[[:space:]]*#/ || NF < 2 { next }
+    {
+      key=$1; sub(/^[[:space:]]+/, "", key); sub(/[[:space:]]+$/, "", key)
+      val=$0; sub(/^[^=]*=/, "", val)
+      if (key ~ /(TOKEN|PASSWORD|SECRET|CLIENT_ID|CLIENT_SECRET|API_KEY)$/ && val != "" && val !~ /^CHANGE_ME/) {
+        print FILENAME ":" NR ": live-looking secret in " key > "/dev/stderr";
+        bad=1
+      }
+    }
+    END { exit bad ? 1 : 0 }
+  ' "$envf"; then :; else bad "deployment template contains a non-placeholder secret: $envf"; fi
+done
 
 # Reject accidental binary blobs outside explicitly expected assets.
 while IFS= read -r f; do

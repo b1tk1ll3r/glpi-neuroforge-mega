@@ -1,0 +1,62 @@
+name: glpi-ai-agent-core
+services:
+  agent-data-init:
+    image: ${AGENT_DATA_INIT_IMAGE:-git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:-1.6.2}}
+    restart: "no"
+    user: "0:0"
+    volumes:
+      - ${CORE_DATA_ROOT:-../../runtime}/agent-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+
+  agent:
+    image: ${AGENT_IMAGE:-git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:-1.6.2}}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      HTTP_ADDR: :8080
+      DATA_DIR: /app/data
+      KNOWLEDGE_DIR: /app/knowledge
+      KNOWLEDGE_VECTOR_BACKEND: local
+      OUTCOME_LEARNING_ENABLED: "false"
+      OUTCOME_RETRIEVAL_ENABLED: "false"
+      BRAIN_ACTIVITY_URL: ""
+      BRAIN_ACTIVITY_API_KEY: ""
+      NEUROFORGE_URL: ""
+      NEUROFORGE_API_KEY: ""
+      CONTROL_READ_TOKEN: ""
+    ports:
+      - ${AGENT_BIND_IP:-127.0.0.1}:${AGENT_HOST_PORT:-9980}:8080
+    volumes:
+      - ${CORE_DATA_ROOT:-../../runtime}/agent-data:/app/data
+      - ${CORE_DATA_ROOT:-../../runtime}/knowledge:/app/knowledge:ro
+    depends_on:
+      agent-data-init:
+        condition: service_completed_successfully
+    networks:
+      - core
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "/app/glpi-ai-agent", "healthcheck"]
+      interval: 15s
+      timeout: 3s
+      retries: 8
+      start_period: 10s
+    stop_grace_period: 20s
+
+networks:
+  core:
+    external: true
+    name: ${CORE_NETWORK:-glpi-ai-core}

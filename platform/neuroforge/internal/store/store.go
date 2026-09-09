@@ -1,11 +1,13 @@
 package store
 
 import (
+	"bufio"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"net/url"
 	"os"
@@ -49,7 +51,19 @@ type Store struct {
 	synapseAdj               map[string]map[string]*core.Synapse
 }
 
+type OpenProgressFunc func(phase string)
+
 func New(dir string) (*Store, error) {
+	return NewWithProgress(dir, nil)
+}
+
+func NewWithProgress(dir string, report OpenProgressFunc) (*Store, error) {
+	progress := func(phase string) {
+		if report != nil {
+			report(phase)
+		}
+	}
+	progress("store.prepare")
 	if dir == "" {
 		dir = "./data"
 	}
@@ -58,8 +72,18 @@ func New(dir string) (*Store, error) {
 	}
 	s := &Store{dir: dir, indexes: map[int]*vector.HNSW{}, diskIndexes: map[int]*vector.PQIndex{}, provenanceSourceIDs: map[string]map[string]struct{}{}, workers: map[string]core.WorkerState{}, synapseAdj: map[string]map[string]*core.Synapse{}}
 	s.state = core.PersistedState{Config: core.DefaultConfig(), Memories: map[string]*core.Memory{}, Synapses: map[string]*core.Synapse{}, Jobs: map[string]*core.Job{}, Goals: map[string]*core.Goal{}, Sources: map[string]*core.KnowledgeSource{}, ResearchRuns: map[string]*core.ResearchRun{}}
-	_ = s.loadJSON(filepath.Join(dir, "state.json"), &s.state)
-	_ = s.loadJSON(filepath.Join(dir, "secrets.json"), &s.secrets)
+	progress("checkpoint.precompact")
+	if _, err := compactLegacyTerminalRelinkCheckpoint(dir); err != nil {
+		return nil, fmt.Errorf("compact legacy terminal relink jobs: %w", err)
+	}
+	progress("checkpoint.load")
+	if err := s.loadJSON(filepath.Join(dir, "state.json"), &s.state); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("load authoritative state checkpoint: %w", err)
+	}
+	progress("secrets.load")
+	if err := s.loadJSON(filepath.Join(dir, "secrets.json"), &s.secrets); err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("load authoritative secrets: %w", err)
+	}
 	if s.state.Memories == nil {
 		s.state.Memories = map[string]*core.Memory{}
 	}
@@ -84,6 +108,7 @@ func New(dir string) (*Store, error) {
 	// v0.6 binary vector sidecar: rebuildable acceleration data used by the
 	// disk ANN builder. Corruption must never prevent the authoritative memory
 	// store from opening; move a bad cache aside and recreate it empty.
+	progress("vector-journal.open")
 	vjPath := filepath.Join(dir, "vector-journal.nfv")
 	vj, vjErr := openVectorJournal(vjPath, vectorJournalOptionsFromConfig(s.state.Config))
 	if vjErr != nil {
@@ -95,6 +120,7 @@ func New(dir string) (*Store, error) {
 	}
 
 	if s.state.Config.Storage.Segments.Enabled {
+		progress("memory-segments.scan")
 		seg, err := openSegmentStore(filepath.Join(dir, "memory-segments"), s.state.Config.Storage.Segments.MaxSegmentBytes, s.state.Config.Storage.Segments.MmapSealed)
 		if err != nil {
 			return nil, fmt.Errorf("open memory segments: %w", err)
@@ -110,9 +136,13 @@ func New(dir string) (*Store, error) {
 			s.state.Memories = meta
 		}
 	}
+	progress("wal.replay")
 	if err := s.replayWAL(); err != nil {
 		return nil, err
 	}
+	progress("jobs.compact")
+	_ = s.compactCompletedRelinkJobsLocked()
+	progress("graph.restore")
 	s.rebuildSynapseAdjLocked()
 	applyNewDefaults(&s.state.Config)
 	if s.state.Cluster.Term < s.state.Config.Cluster.Term {
@@ -198,19 +228,26 @@ func New(dir string) (*Store, error) {
 	if s.secrets.ClusterToken == "" {
 		s.secrets.ClusterToken = randomID(24)
 	}
+	progress("disk-ann.load")
 	_ = s.loadDiskANNLocked()
+	progress("hnsw.snapshot.load")
 	if !s.loadIndexSnapshotLocked() {
+		progress("hnsw.rebuild")
 		s.rebuildIndexesLocked()
 	}
+	progress("secrets.persist")
 	if err := s.persistSecretsLocked(); err != nil {
 		return nil, err
 	}
+	progress("checkpoint.write")
 	if err := s.checkpointLocked(); err != nil {
 		return nil, err
 	}
 	if s.state.Config.Storage.Tiering.Enabled && s.segments != nil {
+		progress("tiering.initialize")
 		s.tierMemoryBodiesLocked(time.Now().UTC())
 	}
+	progress("store.ready")
 	return s, nil
 }
 
@@ -524,6 +561,9 @@ func applyNewDefaults(c *core.Config) {
 		if c.Worker.MaxQueuedJobs == 0 {
 			c.Worker.MaxQueuedJobs = d.Worker.MaxQueuedJobs
 		}
+		if c.Worker.MaxQueuedPayloadMB == 0 {
+			c.Worker.MaxQueuedPayloadMB = d.Worker.MaxQueuedPayloadMB
+		}
 		if c.Worker.MasterApplyMaxAttempts == 0 {
 			c.Worker.MasterApplyMaxAttempts = d.Worker.MasterApplyMaxAttempts
 		}
@@ -613,23 +653,80 @@ func inferMemoryType(kind string) string {
 }
 
 func (s *Store) loadJSON(path string, v any) error {
-	b, err := os.ReadFile(path)
+	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
-	return json.Unmarshal(b, v)
+	defer f.Close()
+
+	// Decode directly from the file instead of ReadFile+Unmarshal. Large
+	// checkpoints can contain millions of graph edges/jobs; keeping a second
+	// raw []byte copy of state.json during boot needlessly doubles peak memory.
+	dec := json.NewDecoder(bufio.NewReaderSize(f, 1<<20))
+	if err := dec.Decode(v); err != nil {
+		return fmt.Errorf("decode %s: %w", filepath.Base(path), err)
+	}
+	// Reject a second JSON value/trailing non-whitespace. Silently accepting a
+	// partially corrupt authoritative checkpoint can create split-brain state.
+	if tok, err := dec.Token(); err != io.EOF {
+		if err == nil {
+			return fmt.Errorf("decode %s: unexpected trailing JSON token %v", filepath.Base(path), tok)
+		}
+		return fmt.Errorf("decode %s trailing data: %w", filepath.Base(path), err)
+	}
+	return nil
 }
 
-func writeAtomic(path string, perm os.FileMode, v any) error {
-	b, err := json.MarshalIndent(v, "", "  ")
+func writeAtomic(path string, perm os.FileMode, v any) (retErr error) {
+	// Stream JSON directly into the temporary file instead of MarshalIndent+
+	// WriteFile. state.json and index manifests can be large; allocating the
+	// complete encoded checkpoint as another in-memory byte slice is avoidable.
+	tmp := path + ".tmp"
+	_ = os.Remove(tmp)
+	f, err := os.OpenFile(tmp, os.O_CREATE|os.O_EXCL|os.O_WRONLY, perm)
 	if err != nil {
 		return err
 	}
-	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, b, perm); err != nil {
+	closed := false
+	defer func() {
+		if !closed {
+			_ = f.Close()
+		}
+		if retErr != nil {
+			_ = os.Remove(tmp)
+		}
+	}()
+
+	bw := bufio.NewWriterSize(f, 1<<20)
+	enc := json.NewEncoder(bw)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(v); err != nil {
 		return err
 	}
-	return os.Rename(tmp, path)
+	if err := bw.Flush(); err != nil {
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	closed = true
+	if err := os.Rename(tmp, path); err != nil {
+		return err
+	}
+	// Persist the directory entry as well. This matters for secrets/state after
+	// host power loss and is cheap compared with the checkpoint itself.
+	d, err := os.Open(filepath.Dir(path))
+	if err != nil {
+		return err
+	}
+	if err := d.Sync(); err != nil {
+		_ = d.Close()
+		return err
+	}
+	return d.Close()
 }
 
 func (s *Store) persistLocked() error {
@@ -1609,7 +1706,7 @@ func (s *Store) validateConfigLocked(c core.Config) error {
 	if c.Worker.LeaseSeconds < 10 || c.Worker.LeaseSeconds > 3600 || c.Worker.HeartbeatSeconds < 2 || c.Worker.HeartbeatSeconds >= c.Worker.LeaseSeconds || c.Worker.StaleAfterSeconds < c.Worker.HeartbeatSeconds || c.Worker.StaleAfterSeconds > 7200 {
 		return errors.New("invalid worker lease/heartbeat/stale timing")
 	}
-	if c.Worker.DefaultMaxAttempts < 1 || c.Worker.DefaultMaxAttempts > 20 || c.Worker.RetryBackoffSeconds < 1 || c.Worker.RetryBackoffSeconds > 3600 || c.Worker.MaxQueuedJobs < 16 || c.Worker.MaxQueuedJobs > 1000000 || c.Worker.MasterApplyMaxAttempts < 1 || c.Worker.MasterApplyMaxAttempts > 20 || c.Worker.MasterApplyBackoffSeconds < 1 || c.Worker.MasterApplyBackoffSeconds > 3600 || c.Worker.JobRetentionHours < 1 || c.Worker.JobRetentionHours > 8760 || c.Worker.MaxTerminalJobs < 100 || c.Worker.MaxTerminalJobs > 1000000 {
+	if c.Worker.DefaultMaxAttempts < 1 || c.Worker.DefaultMaxAttempts > 20 || c.Worker.RetryBackoffSeconds < 1 || c.Worker.RetryBackoffSeconds > 3600 || c.Worker.MaxQueuedJobs < 16 || c.Worker.MaxQueuedJobs > 1000000 || c.Worker.MaxQueuedPayloadMB < 16 || c.Worker.MaxQueuedPayloadMB > 65536 || c.Worker.MasterApplyMaxAttempts < 1 || c.Worker.MasterApplyMaxAttempts > 20 || c.Worker.MasterApplyBackoffSeconds < 1 || c.Worker.MasterApplyBackoffSeconds > 3600 || c.Worker.JobRetentionHours < 1 || c.Worker.JobRetentionHours > 8760 || c.Worker.MaxTerminalJobs < 100 || c.Worker.MaxTerminalJobs > 1000000 {
 		return errors.New("invalid worker retry/queue/retention configuration")
 	}
 	if c.Worker.GraphBackfillIntervalS < 2 || c.Worker.GraphBackfillIntervalS > 3600 || c.Worker.GraphBackfillBatchSize < 1 || c.Worker.GraphBackfillBatchSize > 4096 || c.Worker.GraphBackfillMaxQueued < 1 || c.Worker.GraphBackfillMaxQueued > c.Worker.MaxQueuedJobs || c.Worker.GraphBackfillMinDegree < 1 || c.Worker.GraphBackfillMinDegree > 100 || c.Worker.GraphCandidateMultiplier < 2 || c.Worker.GraphCandidateMultiplier > 64 || c.Worker.GraphRetryAfterMinutes < 1 || c.Worker.GraphRetryAfterMinutes > 43200 {

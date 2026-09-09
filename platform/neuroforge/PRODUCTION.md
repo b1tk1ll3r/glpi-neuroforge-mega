@@ -1,4 +1,4 @@
-# NeuroForge v0.8.2 – Production Guide
+# NeuroForge v0.8.3 – Production Guide
 
 ## 1. Sicherheitsgrenze
 
@@ -146,3 +146,7 @@ Research-Trace-Events sind **Observability/Audit**, nicht autoritative Knowledge
 
 Die `preview`-Felder im Research-Trace sind absichtlich gekürzt und enthalten keine vollständigen Dokumente. Für vollständige Inhalte den Source-/Memory-Inspector verwenden.
 
+
+### v1.6.1 Recovery / large graph backfill
+
+For large graph backfills keep completed relink payloads compact and bound pending payload bytes. The master streams `state.json` on load/save and fails closed on corrupt authoritative state/secrets. Never delete or replace a corrupt checkpoint automatically; retain the volume for forensic recovery/restore. During startup with explicit `-listen`, `/livez` and the bootstrap `/admin` page expose the current recovery phase while `/readyz` remains 503.

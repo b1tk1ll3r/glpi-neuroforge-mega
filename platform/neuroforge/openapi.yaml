@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: NeuroForge API
-  version: 0.8.2
+  version: 0.8.3
   description: REST API for NeuroForge associative learning, explainable vector recall,
     provenance, document/text ingestion, SearXNG-backed autonomous research, source-grounded
     goal cycles, responsive knowledge graph, model routing, cost controls, Prometheus

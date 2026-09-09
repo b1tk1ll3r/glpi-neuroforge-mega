@@ -7,7 +7,7 @@ name: neuroforge-subagents
 services:
   cpu-subagent:
     profiles: [cpu]
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.1}
     command:
       - -server
       - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
@@ -29,7 +29,7 @@ services:
 
   gpu-subagent:
     profiles: [gpu]
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.0}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.1}
     command:
       - -server
       - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}

@@ -1,7 +1,11 @@
 #!/usr/bin/env sh
 set -eu
-for k in NEUROFORGE_MASTER_URL NEUROFORGE_WORKER_TOKEN NEUROFORGE_CPU_WORKER_ID; do v=$(grep -E "^${k}=" .env | head -1 | cut -d= -f2- || true); [ -n "$v" ] || { echo "FEHLT: $k"; exit 1; }; echo "$v" | grep -q '192\.0\.2\.' && { echo "SETZEN: $k"; exit 1; } || true; done
-command -v docker >/dev/null 2>&1 || { echo "FEHLT: docker"; exit 1; }
-docker compose version >/dev/null
+[ -f .env ] || { echo 'missing .env'; exit 1; }
+for k in IMAGE_TAG NEUROFORGE_MASTER_URL NEUROFORGE_WORKER_TOKEN NEUROFORGE_CPU_WORKER_ID; do
+  v=$(awk -F= -v key="$k" '$1==key {sub(/^[^=]*=/,""); print; exit}' .env)
+  [ -n "$v" ] || { echo "missing: $k"; exit 1; }
+done
+if grep -Eq '192\.0\.2\.|example\.invalid|CHANGE_ME|YOUR-' .env; then echo 'placeholder/example values remain in .env'; exit 1; fi
+[ "$(awk -F= '$1=="IMAGE_TAG"{print $2}' .env)" = "1.6.2" ] || { echo 'IMAGE_TAG must be 1.6.2'; exit 1; }
 docker compose --profile monitoring config >/dev/null
-echo "CPU subagent preflight: OK"
+echo 'cpu subagent preflight: OK'

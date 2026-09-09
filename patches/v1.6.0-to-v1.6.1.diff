@@ -1,0 +1,4198 @@
+diff --git a/.env.example b/.env.example
+index d6ccda1..45a8d49 100644
+--- a/.env.example
++++ b/.env.example
+@@ -29,7 +29,7 @@
+ # 01. MEGA STACK - RELEASE / HOST PORTS / PFADE
+ ###############################################################################
+ # Immutable Registry-Tag der sechs Projekt-Images. "latest" ist produktiv verboten.
+-IMAGE_TAG=1.6.0
++IMAGE_TAG=1.6.1
+ 
+ CONTROL_HOST_PORT=8070
+ AGENT_HOST_PORT=8080
+@@ -204,12 +204,13 @@ NEUROFORGE_WORKER_STALE_AFTER_SECONDS=60
+ NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS=3
+ NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS=15
+ NEUROFORGE_WORKER_MAX_QUEUED_JOBS=5000
++NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB=128
+ # Worker-Ergebnisse, die Master-State verändern (z.B. vector.relink), werden
+ # zweiphasig persistiert und bei Master-Neustart idempotent weiter angewendet.
+ NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS=5
+ NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS=5
+-NEUROFORGE_WORKER_JOB_RETENTION_HOURS=168
+-NEUROFORGE_WORKER_MAX_TERMINAL_JOBS=20000
++NEUROFORGE_WORKER_JOB_RETENTION_HOURS=24
++NEUROFORGE_WORKER_MAX_TERMINAL_JOBS=2000
+ # Lokale Compose-Subagents. Zusätzliche Remote-Subagents können mit
+ # docker-compose.subagent.yml auf anderen Hosts gestartet werden.
+ NEUROFORGE_CPU_WORKER_CONCURRENCY=2
+@@ -219,8 +220,8 @@ NEUROFORGE_WORKER_HEARTBEAT_INTERVAL=15s
+ # n:m-Graphen verlinkt. Kein O(N²)-Queue-Burst: ANN-Kandidaten + bounded queue.
+ NEUROFORGE_GRAPH_BACKFILL_ENABLED=true
+ NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS=10
+-NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE=64
+-NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED=256
++NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE=16
++NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED=64
+ NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE=3
+ NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER=6
+ NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES=360
+diff --git a/.env.subagent.example b/.env.subagent.example
+index ff75be5..3276990 100644
+--- a/.env.subagent.example
++++ b/.env.subagent.example
+@@ -1,5 +1,5 @@
+-# Remote NeuroForge subagent host (v1.6.0)
+-IMAGE_TAG=1.6.0
++# Remote NeuroForge subagent host (v1.6.1)
++IMAGE_TAG=1.6.1
+ NEUROFORGE_MASTER_URL=https://neuroforge.internal.example
+ NEUROFORGE_WORKER_TOKEN=CHANGE_ME_WORKER_TOKEN_SHARED_WITH_MASTER
+ NEUROFORGE_WORKER_HEARTBEAT_INTERVAL=15s
+diff --git a/README.md b/README.md
+index 26f047c..8145919 100644
+--- a/README.md
++++ b/README.md
+@@ -1,10 +1,16 @@
+-# GLPI NeuroForge Mega v1.6.0
++# GLPI NeuroForge Mega v1.6.1
+ 
+-> Release: **v1.6.0** · Durable Master/Subagent Orchestration + Knowledge-Graph Convergence: CPU-/GPU-Arbeit wird capability-basiert, lease-gefenced und persistent geplant; importierte Memories werden bounded zu einem n:m-Synapsengraphen verknüpft und Retrieval kann mehrere Hops traversieren.
++> Release: **v1.6.1** · Crash-/Recovery-Hardening für große Knowledge-Korpora auf Basis der v1.6.0 Master/Subagent- und n:m-Graph-Architektur.
+ 
+ Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
+ 
+ 
++## Crash-/Recovery-Hardening (v1.6.1)
++
++v1.6.1 behebt einen RAM-/Recovery-Fehler, der bei großen Graph-Backfills nach mehreren Stunden Laufzeit auftreten konnte. Erfolgreiche `vector.relink`-Jobs verwerfen ihre großen transienten Vector-Payloads unmittelbar nach dem autoritativen Master-Apply; ein Queue-Payload-Budget verhindert neue ungebremste Speicherbelegung. Beim ersten Start migriert NeuroForge alte v1.6.0-Checkpoints streaming, bevor `state.json` vollständig in den RAM geladen wird.
++
++HNSW-Deltas werden nicht mehr über einen vollständigen Deep-Copy aller Vektoren erzeugt. Checkpoints persistieren den Index vor `state.json`, sodass ein Crash während der Indexpersistenz den autoritativen Checkpoint nicht vor den verwendbaren Index ziehen kann. Bei Containerstarts mit explizitem `-listen` ist sofort eine Bootstrap-Liveness-/Startup-Seite erreichbar; Logs zeigen die aktuelle Recovery-Phase (`checkpoint.precompact`, `memory-segments.scan`, `wal.replay`, `hnsw.snapshot.load`, `hnsw.rebuild`, ...).
++
+ ## Research → Human-Review-Staging (v1.5.0)
+ 
+ Autonome Research-Goals können ihre quellengebundene Evidenz jetzt tatsächlich in einen **KB-Staging-Entwurf** überführen. Die Bridge ist einseitig: NeuroForge darf ausschließlich `POST /api/integrations/staging` mit dem separaten `KB_INTEGRATION_TOKEN` verwenden; `auto_reply=false` wird serverseitig erzwungen und Produktivwissen bleibt menschlich freigabepflichtig.
+diff --git a/RELEASE-NOTES-v1.6.1.md b/RELEASE-NOTES-v1.6.1.md
+new file mode 100644
+index 0000000..bcd79a8
+--- /dev/null
++++ b/RELEASE-NOTES-v1.6.1.md
+@@ -0,0 +1,30 @@
++# GLPI NeuroForge Mega v1.6.1
++
++## Production hotfix: Master crash / silent recovery on large Knowledge corpora
++
++v1.6.1 keeps the v1.6.0 Master/Subagent and n:m Knowledge-Graph architecture and hardens the NeuroForge master for long-running bulk imports/backfills.
++
++### Fixed
++
++- Completed `vector.relink` jobs no longer retain full target/candidate vectors after successful master apply.
++- A one-time streaming startup migration compacts large v1.6.0 `state.json` checkpoints before full JSON unmarshal.
++- Durable pending-job payload bytes are bounded by `NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB` (default 128 MiB).
++- HNSW segmented checkpoint deltas no longer deep-copy every vector/node on each checkpoint; only changed nodes are copied.
++- Checkpoint ordering is index-first, then `state.json`, then WAL prune, improving crash recovery when index persistence is interrupted.
++- Startup with explicit `-listen` exposes `/livez` and a minimal `/admin` recovery page before the store is fully open.
++- Startup phases are logged, so segment/WAL/HNSW recovery is no longer silent.
++- Existing v1.6.0 completed relink payloads are compacted on first v1.6.1 boot.
++- Authoritative `state.json` and `secrets.json` are decoded directly from files instead of `ReadFile`+`Unmarshal`; corrupt or trailing JSON now fails closed with an explicit startup error instead of being silently ignored.
++- Checkpoints/secrets/index metadata are JSON-streamed to atomic temporary files instead of allocating a second complete encoded byte slice; the final file and directory entry are synced before success.
++- WAL recovery immediately drops transient payload/result blobs from already-completed `vector.relink` jobs, so a large surviving WAL cannot rebuild the same multi-GB terminal-job heap during restart.
++- Fresh data directories no longer consume the one-time v1.6.1 compaction marker before a possible v1.6.0 restore.
++
++### Safer graph defaults
++
++- `NEUROFORGE_WORKER_JOB_RETENTION_HOURS=24`
++- `NEUROFORGE_WORKER_MAX_TERMINAL_JOBS=2000`
++- `NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE=16`
++- `NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED=64`
++- `NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB=128`
++
++These are throughput/stability defaults; completed relink payload compaction is enforced independently of the values above.
+diff --git a/VERSION b/VERSION
+index dc1e644..9c6d629 100644
+--- a/VERSION
++++ b/VERSION
+@@ -1 +1 @@
+-1.6.0
++1.6.1
+diff --git a/docker-compose.subagent.yml b/docker-compose.subagent.yml
+index 7f8bd35..5f923e8 100644
+--- a/docker-compose.subagent.yml
++++ b/docker-compose.subagent.yml
+@@ -7,7 +7,7 @@ name: neuroforge-subagents
+ services:
+   cpu-subagent:
+     profiles: [cpu]
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.1}
+     command:
+       - -server
+       - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
+@@ -29,7 +29,7 @@ services:
+ 
+   gpu-subagent:
+     profiles: [gpu]
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.1}
+     command:
+       - -server
+       - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
+diff --git a/docker-compose.yml b/docker-compose.yml
+index df01540..61900b1 100644
+--- a/docker-compose.yml
++++ b/docker-compose.yml
+@@ -33,7 +33,7 @@ services:
+     cap_drop:
+     - ALL
+   neuroforge:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     command:
+     - -data
+     - /app/data
+@@ -61,14 +61,15 @@ services:
+       NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS: ${NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS:-3}
+       NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS: ${NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS:-15}
+       NEUROFORGE_WORKER_MAX_QUEUED_JOBS: ${NEUROFORGE_WORKER_MAX_QUEUED_JOBS:-5000}
++      NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB: ${NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB:-128}
+       NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS: ${NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS:-5}
+       NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS: ${NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS:-5}
+-      NEUROFORGE_WORKER_JOB_RETENTION_HOURS: ${NEUROFORGE_WORKER_JOB_RETENTION_HOURS:-168}
+-      NEUROFORGE_WORKER_MAX_TERMINAL_JOBS: ${NEUROFORGE_WORKER_MAX_TERMINAL_JOBS:-20000}
++      NEUROFORGE_WORKER_JOB_RETENTION_HOURS: ${NEUROFORGE_WORKER_JOB_RETENTION_HOURS:-24}
++      NEUROFORGE_WORKER_MAX_TERMINAL_JOBS: ${NEUROFORGE_WORKER_MAX_TERMINAL_JOBS:-2000}
+       NEUROFORGE_GRAPH_BACKFILL_ENABLED: ${NEUROFORGE_GRAPH_BACKFILL_ENABLED:-true}
+       NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS: ${NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS:-10}
+-      NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE: ${NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE:-64}
+-      NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED: ${NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED:-256}
++      NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE: ${NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE:-16}
++      NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED: ${NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED:-64}
+       NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE: ${NEUROFORGE_GRAPH_BACKFILL_MIN_DEGREE:-3}
+       NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER: ${NEUROFORGE_GRAPH_CANDIDATE_MULTIPLIER:-6}
+       NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES: ${NEUROFORGE_GRAPH_RETRY_AFTER_MINUTES:-360}
+@@ -142,7 +143,7 @@ services:
+       start_period: 15s
+     stop_grace_period: 35s
+   neuroforge-worker-cpu:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     command:
+     - -server
+     - http://neuroforge:8080
+@@ -167,7 +168,7 @@ services:
+     - ALL
+ 
+   neuroforge-worker-gpu:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     command:
+     - -server
+     - http://neuroforge:8080
+@@ -199,7 +200,7 @@ services:
+     - ALL
+ 
+   agent-data-init:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     restart: 'no'
+     user: 0:0
+     volumes:
+@@ -212,7 +213,7 @@ services:
+     - CHOWN
+     - FOWNER
+   agent:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     restart: unless-stopped
+     environment:
+       AI_CONTENT_LABEL_ENABLED: ${AI_CONTENT_LABEL_ENABLED:-}
+@@ -433,7 +434,7 @@ services:
+       start_period: 10s
+     stop_grace_period: 20s
+   knowledge:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     restart: unless-stopped
+     environment:
+       APP_MODE: ${KB_APP_MODE:-editor}
+@@ -474,7 +475,7 @@ services:
+     - ALL
+     stop_grace_period: 35s
+   control:
+-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}
++    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}
+     restart: unless-stopped
+     environment:
+       CONTROL_ADDR: :8070
+diff --git a/docs/MIGRATION-v1.6.0-to-v1.6.1.md b/docs/MIGRATION-v1.6.0-to-v1.6.1.md
+new file mode 100644
+index 0000000..4fae1d4
+--- /dev/null
++++ b/docs/MIGRATION-v1.6.0-to-v1.6.1.md
+@@ -0,0 +1,27 @@
++# Migration v1.6.0 → v1.6.1
++
++1. **Kein Volume löschen.** `neuroforge-data` enthält den autoritativen Store.
++2. Backup des NeuroForge-Volumes erstellen.
++3. `IMAGE_TAG=1.6.1` setzen.
++4. Für große Graph-Backfills die neuen sicheren Defaults übernehmen:
++   - `NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB=128`
++   - `NEUROFORGE_WORKER_JOB_RETENTION_HOURS=24`
++   - `NEUROFORGE_WORKER_MAX_TERMINAL_JOBS=2000`
++   - `NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE=16`
++   - `NEUROFORGE_GRAPH_BACKFILL_MAX_QUEUED=64`
++5. Nur NeuroForge Master zuerst neu erstellen. Beim ersten Start läuft ggf. `checkpoint.precompact`; diese Streaming-Migration entfernt historische abgeschlossene Relink-Vectorblobs aus dem v1.6.0-Checkpoint.
++6. Während Recovery sind `/livez` und `/admin` bereits erreichbar; `/readyz` bleibt bis zum vollständigen Store-/Provider-Start 503.
++7. Erst nach `/readyz=200` CPU-/GPU-Subagents und übrige Services normal starten.
++
++Erwartete Startup-Phasen im Log:
++
++`store.prepare → checkpoint.precompact → checkpoint.load → memory-segments.scan → wal.replay → jobs.compact → graph.restore → disk-ann.load → hnsw.snapshot.load [→ hnsw.rebuild] → checkpoint.write → store.ready`
++
++## Recovery-Verhalten in v1.6.1
++
++- `state.json` und `secrets.json` sind autoritativ. Syntaxfehler, ein zweites angehängtes JSON-Objekt oder sonstige Dekodierfehler werden **nicht** mehr ignoriert; NeuroForge meldet den konkreten Startup-Fehler und bleibt nicht mit stillschweigend zurückgesetztem Zustand/Tokens in Betrieb.
++- Große Checkpoints werden direkt aus der Datei dekodiert und beim Schreiben gestreamt. Dadurch entfällt die zusätzliche vollständige `[]byte`-Kopie des Checkpoints im RAM.
++- Beim WAL-Replay werden bereits abgeschlossene `vector.relink`-Payloads sofort verworfen. `apply_wait`, `queued`, `claimed`, `retry_wait` und fehlgeschlagene/retrybare Jobs behalten ihre für Recovery/Retry benötigten Daten.
++- Ein beschädigter `state.json`/`secrets.json` wird nicht automatisch überschrieben. Erst Backup/Restore bzw. gezielte Reparatur durchführen.
++
++Vor einem Upgrade bei einem bereits hängenden v1.6.0-Master das Volume **nicht** löschen. Ein Dateisystem-/Volume-Snapshot ist vorzuziehen.
+diff --git a/platform/neuroforge/CHANGELOG.md b/platform/neuroforge/CHANGELOG.md
+index 842d354..8fe1d5d 100644
+--- a/platform/neuroforge/CHANGELOG.md
++++ b/platform/neuroforge/CHANGELOG.md
+@@ -1,4 +1,17 @@
+ # Changelog
++- v1.6.1 hotfix: streaming authoritative checkpoint I/O avoids full raw/encoded `state.json` copies during load/save.
++- v1.6.1 hotfix: corrupt `state.json`/`secrets.json` fail closed instead of being silently ignored.
++- v1.6.1 hotfix: completed `vector.relink` blobs are compacted during WAL replay as well as checkpoint migration.
++
++## v0.8.3
++
++- Crash-/Recovery-Hardening für große Knowledge-Korpora und Graph-Backfills.
++- Streaming-Migration entfernt historische `vector.relink`-Payloads vor dem vollständigen Checkpoint-Unmarshal.
++- Erfolgreiche Relink-Jobs verwerfen Target-/Candidate-Vektoren sofort nach Master-Apply.
++- Queue-Payload-Budget schützt den Master vor ungebremstem transientem Job-State.
++- HNSW-Deltas kopieren nur veränderte Nodes statt bei jedem Checkpoint den kompletten Index.
++- Checkpoint-Reihenfolge index-first verhindert `state.json`-Vorlauf nach Crash in der Indexpersistenz.
++- Bootstrap-HTTP und Startup-Phasenlogs machen lange Recovery sichtbar.
+ 
+ ## v0.8.2
+ 
+diff --git a/platform/neuroforge/PRODUCTION.md b/platform/neuroforge/PRODUCTION.md
+index 919ac75..43694a4 100644
+--- a/platform/neuroforge/PRODUCTION.md
++++ b/platform/neuroforge/PRODUCTION.md
+@@ -1,4 +1,4 @@
+-# NeuroForge v0.8.2 – Production Guide
++# NeuroForge v0.8.3 – Production Guide
+ 
+ ## 1. Sicherheitsgrenze
+ 
+@@ -146,3 +146,7 @@ Research-Trace-Events sind **Observability/Audit**, nicht autoritative Knowledge
+ 
+ Die `preview`-Felder im Research-Trace sind absichtlich gekürzt und enthalten keine vollständigen Dokumente. Für vollständige Inhalte den Source-/Memory-Inspector verwenden.
+ 
++
++### v1.6.1 Recovery / large graph backfill
++
++For large graph backfills keep completed relink payloads compact and bound pending payload bytes. The master streams `state.json` on load/save and fails closed on corrupt authoritative state/secrets. Never delete or replace a corrupt checkpoint automatically; retain the volume for forensic recovery/restore. During startup with explicit `-listen`, `/livez` and the bootstrap `/admin` page expose the current recovery phase while `/readyz` remains 503.
+diff --git a/platform/neuroforge/README.md b/platform/neuroforge/README.md
+index 3785683..67af793 100644
+--- a/platform/neuroforge/README.md
++++ b/platform/neuroforge/README.md
+@@ -1,8 +1,8 @@
+-# NeuroForge v0.8.2
++# NeuroForge v0.8.3
+ 
+ NeuroForge ist eine persistente, assoziativ lernende KI-Schicht in Go. Ollama und optional OpenAI liefern Inferenz/Embeddings; NeuroForge besitzt den dauerhaften Wissenszustand: Vektoren, HNSW/Disk-PQ-Recall, Synapsen, Rewards, Provenance, Konflikte, Konsolidierung, Goals und Learning Cycles.
+ 
+-**v0.8.2 erweitert den Production-/Explainability-Stand um einen source-grounded Lernpfad, Dokument-/Text-Ingestion, SearXNG-Research und ein vollständig neu gestaltetes CSS/Vanilla-JS-Admin-UI mit responsive Knowledge-Graph und Level-of-Detail (LOD).** Wissen soll nicht nur gespeichert, sondern als Kette `Quelle → Evidence → Recall → Learning` nachvollziehbar sein.
++**v0.8.3 übernimmt den v0.8.2-Funktionsumfang und härtet große Bulk-/Graph-Workloads gegen Speicher- und Recovery-Spitzen. v0.8.2 erweitert den Production-/Explainability-Stand um einen source-grounded Lernpfad, Dokument-/Text-Ingestion, SearXNG-Research und ein vollständig neu gestaltetes CSS/Vanilla-JS-Admin-UI mit responsive Knowledge-Graph und Level-of-Detail (LOD).** Wissen soll nicht nur gespeichert, sondern als Kette `Quelle → Evidence → Recall → Learning` nachvollziehbar sein.
+ 
+ 
+ ## Neu in v0.8.2: Live Research pro Goal
+diff --git a/platform/neuroforge/VERSION b/platform/neuroforge/VERSION
+index 100435b..ee94dd8 100644
+--- a/platform/neuroforge/VERSION
++++ b/platform/neuroforge/VERSION
+@@ -1 +1 @@
+-0.8.2
++0.8.3
+diff --git a/platform/neuroforge/cmd/server/main.go b/platform/neuroforge/cmd/server/main.go
+index 9886bcd..c48a86a 100644
+--- a/platform/neuroforge/cmd/server/main.go
++++ b/platform/neuroforge/cmd/server/main.go
+@@ -6,12 +6,14 @@ import (
+ 	"flag"
+ 	"fmt"
+ 	"log"
++	"net"
+ 	"net/http"
+ 	"os"
+ 	"os/signal"
+ 	"path/filepath"
+ 	"strconv"
+ 	"strings"
++	"sync"
+ 	"syscall"
+ 	"time"
+ 
+@@ -101,6 +103,59 @@ func maxIntMain(a, b int) int {
+ 	return b
+ }
+ 
++type bootstrapHandler struct {
++	mu      sync.RWMutex
++	phase   string
++	handler http.Handler
++}
++
++func newBootstrapHandler() *bootstrapHandler {
++	return &bootstrapHandler{phase: "process.start"}
++}
++
++func (b *bootstrapHandler) SetPhase(phase string) {
++	b.mu.Lock()
++	b.phase = phase
++	b.mu.Unlock()
++}
++
++func (b *bootstrapHandler) SetHandler(h http.Handler) {
++	b.mu.Lock()
++	b.handler = h
++	b.phase = "ready"
++	b.mu.Unlock()
++}
++
++func (b *bootstrapHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
++	b.mu.RLock()
++	h := b.handler
++	phase := b.phase
++	b.mu.RUnlock()
++	if h != nil {
++		h.ServeHTTP(w, r)
++		return
++	}
++	w.Header().Set("Cache-Control", "no-store")
++	switch r.URL.Path {
++	case "/livez", "/healthz":
++		w.Header().Set("Content-Type", "application/json")
++		w.WriteHeader(http.StatusOK)
++		_, _ = fmt.Fprintf(w, `{"ok":true,"status":"starting","phase":%q}`, phase)
++	case "/readyz":
++		w.Header().Set("Content-Type", "application/json")
++		w.WriteHeader(http.StatusServiceUnavailable)
++		_, _ = fmt.Fprintf(w, `{"ok":false,"status":"starting","phase":%q}`, phase)
++	case "/", "/admin":
++		w.Header().Set("Content-Type", "text/html; charset=utf-8")
++		w.WriteHeader(http.StatusServiceUnavailable)
++		_, _ = fmt.Fprintf(w, `<!doctype html><html><head><meta charset="utf-8"><title>NeuroForge starting</title><meta http-equiv="refresh" content="5"></head><body><h1>NeuroForge startet</h1><p>Recovery-/Startphase: <code>%s</code></p><p>Die autoritativen Daten werden geladen. Diese Seite aktualisiert sich automatisch.</p></body></html>`, phase)
++	default:
++		w.Header().Set("Content-Type", "application/json")
++		w.WriteHeader(http.StatusServiceUnavailable)
++		_, _ = fmt.Fprintf(w, `{"error":"neuroforge is starting","phase":%q}`, phase)
++	}
++}
++
+ func main() {
+ 	if err := run(); err != nil {
+ 		log.Printf("fatal: %v", err)
+@@ -117,7 +172,55 @@ func run() (retErr error) {
+ 		return err
+ 	}
+ 
+-	s, err := store.New(*data)
++	var boot *bootstrapHandler
++	var srv *http.Server
++	var errCh chan error
++	// Container deployments pass an explicit -listen address. Bind it before
++	// opening the potentially large store so liveness and a minimal startup UI
++	// remain reachable during WAL/index recovery instead of looking like a dead
++	// container with no logs.
++	if strings.TrimSpace(*listen) != "" {
++		boot = newBootstrapHandler()
++		d := core.DefaultConfig()
++		h := d.HTTP
++		srv = &http.Server{
++			Addr:              *listen,
++			Handler:           boot,
++			ReadHeaderTimeout: time.Duration(h.ReadHeaderTimeoutSeconds) * time.Second,
++			ReadTimeout:       time.Duration(h.ReadTimeoutSeconds) * time.Second,
++			WriteTimeout:      time.Duration(h.WriteTimeoutSeconds) * time.Second,
++			IdleTimeout:       time.Duration(h.IdleTimeoutSeconds) * time.Second,
++			MaxHeaderBytes:    h.MaxHeaderBytes,
++		}
++		ln, err := net.Listen("tcp", *listen)
++		if err != nil {
++			return fmt.Errorf("bootstrap listen %s: %w", *listen, err)
++		}
++		errCh = make(chan error, 1)
++		go func() {
++			err := srv.Serve(ln)
++			if errors.Is(err, http.ErrServerClosed) {
++				err = nil
++			}
++			errCh <- err
++		}()
++		log.Printf("NeuroForge bootstrap listener active on %s", *listen)
++		defer func() {
++			if retErr != nil && srv != nil {
++				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
++				defer cancel()
++				_ = srv.Shutdown(ctx)
++			}
++		}()
++	}
++	reportStartup := func(phase string) {
++		log.Printf("startup phase: %s", phase)
++		if boot != nil {
++			boot.SetPhase(phase)
++		}
++	}
++
++	s, err := store.NewWithProgress(*data, reportStartup)
+ 	if err != nil {
+ 		return err
+ 	}
+@@ -258,7 +361,7 @@ func run() (retErr error) {
+ 	// and environment-owned only when set, preserving admin-managed config otherwise.
+ 	workerEnv := []string{
+ 		"NEUROFORGE_WORKER_LEASE_SECONDS", "NEUROFORGE_WORKER_HEARTBEAT_SECONDS", "NEUROFORGE_WORKER_STALE_AFTER_SECONDS",
+-		"NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS", "NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS", "NEUROFORGE_WORKER_MAX_QUEUED_JOBS",
++		"NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS", "NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS", "NEUROFORGE_WORKER_MAX_QUEUED_JOBS", "NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB",
+ 		"NEUROFORGE_WORKER_JOB_RETENTION_HOURS", "NEUROFORGE_WORKER_MAX_TERMINAL_JOBS",
+ 		"NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS", "NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS",
+ 		"NEUROFORGE_GRAPH_BACKFILL_ENABLED", "NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS", "NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE",
+@@ -294,6 +397,9 @@ func run() (retErr error) {
+ 		if v, ok := envInt("NEUROFORGE_WORKER_MAX_QUEUED_JOBS"); ok {
+ 			cfg.Worker.MaxQueuedJobs = v
+ 		}
++		if v, ok := envInt("NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB"); ok {
++			cfg.Worker.MaxQueuedPayloadMB = v
++		}
+ 		if v, ok := envInt("NEUROFORGE_WORKER_JOB_RETENTION_HOURS"); ok {
+ 			cfg.Worker.JobRetentionHours = v
+ 		}
+@@ -453,30 +559,33 @@ func run() (retErr error) {
+ 	}
+ 
+ 	h := cfg.HTTP
+-	srv := &http.Server{
+-		Addr:              addr,
+-		Handler:           api.Handler(),
+-		ReadHeaderTimeout: time.Duration(h.ReadHeaderTimeoutSeconds) * time.Second,
+-		ReadTimeout:       time.Duration(h.ReadTimeoutSeconds) * time.Second,
+-		WriteTimeout:      time.Duration(h.WriteTimeoutSeconds) * time.Second,
+-		IdleTimeout:       time.Duration(h.IdleTimeoutSeconds) * time.Second,
+-		MaxHeaderBytes:    h.MaxHeaderBytes,
+-	}
+-	log.Printf("NeuroForge v0.8.2 listening on %s", addr)
++	if srv == nil {
++		srv = &http.Server{
++			Addr:              addr,
++			Handler:           api.Handler(),
++			ReadHeaderTimeout: time.Duration(h.ReadHeaderTimeoutSeconds) * time.Second,
++			ReadTimeout:       time.Duration(h.ReadTimeoutSeconds) * time.Second,
++			WriteTimeout:      time.Duration(h.WriteTimeoutSeconds) * time.Second,
++			IdleTimeout:       time.Duration(h.IdleTimeoutSeconds) * time.Second,
++			MaxHeaderBytes:    h.MaxHeaderBytes,
++		}
++		errCh = make(chan error, 1)
++		go func() {
++			err := srv.ListenAndServe()
++			if errors.Is(err, http.ErrServerClosed) {
++				err = nil
++			}
++			errCh <- err
++		}()
++	} else {
++		boot.SetHandler(api.Handler())
++	}
++	log.Printf("NeuroForge v0.8.3 listening on %s", addr)
+ 	log.Printf("Admin dashboard: /admin · readiness: /readyz · metrics: /metrics")
+ 	if os.Getenv("NEUROFORGE_ADMIN_TOKEN") == "" {
+ 		log.Printf("Admin token is intentionally not printed; read it locally from %s or set NEUROFORGE_ADMIN_TOKEN", filepath.Join(*data, "secrets.json"))
+ 	}
+ 
+-	errCh := make(chan error, 1)
+-	go func() {
+-		err := srv.ListenAndServe()
+-		if errors.Is(err, http.ErrServerClosed) {
+-			err = nil
+-		}
+-		errCh <- err
+-	}()
+-
+ 	var serveErr error
+ 	select {
+ 	case serveErr = <-errCh:
+diff --git a/platform/neuroforge/cmd/server/main_test.go b/platform/neuroforge/cmd/server/main_test.go
+new file mode 100644
+index 0000000..c987a23
+--- /dev/null
++++ b/platform/neuroforge/cmd/server/main_test.go
+@@ -0,0 +1,38 @@
++package main
++
++import (
++	"net/http"
++	"net/http/httptest"
++	"strings"
++	"testing"
++)
++
++func TestBootstrapHandlerExposesLivenessAndStartupUI(t *testing.T) {
++	b := newBootstrapHandler()
++	b.SetPhase("hnsw.rebuild")
++
++	rr := httptest.NewRecorder()
++	b.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/livez", nil))
++	if rr.Code != http.StatusOK || !strings.Contains(rr.Body.String(), "hnsw.rebuild") {
++		t.Fatalf("livez=%d %s", rr.Code, rr.Body.String())
++	}
++
++	rr = httptest.NewRecorder()
++	b.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/readyz", nil))
++	if rr.Code != http.StatusServiceUnavailable {
++		t.Fatalf("readyz=%d", rr.Code)
++	}
++
++	rr = httptest.NewRecorder()
++	b.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/admin", nil))
++	if rr.Code != http.StatusServiceUnavailable || !strings.Contains(rr.Body.String(), "hnsw.rebuild") {
++		t.Fatalf("admin=%d %s", rr.Code, rr.Body.String())
++	}
++
++	b.SetHandler(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }))
++	rr = httptest.NewRecorder()
++	b.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/admin", nil))
++	if rr.Code != http.StatusNoContent {
++		t.Fatalf("delegated=%d", rr.Code)
++	}
++}
+diff --git a/platform/neuroforge/internal/core/types.go b/platform/neuroforge/internal/core/types.go
+index 78b379b..c75ef25 100644
+--- a/platform/neuroforge/internal/core/types.go
++++ b/platform/neuroforge/internal/core/types.go
+@@ -398,6 +398,7 @@ type Config struct {
+ 		DefaultMaxAttempts        int  `json:"default_max_attempts"`
+ 		RetryBackoffSeconds       int  `json:"retry_backoff_seconds"`
+ 		MaxQueuedJobs             int  `json:"max_queued_jobs"`
++		MaxQueuedPayloadMB        int  `json:"max_queued_payload_mb"`
+ 		MasterApplyMaxAttempts    int  `json:"master_apply_max_attempts"`
+ 		MasterApplyBackoffSeconds int  `json:"master_apply_backoff_seconds"`
+ 		JobRetentionHours         int  `json:"job_retention_hours"`
+@@ -921,14 +922,15 @@ func DefaultConfig() Config {
+ 	c.Worker.DefaultMaxAttempts = 3
+ 	c.Worker.RetryBackoffSeconds = 15
+ 	c.Worker.MaxQueuedJobs = 5000
++	c.Worker.MaxQueuedPayloadMB = 128
+ 	c.Worker.MasterApplyMaxAttempts = 5
+ 	c.Worker.MasterApplyBackoffSeconds = 5
+-	c.Worker.JobRetentionHours = 168
+-	c.Worker.MaxTerminalJobs = 20000
++	c.Worker.JobRetentionHours = 24
++	c.Worker.MaxTerminalJobs = 2000
+ 	c.Worker.GraphBackfillEnabled = true
+ 	c.Worker.GraphBackfillIntervalS = 10
+-	c.Worker.GraphBackfillBatchSize = 64
+-	c.Worker.GraphBackfillMaxQueued = 512
++	c.Worker.GraphBackfillBatchSize = 16
++	c.Worker.GraphBackfillMaxQueued = 64
+ 	c.Worker.GraphBackfillMinDegree = 3
+ 	c.Worker.GraphCandidateMultiplier = 6
+ 	c.Worker.GraphRetryAfterMinutes = 360
+diff --git a/platform/neuroforge/internal/httpapi/httpapi.go b/platform/neuroforge/internal/httpapi/httpapi.go
+index 109e8ea..254eea6 100644
+--- a/platform/neuroforge/internal/httpapi/httpapi.go
++++ b/platform/neuroforge/internal/httpapi/httpapi.go
+@@ -59,7 +59,7 @@ func (s *Server) routes() {
+ 	s.mux.HandleFunc("GET /healthz", s.livez)
+ 	s.mux.HandleFunc("GET /livez", s.livez)
+ 	s.mux.HandleFunc("GET /readyz", s.readyz)
+-	s.mux.HandleFunc("GET /version", func(w http.ResponseWriter, r *http.Request) { s.json(w, 200, map[string]any{"version": "0.8.2"}) })
++	s.mux.HandleFunc("GET /version", func(w http.ResponseWriter, r *http.Request) { s.json(w, 200, map[string]any{"version": "0.8.3"}) })
+ 	s.mux.Handle("POST /api/v1/chat", s.appAuth(http.HandlerFunc(s.chat)))
+ 	s.mux.Handle("POST /api/v1/learn", s.appAuth(http.HandlerFunc(s.learn)))
+ 	s.mux.Handle("POST /api/v1/search", s.appAuth(http.HandlerFunc(s.search)))
+@@ -882,7 +882,7 @@ func (s *Server) requestLimits(next http.Handler) http.Handler {
+ }
+ 
+ func (s *Server) livez(w http.ResponseWriter, r *http.Request) {
+-	s.json(w, http.StatusOK, map[string]any{"ok": true, "status": "alive", "time": time.Now().UTC(), "version": "0.8.2"})
++	s.json(w, http.StatusOK, map[string]any{"ok": true, "status": "alive", "time": time.Now().UTC(), "version": "0.8.3"})
+ }
+ 
+ func configuredModelAvailable(models map[string]bool, configured string) bool {
+diff --git a/platform/neuroforge/internal/httpapi/metrics.go b/platform/neuroforge/internal/httpapi/metrics.go
+index d49bf82..3fbd67f 100644
+--- a/platform/neuroforge/internal/httpapi/metrics.go
++++ b/platform/neuroforge/internal/httpapi/metrics.go
+@@ -276,6 +276,9 @@ func (s *Server) metricsEndpoint(w http.ResponseWriter, r *http.Request) {
+ 	for _, status := range statuses {
+ 		promSample(&b, "neuroforge_jobs", orch.JobsByStatus[status], "status", status)
+ 	}
++	promHeader(&b, "neuroforge_job_payload_bytes", "Durable orchestrator payload/result bytes retained in memory and checkpoints.", "gauge")
++	promSample(&b, "neuroforge_job_payload_bytes", orch.PendingPayloadBytes, "state", "pending")
++	promSample(&b, "neuroforge_job_payload_bytes", orch.TerminalPayloadBytes, "state", "terminal")
+ 	promHeader(&b, "neuroforge_jobs_by_resource", "Current durable orchestrator jobs by resource class.", "gauge")
+ 	for resource, n := range orch.JobsByResource {
+ 		promSample(&b, "neuroforge_jobs_by_resource", n, "resource", resource)
+diff --git a/platform/neuroforge/internal/research/searxng.go b/platform/neuroforge/internal/research/searxng.go
+index 0ed4bfc..f527010 100644
+--- a/platform/neuroforge/internal/research/searxng.go
++++ b/platform/neuroforge/internal/research/searxng.go
+@@ -169,7 +169,7 @@ func FetchResource(ctx context.Context, cfg FetchConfig, rawURL string) (Resourc
+ 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain,text/markdown,text/csv,application/json;q=0.9,*/*;q=0.2")
+ 	ua := strings.TrimSpace(cfg.UserAgent)
+ 	if ua == "" {
+-		ua = "NeuroForge/0.8.2 research bot"
++		ua = "NeuroForge/0.8.3 research bot"
+ 	}
+ 	req.Header.Set("User-Agent", ua)
+ 	resp, err := client.Do(req)
+diff --git a/platform/neuroforge/internal/store/checkpoint_order_test.go b/platform/neuroforge/internal/store/checkpoint_order_test.go
+new file mode 100644
+index 0000000..455f27c
+--- /dev/null
++++ b/platform/neuroforge/internal/store/checkpoint_order_test.go
+@@ -0,0 +1,56 @@
++package store
++
++import (
++	"encoding/json"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"neuroforge/internal/core"
++)
++
++func readCheckpointRevision(t *testing.T, dir string) uint64 {
++	t.Helper()
++	b, err := os.ReadFile(filepath.Join(dir, "state.json"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	var st core.PersistedState
++	if err := json.Unmarshal(b, &st); err != nil {
++		t.Fatal(err)
++	}
++	return st.Revision
++}
++
++func TestCheckpointDoesNotAdvanceStateBeforeIndexSnapshotSucceeds(t *testing.T) {
++	dir := t.TempDir()
++	s, err := New(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	cfg := s.Config()
++	cfg.Storage.CheckpointEvery = 1
++	if err := s.UpdateConfig(cfg); err != nil {
++		t.Fatal(err)
++	}
++	before := readCheckpointRevision(t, dir)
++
++	idxDir := filepath.Join(dir, "hnsw-index")
++	if err := os.RemoveAll(idxDir); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(idxDir, []byte("block directory creation"), 0600); err != nil {
++		t.Fatal(err)
++	}
++	m := &core.Memory{ID: "m1", Kind: core.MemorySemantic, MemoryType: core.MemorySemantic, Text: "x", Vector: []float32{1, 0, 0}, VectorDim: 3, Status: core.MemoryActive}
++	if err := s.AddMemory(m); err == nil {
++		t.Fatal("expected checkpoint/index failure")
++	}
++	after := readCheckpointRevision(t, dir)
++	if after != before {
++		t.Fatalf("state checkpoint advanced despite index failure: before=%d after=%d", before, after)
++	}
++
++	_ = os.Remove(idxDir)
++	_ = s.Close()
++}
+diff --git a/platform/neuroforge/internal/store/index_segments.go b/platform/neuroforge/internal/store/index_segments.go
+index 63a59b0..910b562 100644
+--- a/platform/neuroforge/internal/store/index_segments.go
++++ b/platform/neuroforge/internal/store/index_segments.go
+@@ -211,41 +211,28 @@ func (s *Store) writeSegmentedIndexSnapshotLocked() error {
+ 		return nil
+ 	}
+ 
+-	current := s.currentSnapshotsLocked()
++	currentShadow := make(map[int]indexSnapshotShadow, len(s.indexes))
+ 	delta := indexDeltaBundle{Revision: s.state.Revision, Dimensions: map[string]indexDimensionDelta{}}
+ 	dims := map[int]bool{}
+-	for dim := range current {
++	for dim := range s.indexes {
+ 		dims[dim] = true
+ 	}
+ 	for dim := range s.indexShadow {
+ 		dims[dim] = true
+ 	}
+ 	for dim := range dims {
+-		cur, curOK := current[dim]
++		idx, curOK := s.indexes[dim]
+ 		prev, prevOK := s.indexShadow[dim]
+ 		key := strconv.Itoa(dim)
+-		if !curOK {
++		if !curOK || idx == nil {
+ 			delta.Dimensions[key] = indexDimensionDelta{DeletedDimension: true}
+ 			continue
+ 		}
+-		d := indexDimensionDelta{Config: cur.Config, EntryID: cur.EntryID, MaxLevel: cur.MaxLevel}
+-		curIDs := map[string]bool{}
+-		for _, n := range cur.Nodes {
+-			curIDs[n.ID] = true
+-			h := hashSnapshotNode(n)
+-			if ph, ok := prev.Nodes[n.ID]; !prevOK || !ok || ph != h {
+-				d.Upserts = append(d.Upserts, n)
+-			}
+-		}
+-		if prevOK {
+-			for id := range prev.Nodes {
+-				if !curIDs[id] {
+-					d.Deletes = append(d.Deletes, id)
+-				}
+-			}
+-		}
+-		sort.Strings(d.Deletes)
+-		if !prevOK || len(d.Upserts) > 0 || len(d.Deletes) > 0 || prev.EntryID != cur.EntryID || prev.MaxLevel != cur.MaxLevel || prev.Config != cur.Config {
++		vprev := vector.HNSWShadow{Config: prev.Config, EntryID: prev.EntryID, MaxLevel: prev.MaxLevel, Nodes: prev.Nodes}
++		cur, upserts, deletes := idx.Delta(vprev)
++		currentShadow[dim] = indexSnapshotShadow{Config: cur.Config, EntryID: cur.EntryID, MaxLevel: cur.MaxLevel, Nodes: cur.Nodes}
++		d := indexDimensionDelta{Config: cur.Config, EntryID: cur.EntryID, MaxLevel: cur.MaxLevel, Upserts: upserts, Deletes: deletes}
++		if !prevOK || len(upserts) > 0 || len(deletes) > 0 || prev.EntryID != cur.EntryID || prev.MaxLevel != cur.MaxLevel || prev.Config != cur.Config {
+ 			delta.Dimensions[key] = d
+ 		}
+ 	}
+@@ -258,7 +245,7 @@ func (s *Store) writeSegmentedIndexSnapshotLocked() error {
+ 	if err := writeAtomic(manifestPath, 0600, &manifest); err != nil {
+ 		return err
+ 	}
+-	s.indexShadow = buildIndexShadow(current)
++	s.indexShadow = currentShadow
+ 	s.indexSnapshotRevision = s.state.Revision
+ 	s.indexDeltaCount = len(manifest.Deltas)
+ 	return nil
+diff --git a/platform/neuroforge/internal/store/orchestrator.go b/platform/neuroforge/internal/store/orchestrator.go
+index f3b6368..2efe0f4 100644
+--- a/platform/neuroforge/internal/store/orchestrator.go
++++ b/platform/neuroforge/internal/store/orchestrator.go
+@@ -43,18 +43,20 @@ type WorkerHeartbeat struct {
+ }
+ 
+ type OrchestratorStatus struct {
+-	Workers        []core.WorkerState `json:"workers"`
+-	JobsByStatus   map[string]int     `json:"jobs_by_status"`
+-	JobsByType     map[string]int     `json:"jobs_by_type"`
+-	JobsByResource map[string]int     `json:"jobs_by_resource"`
+-	OldestQueued   time.Time          `json:"oldest_queued,omitempty"`
+-	Queued         int                `json:"queued"`
+-	Claimed        int                `json:"claimed"`
+-	Retrying       int                `json:"retrying"`
+-	Applying       int                `json:"applying"`
+-	Blocked        int                `json:"blocked"`
+-	Failed         int                `json:"failed"`
+-	Done           int                `json:"done"`
++	Workers              []core.WorkerState `json:"workers"`
++	JobsByStatus         map[string]int     `json:"jobs_by_status"`
++	JobsByType           map[string]int     `json:"jobs_by_type"`
++	JobsByResource       map[string]int     `json:"jobs_by_resource"`
++	OldestQueued         time.Time          `json:"oldest_queued,omitempty"`
++	Queued               int                `json:"queued"`
++	Claimed              int                `json:"claimed"`
++	Retrying             int                `json:"retrying"`
++	Applying             int                `json:"applying"`
++	Blocked              int                `json:"blocked"`
++	Failed               int                `json:"failed"`
++	Done                 int                `json:"done"`
++	PendingPayloadBytes  int64              `json:"pending_payload_bytes"`
++	TerminalPayloadBytes int64              `json:"terminal_payload_bytes"`
+ }
+ 
+ func normalizeCapabilities(in []string) []string {
+@@ -104,15 +106,22 @@ func (s *Store) EnqueueJobSpec(spec JobSpec) (*core.Job, error) {
+ 	s.mu.Lock()
+ 	defer s.mu.Unlock()
+ 	cfg := s.state.Config.Worker
+-	if cfg.MaxQueuedJobs > 0 {
+-		pending := 0
+-		for _, j := range s.state.Jobs {
+-			if j != nil && (j.Status == "queued" || j.Status == "claimed" || j.Status == "retry_wait" || j.Status == "blocked" || j.Status == "apply_wait") {
+-				pending++
+-			}
++	pending := 0
++	var pendingPayloadBytes int64
++	for _, j := range s.state.Jobs {
++		if j == nil || (j.Status != "queued" && j.Status != "claimed" && j.Status != "retry_wait" && j.Status != "blocked" && j.Status != "apply_wait") {
++			continue
+ 		}
+-		if pending >= cfg.MaxQueuedJobs {
+-			return nil, fmt.Errorf("orchestrator queue full: %d >= %d", pending, cfg.MaxQueuedJobs)
++		pending++
++		pendingPayloadBytes += int64(len(j.Payload) + len(j.Result))
++	}
++	if cfg.MaxQueuedJobs > 0 && pending >= cfg.MaxQueuedJobs {
++		return nil, fmt.Errorf("orchestrator queue full: %d >= %d", pending, cfg.MaxQueuedJobs)
++	}
++	if cfg.MaxQueuedPayloadMB > 0 {
++		limit := int64(cfg.MaxQueuedPayloadMB) << 20
++		if pendingPayloadBytes+int64(len(b)) > limit {
++			return nil, fmt.Errorf("orchestrator queued payload budget exceeded: %d + %d > %d bytes", pendingPayloadBytes, len(b), limit)
+ 		}
+ 	}
+ 	if key := strings.TrimSpace(spec.IdempotencyKey); key != "" {
+@@ -603,6 +612,13 @@ func (s *Store) OrchestratorStatus() OrchestratorStatus {
+ 		if j == nil {
+ 			continue
+ 		}
++		payloadBytes := int64(len(j.Payload) + len(j.Result))
++		switch j.Status {
++		case "queued", "claimed", "retry_wait", "blocked", "apply_wait":
++			out.PendingPayloadBytes += payloadBytes
++		case "done", "failed", "canceled":
++			out.TerminalPayloadBytes += payloadBytes
++		}
+ 		out.JobsByStatus[j.Status]++
+ 		out.JobsByType[j.Type]++
+ 		resource := j.ResourceClass
+@@ -701,6 +717,15 @@ func (s *Store) FinishMasterApply(id string, applyErr error) (*core.Job, error)
+ 		j.ApplyError = ""
+ 		j.ApplyNextAttemptAt = time.Time{}
+ 		j.FinishedAt = now
++		// vector.relink payloads contain the target plus a bounded set of full
++		// candidate vectors. Once the authoritative master apply succeeded these
++		// blobs have no retry value and retaining thousands of them can consume
++		// gigabytes during a large graph backfill. Keep the durable audit metadata
++		// (type/idempotency/status/timestamps) but release the transient vectors.
++		if j.Type == "vector.relink" {
++			j.Payload = nil
++			j.Result = nil
++		}
+ 	} else {
+ 		j.ApplyError = strings.TrimSpace(applyErr.Error())
+ 		maxAttempts := j.MaxApplyAttempts
+@@ -732,6 +757,41 @@ func (s *Store) FinishMasterApply(id string, applyErr error) (*core.Job, error)
+ 	return &cp, s.commitLocked("job.upsert", cp)
+ }
+ 
++// compactCompletedRelinkJobsLocked removes transient vector blobs from jobs
++// that already reached their durable terminal state. It is also used on boot to
++// migrate v1.6.0 checkpoints that may contain thousands of completed backfill
++// payloads. Caller must hold s.mu.
++func (s *Store) compactCompletedRelinkJobsLocked() int {
++	n := 0
++	for _, j := range s.state.Jobs {
++		if j == nil || j.Type != "vector.relink" || j.Status != "done" {
++			continue
++		}
++		if len(j.Payload) == 0 && len(j.Result) == 0 {
++			continue
++		}
++		j.Payload = nil
++		j.Result = nil
++		n++
++	}
++	return n
++}
++
++func (s *Store) CompactCompletedRelinkJobs() (int, error) {
++	s.mu.Lock()
++	defer s.mu.Unlock()
++	n := s.compactCompletedRelinkJobsLocked()
++	if n == 0 {
++		return 0, nil
++	}
++	// One checkpoint is substantially cheaper than one WAL event per historical
++	// job and atomically rewrites state.json without the obsolete vector blobs.
++	if err := s.checkpointLocked(); err != nil {
++		return 0, err
++	}
++	return n, nil
++}
++
+ func (s *Store) CancelJob(id, reason string) error {
+ 	s.mu.Lock()
+ 	defer s.mu.Unlock()
+diff --git a/platform/neuroforge/internal/store/orchestrator_test.go b/platform/neuroforge/internal/store/orchestrator_test.go
+index 16ca3a8..202bf8a 100644
+--- a/platform/neuroforge/internal/store/orchestrator_test.go
++++ b/platform/neuroforge/internal/store/orchestrator_test.go
+@@ -292,3 +292,52 @@ func TestApplyWaitJobSurvivesRestart(t *testing.T) {
+ 		t.Fatalf("recovered master apply queue=%+v", pending)
+ 	}
+ }
++
++func TestOrchestratorQueuedPayloadBudget(t *testing.T) {
++	s, err := New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	s.mu.Lock()
++	s.state.Config.Worker.MaxQueuedPayloadMB = 1
++	s.mu.Unlock()
++	blob := strings.Repeat("x", 700<<10)
++	if _, err := s.EnqueueJobSpec(JobSpec{Type: "large", Payload: map[string]any{"blob": blob}, ResourceClass: "cpu"}); err != nil {
++		t.Fatal(err)
++	}
++	if _, err := s.EnqueueJobSpec(JobSpec{Type: "large2", Payload: map[string]any{"blob": blob}, ResourceClass: "cpu"}); err == nil || !strings.Contains(err.Error(), "payload budget") {
++		t.Fatalf("expected payload budget rejection, err=%v", err)
++	}
++}
++
++func TestCompletedRelinkDropsTransientVectorBlobs(t *testing.T) {
++	s, err := New(t.TempDir())
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	j, err := s.EnqueueJobSpec(JobSpec{Type: "vector.relink", Payload: map[string]any{"target": []float32{1, 2, 3}}, ResourceClass: "cpu", RequiredCapabilities: []string{"cpu", "vector.relink"}, RequiresMasterApply: true})
++	if err != nil {
++		t.Fatal(err)
++	}
++	w := WorkerHeartbeat{ID: "cpu", ResourceClass: "cpu", Capabilities: []string{"cpu", "vector.relink"}, MaxConcurrency: 1}
++	claimed, err := s.ClaimJobForWorker(w, time.Minute)
++	if err != nil || claimed == nil || claimed.ID != j.ID {
++		t.Fatalf("claim=%+v err=%v", claimed, err)
++	}
++	waiting, err := s.CompleteJobLease(j.ID, w.ID, claimed.LeaseToken, json.RawMessage(`{"target_id":"x","neighbors":[]}`), "")
++	if err != nil {
++		t.Fatal(err)
++	}
++	if waiting.Status != "apply_wait" {
++		t.Fatalf("status=%s", waiting.Status)
++	}
++	done, err := s.FinishMasterApply(j.ID, nil)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if done.Status != "done" || len(done.Payload) != 0 || len(done.Result) != 0 {
++		t.Fatalf("done job retained transient blobs: %+v", done)
++	}
++}
+diff --git a/platform/neuroforge/internal/store/recovery_hardening_test.go b/platform/neuroforge/internal/store/recovery_hardening_test.go
+new file mode 100644
+index 0000000..59b69f0
+--- /dev/null
++++ b/platform/neuroforge/internal/store/recovery_hardening_test.go
+@@ -0,0 +1,120 @@
++package store
++
++import (
++	"bufio"
++	"encoding/json"
++	"os"
++	"path/filepath"
++	"strings"
++	"testing"
++	"time"
++
++	"neuroforge/internal/core"
++)
++
++func TestNewFailsClosedOnCorruptAuthoritativeState(t *testing.T) {
++	dir := t.TempDir()
++	if err := os.WriteFile(filepath.Join(dir, v161JobCompactionMarker), []byte("compacted=0\n"), 0600); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(dir, "state.json"), []byte(`{"config":`), 0600); err != nil {
++		t.Fatal(err)
++	}
++	if _, err := New(dir); err == nil || !strings.Contains(err.Error(), "load authoritative state checkpoint") {
++		t.Fatalf("New error=%v, want authoritative state corruption failure", err)
++	}
++}
++
++func TestNewFailsClosedOnCorruptAuthoritativeSecrets(t *testing.T) {
++	dir := t.TempDir()
++	st := core.PersistedState{
++		Config:       core.DefaultConfig(),
++		Memories:     map[string]*core.Memory{},
++		Synapses:     map[string]*core.Synapse{},
++		Jobs:         map[string]*core.Job{},
++		Goals:        map[string]*core.Goal{},
++		Sources:      map[string]*core.KnowledgeSource{},
++		ResearchRuns: map[string]*core.ResearchRun{},
++	}
++	if err := writeAtomic(filepath.Join(dir, "state.json"), 0600, &st); err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(dir, "secrets.json"), []byte(`{"admin_token":"unterminated}`), 0600); err != nil {
++		t.Fatal(err)
++	}
++	if _, err := New(dir); err == nil || !strings.Contains(err.Error(), "load authoritative secrets") {
++		t.Fatalf("New error=%v, want authoritative secrets corruption failure", err)
++	}
++}
++
++func TestLoadJSONRejectsTrailingJSONValue(t *testing.T) {
++	dir := t.TempDir()
++	path := filepath.Join(dir, "state.json")
++	if err := os.WriteFile(path, []byte(`{"revision":1}{"revision":2}`), 0600); err != nil {
++		t.Fatal(err)
++	}
++	s := &Store{}
++	var st core.PersistedState
++	if err := s.loadJSON(path, &st); err == nil || !strings.Contains(err.Error(), "unexpected trailing JSON token") {
++		t.Fatalf("loadJSON error=%v, want trailing JSON rejection", err)
++	}
++}
++
++func TestReplayWALCompactsCompletedRelinkPayloadImmediately(t *testing.T) {
++	dir := t.TempDir()
++	walDir := filepath.Join(dir, "wal")
++	if err := os.MkdirAll(walDir, 0700); err != nil {
++		t.Fatal(err)
++	}
++	job := core.Job{
++		ID:        "job_done_relink",
++		Type:      "vector.relink",
++		Status:    "done",
++		Payload:   json.RawMessage(`{"target":{"vector":[1,2,3]},"candidates":[{"vector":[4,5,6]}]}`),
++		Result:    json.RawMessage(`{"edges":[{"a":"a","b":"b","weight":0.9}]}`),
++		CreatedAt: time.Now().UTC(),
++		UpdatedAt: time.Now().UTC(),
++	}
++	data, err := json.Marshal(job)
++	if err != nil {
++		t.Fatal(err)
++	}
++	ev := walEvent{Revision: 1, Time: time.Now().UTC(), Type: "job.upsert", Data: data}
++	f, err := os.OpenFile(filepath.Join(walDir, "wal-active.jsonl"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
++	if err != nil {
++		t.Fatal(err)
++	}
++	bw := bufio.NewWriter(f)
++	if err := json.NewEncoder(bw).Encode(ev); err != nil {
++		t.Fatal(err)
++	}
++	if err := bw.Flush(); err != nil {
++		t.Fatal(err)
++	}
++	if err := f.Close(); err != nil {
++		t.Fatal(err)
++	}
++
++	s, err := New(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	defer s.Close()
++	got, ok := s.Job(job.ID)
++	if !ok {
++		t.Fatal("replayed job missing")
++	}
++	if len(got.Payload) != 0 || len(got.Result) != 0 {
++		t.Fatalf("replayed completed relink retained vector blobs: payload=%d result=%d", len(got.Payload), len(got.Result))
++	}
++}
++
++func TestFreshDirectoryDoesNotConsumeV161CompactionMarker(t *testing.T) {
++	dir := t.TempDir()
++	if n, err := compactLegacyTerminalRelinkCheckpoint(dir); err != nil || n != 0 {
++		t.Fatalf("compact fresh dir = %d, %v", n, err)
++	}
++	if _, err := os.Stat(filepath.Join(dir, v161JobCompactionMarker)); !os.IsNotExist(err) {
++		t.Fatalf("fresh directory unexpectedly created migration marker: %v", err)
++	}
++}
+diff --git a/platform/neuroforge/internal/store/startup_compact.go b/platform/neuroforge/internal/store/startup_compact.go
+new file mode 100644
+index 0000000..ea78fd8
+--- /dev/null
++++ b/platform/neuroforge/internal/store/startup_compact.go
+@@ -0,0 +1,277 @@
++package store
++
++import (
++	"bufio"
++	"encoding/json"
++	"errors"
++	"fmt"
++	"io"
++	"os"
++	"path/filepath"
++
++	"neuroforge/internal/core"
++)
++
++const v161JobCompactionMarker = ".migration-v1.6.1-terminal-relink-compaction"
++
++// compactLegacyTerminalRelinkCheckpoint is a one-time, streaming migration for
++// v1.6.0 checkpoints. That release retained full target/candidate vectors in
++// completed vector.relink jobs. A large graph backfill can therefore make
++// state.json hundreds of MB or larger and cause OOM during the next startup.
++//
++// The migration deliberately runs before state.json is unmarshaled. It rewrites
++// JSON token-by-token and only materializes one Job at a time, so peak memory is
++// bounded by the largest single job instead of the whole checkpoint.
++func compactLegacyTerminalRelinkCheckpoint(dir string) (int, error) {
++	marker := filepath.Join(dir, v161JobCompactionMarker)
++	if _, err := os.Stat(marker); err == nil {
++		return 0, nil
++	}
++	path := filepath.Join(dir, "state.json")
++	in, err := os.Open(path)
++	if err != nil {
++		if errors.Is(err, os.ErrNotExist) {
++			// Fresh data directory. Do not create the migration marker yet: an
++			// operator may restore a v1.6.0 checkpoint into this directory before
++			// the next boot, and that restored checkpoint must still be compacted.
++			return 0, nil
++		}
++		return 0, err
++	}
++	defer in.Close()
++
++	tmp := path + ".v161-compact.tmp"
++	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
++	if err != nil {
++		return 0, err
++	}
++	ok := false
++	defer func() {
++		_ = out.Close()
++		if !ok {
++			_ = os.Remove(tmp)
++		}
++	}()
++
++	dec := json.NewDecoder(bufio.NewReaderSize(in, 1<<20))
++	dec.UseNumber()
++	bw := bufio.NewWriterSize(out, 1<<20)
++	compacted, err := rewriteCheckpointObject(dec, bw)
++	if err != nil {
++		return 0, err
++	}
++	if err := bw.Flush(); err != nil {
++		return 0, err
++	}
++	if err := out.Sync(); err != nil {
++		return 0, err
++	}
++	if err := out.Close(); err != nil {
++		return 0, err
++	}
++	if compacted > 0 {
++		if err := os.Rename(tmp, path); err != nil {
++			return 0, err
++		}
++	} else {
++		_ = os.Remove(tmp)
++	}
++	if err := os.WriteFile(marker, []byte(fmt.Sprintf("compacted=%d\n", compacted)), 0600); err != nil {
++		return 0, err
++	}
++	ok = true
++	return compacted, nil
++}
++
++func rewriteCheckpointObject(dec *json.Decoder, w *bufio.Writer) (int, error) {
++	tok, err := dec.Token()
++	if err != nil {
++		return 0, err
++	}
++	if d, ok := tok.(json.Delim); !ok || d != '{' {
++		return 0, errors.New("state checkpoint must be a JSON object")
++	}
++	if err := w.WriteByte('{'); err != nil {
++		return 0, err
++	}
++	first := true
++	compacted := 0
++	for dec.More() {
++		kt, err := dec.Token()
++		if err != nil {
++			return 0, err
++		}
++		key, ok := kt.(string)
++		if !ok {
++			return 0, errors.New("state checkpoint object key is not a string")
++		}
++		if !first {
++			if err := w.WriteByte(','); err != nil {
++				return 0, err
++			}
++		}
++		first = false
++		kb, _ := json.Marshal(key)
++		if _, err := w.Write(kb); err != nil {
++			return 0, err
++		}
++		if err := w.WriteByte(':'); err != nil {
++			return 0, err
++		}
++		if key == "jobs" {
++			n, err := rewriteJobsObject(dec, w)
++			if err != nil {
++				return 0, err
++			}
++			compacted += n
++			continue
++		}
++		if err := copyJSONValue(dec, w); err != nil {
++			return 0, err
++		}
++	}
++	if _, err := dec.Token(); err != nil { // closing }
++		return 0, err
++	}
++	if err := w.WriteByte('}'); err != nil {
++		return 0, err
++	}
++	if tok, err := dec.Token(); err != io.EOF {
++		if err == nil {
++			return 0, fmt.Errorf("unexpected trailing JSON token %v", tok)
++		}
++		return 0, err
++	}
++	return compacted, nil
++}
++
++func rewriteJobsObject(dec *json.Decoder, w *bufio.Writer) (int, error) {
++	tok, err := dec.Token()
++	if err != nil {
++		return 0, err
++	}
++	if tok == nil {
++		_, err = w.WriteString("null")
++		return 0, err
++	}
++	if d, ok := tok.(json.Delim); !ok || d != '{' {
++		return 0, errors.New("jobs must be a JSON object")
++	}
++	if err := w.WriteByte('{'); err != nil {
++		return 0, err
++	}
++	first := true
++	compacted := 0
++	for dec.More() {
++		kt, err := dec.Token()
++		if err != nil {
++			return 0, err
++		}
++		key := kt.(string)
++		var job core.Job
++		if err := dec.Decode(&job); err != nil {
++			return 0, err
++		}
++		if job.Type == "vector.relink" && job.Status == "done" {
++			if len(job.Payload) > 0 || len(job.Result) > 0 {
++				compacted++
++			}
++			job.Payload = nil
++			job.Result = nil
++		}
++		if !first {
++			if err := w.WriteByte(','); err != nil {
++				return 0, err
++			}
++		}
++		first = false
++		kb, _ := json.Marshal(key)
++		jb, err := json.Marshal(job)
++		if err != nil {
++			return 0, err
++		}
++		if _, err := w.Write(kb); err != nil {
++			return 0, err
++		}
++		if err := w.WriteByte(':'); err != nil {
++			return 0, err
++		}
++		if _, err := w.Write(jb); err != nil {
++			return 0, err
++		}
++	}
++	if _, err := dec.Token(); err != nil {
++		return 0, err
++	}
++	return compacted, w.WriteByte('}')
++}
++
++func copyJSONValue(dec *json.Decoder, w *bufio.Writer) error {
++	tok, err := dec.Token()
++	if err != nil {
++		return err
++	}
++	if d, ok := tok.(json.Delim); ok {
++		switch d {
++		case '{':
++			if err := w.WriteByte('{'); err != nil {
++				return err
++			}
++			first := true
++			for dec.More() {
++				kt, err := dec.Token()
++				if err != nil {
++					return err
++				}
++				if !first {
++					if err := w.WriteByte(','); err != nil {
++						return err
++					}
++				}
++				first = false
++				kb, _ := json.Marshal(kt.(string))
++				if _, err := w.Write(kb); err != nil {
++					return err
++				}
++				if err := w.WriteByte(':'); err != nil {
++					return err
++				}
++				if err := copyJSONValue(dec, w); err != nil {
++					return err
++				}
++			}
++			if _, err := dec.Token(); err != nil {
++				return err
++			}
++			return w.WriteByte('}')
++		case '[':
++			if err := w.WriteByte('['); err != nil {
++				return err
++			}
++			first := true
++			for dec.More() {
++				if !first {
++					if err := w.WriteByte(','); err != nil {
++						return err
++					}
++				}
++				first = false
++				if err := copyJSONValue(dec, w); err != nil {
++					return err
++				}
++			}
++			if _, err := dec.Token(); err != nil {
++				return err
++			}
++			return w.WriteByte(']')
++		default:
++			return fmt.Errorf("unexpected JSON delimiter %q", d)
++		}
++	}
++	b, err := json.Marshal(tok)
++	if err != nil {
++		return err
++	}
++	_, err = w.Write(b)
++	return err
++}
+diff --git a/platform/neuroforge/internal/store/startup_compact_test.go b/platform/neuroforge/internal/store/startup_compact_test.go
+new file mode 100644
+index 0000000..b756846
+--- /dev/null
++++ b/platform/neuroforge/internal/store/startup_compact_test.go
+@@ -0,0 +1,56 @@
++package store
++
++import (
++	"encoding/json"
++	"os"
++	"path/filepath"
++	"testing"
++
++	"neuroforge/internal/core"
++)
++
++func TestCompactLegacyTerminalRelinkCheckpoint(t *testing.T) {
++	dir := t.TempDir()
++	st := core.PersistedState{Config: core.DefaultConfig(), Jobs: map[string]*core.Job{}, Synapses: map[string]*core.Synapse{}, Goals: map[string]*core.Goal{}}
++	st.Jobs["done"] = &core.Job{ID: "done", Type: "vector.relink", Status: "done", Payload: json.RawMessage(`{"target":[1,2,3]}`), Result: json.RawMessage(`{"ok":true}`)}
++	st.Jobs["queued"] = &core.Job{ID: "queued", Type: "vector.relink", Status: "queued", Payload: json.RawMessage(`{"target":[4,5,6]}`)}
++	st.Jobs["other"] = &core.Job{ID: "other", Type: "model.chat", Status: "done", Payload: json.RawMessage(`{"prompt":"keep"}`), Result: json.RawMessage(`{"text":"keep"}`)}
++	b, err := json.Marshal(st)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := os.WriteFile(filepath.Join(dir, "state.json"), b, 0600); err != nil {
++		t.Fatal(err)
++	}
++
++	n, err := compactLegacyTerminalRelinkCheckpoint(dir)
++	if err != nil {
++		t.Fatal(err)
++	}
++	if n != 1 {
++		t.Fatalf("compacted=%d want 1", n)
++	}
++
++	var got core.PersistedState
++	bb, err := os.ReadFile(filepath.Join(dir, "state.json"))
++	if err != nil {
++		t.Fatal(err)
++	}
++	if err := json.Unmarshal(bb, &got); err != nil {
++		t.Fatal(err)
++	}
++	cleared := func(b json.RawMessage) bool { return len(b) == 0 || string(b) == "null" }
++	if !cleared(got.Jobs["done"].Payload) || !cleared(got.Jobs["done"].Result) {
++		t.Fatalf("done relink blobs not cleared: payload=%q result=%q", got.Jobs["done"].Payload, got.Jobs["done"].Result)
++	}
++	if len(got.Jobs["queued"].Payload) == 0 {
++		t.Fatalf("queued relink payload must be retained")
++	}
++	if len(got.Jobs["other"].Payload) == 0 || len(got.Jobs["other"].Result) == 0 {
++		t.Fatalf("unrelated job blobs must be retained")
++	}
++
++	if n2, err := compactLegacyTerminalRelinkCheckpoint(dir); err != nil || n2 != 0 {
++		t.Fatalf("second migration = %d, %v", n2, err)
++	}
++}
+diff --git a/platform/neuroforge/internal/store/store.go b/platform/neuroforge/internal/store/store.go
+index 8445572..0beccc6 100644
+--- a/platform/neuroforge/internal/store/store.go
++++ b/platform/neuroforge/internal/store/store.go
+@@ -1,11 +1,13 @@
+ package store
+ 
+ import (
++	"bufio"
+ 	"crypto/rand"
+ 	"encoding/hex"
+ 	"encoding/json"
+ 	"errors"
+ 	"fmt"
++	"io"
+ 	"math"
+ 	"net/url"
+ 	"os"
+@@ -49,7 +51,19 @@ type Store struct {
+ 	synapseAdj               map[string]map[string]*core.Synapse
+ }
+ 
++type OpenProgressFunc func(phase string)
++
+ func New(dir string) (*Store, error) {
++	return NewWithProgress(dir, nil)
++}
++
++func NewWithProgress(dir string, report OpenProgressFunc) (*Store, error) {
++	progress := func(phase string) {
++		if report != nil {
++			report(phase)
++		}
++	}
++	progress("store.prepare")
+ 	if dir == "" {
+ 		dir = "./data"
+ 	}
+@@ -58,8 +72,18 @@ func New(dir string) (*Store, error) {
+ 	}
+ 	s := &Store{dir: dir, indexes: map[int]*vector.HNSW{}, diskIndexes: map[int]*vector.PQIndex{}, provenanceSourceIDs: map[string]map[string]struct{}{}, workers: map[string]core.WorkerState{}, synapseAdj: map[string]map[string]*core.Synapse{}}
+ 	s.state = core.PersistedState{Config: core.DefaultConfig(), Memories: map[string]*core.Memory{}, Synapses: map[string]*core.Synapse{}, Jobs: map[string]*core.Job{}, Goals: map[string]*core.Goal{}, Sources: map[string]*core.KnowledgeSource{}, ResearchRuns: map[string]*core.ResearchRun{}}
+-	_ = s.loadJSON(filepath.Join(dir, "state.json"), &s.state)
+-	_ = s.loadJSON(filepath.Join(dir, "secrets.json"), &s.secrets)
++	progress("checkpoint.precompact")
++	if _, err := compactLegacyTerminalRelinkCheckpoint(dir); err != nil {
++		return nil, fmt.Errorf("compact legacy terminal relink jobs: %w", err)
++	}
++	progress("checkpoint.load")
++	if err := s.loadJSON(filepath.Join(dir, "state.json"), &s.state); err != nil && !errors.Is(err, os.ErrNotExist) {
++		return nil, fmt.Errorf("load authoritative state checkpoint: %w", err)
++	}
++	progress("secrets.load")
++	if err := s.loadJSON(filepath.Join(dir, "secrets.json"), &s.secrets); err != nil && !errors.Is(err, os.ErrNotExist) {
++		return nil, fmt.Errorf("load authoritative secrets: %w", err)
++	}
+ 	if s.state.Memories == nil {
+ 		s.state.Memories = map[string]*core.Memory{}
+ 	}
+@@ -84,6 +108,7 @@ func New(dir string) (*Store, error) {
+ 	// v0.6 binary vector sidecar: rebuildable acceleration data used by the
+ 	// disk ANN builder. Corruption must never prevent the authoritative memory
+ 	// store from opening; move a bad cache aside and recreate it empty.
++	progress("vector-journal.open")
+ 	vjPath := filepath.Join(dir, "vector-journal.nfv")
+ 	vj, vjErr := openVectorJournal(vjPath, vectorJournalOptionsFromConfig(s.state.Config))
+ 	if vjErr != nil {
+@@ -95,6 +120,7 @@ func New(dir string) (*Store, error) {
+ 	}
+ 
+ 	if s.state.Config.Storage.Segments.Enabled {
++		progress("memory-segments.scan")
+ 		seg, err := openSegmentStore(filepath.Join(dir, "memory-segments"), s.state.Config.Storage.Segments.MaxSegmentBytes, s.state.Config.Storage.Segments.MmapSealed)
+ 		if err != nil {
+ 			return nil, fmt.Errorf("open memory segments: %w", err)
+@@ -110,9 +136,13 @@ func New(dir string) (*Store, error) {
+ 			s.state.Memories = meta
+ 		}
+ 	}
++	progress("wal.replay")
+ 	if err := s.replayWAL(); err != nil {
+ 		return nil, err
+ 	}
++	progress("jobs.compact")
++	_ = s.compactCompletedRelinkJobsLocked()
++	progress("graph.restore")
+ 	s.rebuildSynapseAdjLocked()
+ 	applyNewDefaults(&s.state.Config)
+ 	if s.state.Cluster.Term < s.state.Config.Cluster.Term {
+@@ -198,19 +228,26 @@ func New(dir string) (*Store, error) {
+ 	if s.secrets.ClusterToken == "" {
+ 		s.secrets.ClusterToken = randomID(24)
+ 	}
++	progress("disk-ann.load")
+ 	_ = s.loadDiskANNLocked()
++	progress("hnsw.snapshot.load")
+ 	if !s.loadIndexSnapshotLocked() {
++		progress("hnsw.rebuild")
+ 		s.rebuildIndexesLocked()
+ 	}
++	progress("secrets.persist")
+ 	if err := s.persistSecretsLocked(); err != nil {
+ 		return nil, err
+ 	}
++	progress("checkpoint.write")
+ 	if err := s.checkpointLocked(); err != nil {
+ 		return nil, err
+ 	}
+ 	if s.state.Config.Storage.Tiering.Enabled && s.segments != nil {
++		progress("tiering.initialize")
+ 		s.tierMemoryBodiesLocked(time.Now().UTC())
+ 	}
++	progress("store.ready")
+ 	return s, nil
+ }
+ 
+@@ -524,6 +561,9 @@ func applyNewDefaults(c *core.Config) {
+ 		if c.Worker.MaxQueuedJobs == 0 {
+ 			c.Worker.MaxQueuedJobs = d.Worker.MaxQueuedJobs
+ 		}
++		if c.Worker.MaxQueuedPayloadMB == 0 {
++			c.Worker.MaxQueuedPayloadMB = d.Worker.MaxQueuedPayloadMB
++		}
+ 		if c.Worker.MasterApplyMaxAttempts == 0 {
+ 			c.Worker.MasterApplyMaxAttempts = d.Worker.MasterApplyMaxAttempts
+ 		}
+@@ -613,23 +653,80 @@ func inferMemoryType(kind string) string {
+ }
+ 
+ func (s *Store) loadJSON(path string, v any) error {
+-	b, err := os.ReadFile(path)
++	f, err := os.Open(path)
+ 	if err != nil {
+ 		return err
+ 	}
+-	return json.Unmarshal(b, v)
++	defer f.Close()
++
++	// Decode directly from the file instead of ReadFile+Unmarshal. Large
++	// checkpoints can contain millions of graph edges/jobs; keeping a second
++	// raw []byte copy of state.json during boot needlessly doubles peak memory.
++	dec := json.NewDecoder(bufio.NewReaderSize(f, 1<<20))
++	if err := dec.Decode(v); err != nil {
++		return fmt.Errorf("decode %s: %w", filepath.Base(path), err)
++	}
++	// Reject a second JSON value/trailing non-whitespace. Silently accepting a
++	// partially corrupt authoritative checkpoint can create split-brain state.
++	if tok, err := dec.Token(); err != io.EOF {
++		if err == nil {
++			return fmt.Errorf("decode %s: unexpected trailing JSON token %v", filepath.Base(path), tok)
++		}
++		return fmt.Errorf("decode %s trailing data: %w", filepath.Base(path), err)
++	}
++	return nil
+ }
+ 
+-func writeAtomic(path string, perm os.FileMode, v any) error {
+-	b, err := json.MarshalIndent(v, "", "  ")
++func writeAtomic(path string, perm os.FileMode, v any) (retErr error) {
++	// Stream JSON directly into the temporary file instead of MarshalIndent+
++	// WriteFile. state.json and index manifests can be large; allocating the
++	// complete encoded checkpoint as another in-memory byte slice is avoidable.
++	tmp := path + ".tmp"
++	_ = os.Remove(tmp)
++	f, err := os.OpenFile(tmp, os.O_CREATE|os.O_EXCL|os.O_WRONLY, perm)
+ 	if err != nil {
+ 		return err
+ 	}
+-	tmp := path + ".tmp"
+-	if err := os.WriteFile(tmp, b, perm); err != nil {
++	closed := false
++	defer func() {
++		if !closed {
++			_ = f.Close()
++		}
++		if retErr != nil {
++			_ = os.Remove(tmp)
++		}
++	}()
++
++	bw := bufio.NewWriterSize(f, 1<<20)
++	enc := json.NewEncoder(bw)
++	enc.SetIndent("", "  ")
++	if err := enc.Encode(v); err != nil {
++		return err
++	}
++	if err := bw.Flush(); err != nil {
++		return err
++	}
++	if err := f.Sync(); err != nil {
++		return err
++	}
++	if err := f.Close(); err != nil {
++		return err
++	}
++	closed = true
++	if err := os.Rename(tmp, path); err != nil {
++		return err
++	}
++	// Persist the directory entry as well. This matters for secrets/state after
++	// host power loss and is cheap compared with the checkpoint itself.
++	d, err := os.Open(filepath.Dir(path))
++	if err != nil {
++		return err
++	}
++	if err := d.Sync(); err != nil {
++		_ = d.Close()
+ 		return err
+ 	}
+-	return os.Rename(tmp, path)
++	return d.Close()
+ }
+ 
+ func (s *Store) persistLocked() error {
+@@ -1609,7 +1706,7 @@ func (s *Store) validateConfigLocked(c core.Config) error {
+ 	if c.Worker.LeaseSeconds < 10 || c.Worker.LeaseSeconds > 3600 || c.Worker.HeartbeatSeconds < 2 || c.Worker.HeartbeatSeconds >= c.Worker.LeaseSeconds || c.Worker.StaleAfterSeconds < c.Worker.HeartbeatSeconds || c.Worker.StaleAfterSeconds > 7200 {
+ 		return errors.New("invalid worker lease/heartbeat/stale timing")
+ 	}
+-	if c.Worker.DefaultMaxAttempts < 1 || c.Worker.DefaultMaxAttempts > 20 || c.Worker.RetryBackoffSeconds < 1 || c.Worker.RetryBackoffSeconds > 3600 || c.Worker.MaxQueuedJobs < 16 || c.Worker.MaxQueuedJobs > 1000000 || c.Worker.MasterApplyMaxAttempts < 1 || c.Worker.MasterApplyMaxAttempts > 20 || c.Worker.MasterApplyBackoffSeconds < 1 || c.Worker.MasterApplyBackoffSeconds > 3600 || c.Worker.JobRetentionHours < 1 || c.Worker.JobRetentionHours > 8760 || c.Worker.MaxTerminalJobs < 100 || c.Worker.MaxTerminalJobs > 1000000 {
++	if c.Worker.DefaultMaxAttempts < 1 || c.Worker.DefaultMaxAttempts > 20 || c.Worker.RetryBackoffSeconds < 1 || c.Worker.RetryBackoffSeconds > 3600 || c.Worker.MaxQueuedJobs < 16 || c.Worker.MaxQueuedJobs > 1000000 || c.Worker.MaxQueuedPayloadMB < 16 || c.Worker.MaxQueuedPayloadMB > 65536 || c.Worker.MasterApplyMaxAttempts < 1 || c.Worker.MasterApplyMaxAttempts > 20 || c.Worker.MasterApplyBackoffSeconds < 1 || c.Worker.MasterApplyBackoffSeconds > 3600 || c.Worker.JobRetentionHours < 1 || c.Worker.JobRetentionHours > 8760 || c.Worker.MaxTerminalJobs < 100 || c.Worker.MaxTerminalJobs > 1000000 {
+ 		return errors.New("invalid worker retry/queue/retention configuration")
+ 	}
+ 	if c.Worker.GraphBackfillIntervalS < 2 || c.Worker.GraphBackfillIntervalS > 3600 || c.Worker.GraphBackfillBatchSize < 1 || c.Worker.GraphBackfillBatchSize > 4096 || c.Worker.GraphBackfillMaxQueued < 1 || c.Worker.GraphBackfillMaxQueued > c.Worker.MaxQueuedJobs || c.Worker.GraphBackfillMinDegree < 1 || c.Worker.GraphBackfillMinDegree > 100 || c.Worker.GraphCandidateMultiplier < 2 || c.Worker.GraphCandidateMultiplier > 64 || c.Worker.GraphRetryAfterMinutes < 1 || c.Worker.GraphRetryAfterMinutes > 43200 {
+diff --git a/platform/neuroforge/internal/store/wal.go b/platform/neuroforge/internal/store/wal.go
+index afab3bc..4eac292 100644
+--- a/platform/neuroforge/internal/store/wal.go
++++ b/platform/neuroforge/internal/store/wal.go
+@@ -232,6 +232,14 @@ func (s *Store) applyWALEvent(ev walEvent) error {
+ 		if err := json.Unmarshal(ev.Data, &x); err != nil {
+ 			return err
+ 		}
++		// v1.6.0 could leave a large WAL containing completed vector.relink
++		// jobs with full target/candidate vectors. Compact each terminal event as
++		// it is replayed so recovery memory remains bounded by one WAL record
++		// instead of accumulating every historical vector payload in state.
++		if x.Type == "vector.relink" && x.Status == "done" {
++			x.Payload = nil
++			x.Result = nil
++		}
+ 		s.state.Jobs[x.ID] = &x
+ 	case "job.delete":
+ 		var ids []string
+@@ -332,14 +340,20 @@ func (s *Store) checkpointLocked() error {
+ 		// Keep state.json O(non-memory-state) instead of O(memory-count).
+ 		checkpoint.Memories = nil
+ 	}
+-	if err := writeAtomic(filepath.Join(s.dir, "state.json"), 0600, &checkpoint); err != nil {
+-		return err
+-	}
++	// Persist acceleration state before the authoritative non-memory checkpoint.
++	// If the process dies after the index snapshot but before state.json, the WAL
++	// remains intact; boot replays it to the same revision and can immediately use
++	// the already-written index. The previous order could advance state.json first,
++	// then die during a large HNSW snapshot and force a full synchronous rebuild on
++	// every restart.
+ 	if s.state.Config.Storage.IndexSnapshot && s.state.Config.Brain.Index.Enabled {
+ 		if err := s.writeIndexSnapshotLocked(); err != nil {
+ 			return err
+ 		}
+ 	}
++	if err := writeAtomic(filepath.Join(s.dir, "state.json"), 0600, &checkpoint); err != nil {
++		return err
++	}
+ 	// The checkpoint and (when enabled) memory segments now cover every WAL
+ 	// event through state.Revision. Prune those already-checkpointed log files
+ 	// only after all checkpoint artifacts succeeded, otherwise long bulk
+diff --git a/platform/neuroforge/internal/vector/hnsw.go b/platform/neuroforge/internal/vector/hnsw.go
+index a8ad362..8def7a1 100644
+--- a/platform/neuroforge/internal/vector/hnsw.go
++++ b/platform/neuroforge/internal/vector/hnsw.go
+@@ -679,6 +679,50 @@ type HNSWShadow struct {
+ 	Nodes    map[string][32]byte
+ }
+ 
++func (h *HNSW) nodeFingerprintLocked(n *hnswNode) [32]byte {
++	hash := sha256.New()
++	writeHashString(hash, n.ID)
++	writeHashU32(hash, uint32(n.Level))
++	writeHashU32(hash, uint32(len(n.Vector)))
++	var b [4]byte
++	for _, x := range n.Vector {
++		binary.LittleEndian.PutUint32(b[:], math.Float32bits(x))
++		_, _ = hash.Write(b[:])
++	}
++	for level := 0; level <= n.Level; level++ {
++		writeHashU32(hash, uint32(level))
++		edges := n.Neighbors[level]
++		writeHashU32(hash, uint32(len(edges)))
++		for _, edge := range edges {
++			idx := int(edge.idx)
++			if idx >= 0 && idx < len(h.nodes) {
++				writeHashString(hash, h.nodes[idx].ID)
++			}
++		}
++	}
++	var sum [32]byte
++	copy(sum[:], hash.Sum(nil))
++	return sum
++}
++
++func (h *HNSW) snapshotNodeLocked(n *hnswNode) HNSWSnapshotNode {
++	cn := HNSWSnapshotNode{ID: n.ID, Vector: append([]float32(nil), n.Vector...), Level: n.Level, Neighbors: map[int][]string{}}
++	for level, ids := range n.Neighbors {
++		if len(ids) == 0 {
++			continue
++		}
++		refs := make([]string, 0, len(ids))
++		for _, edge := range ids {
++			idx := int(edge.idx)
++			if idx >= 0 && idx < len(h.nodes) {
++				refs = append(refs, h.nodes[idx].ID)
++			}
++		}
++		cn.Neighbors[level] = refs
++	}
++	return cn
++}
++
+ func (h *HNSW) Shadow() HNSWShadow {
+ 	h.mu.RLock()
+ 	defer h.mu.RUnlock()
+@@ -688,31 +732,39 @@ func (h *HNSW) Shadow() HNSWShadow {
+ 	}
+ 	out := HNSWShadow{Config: h.cfg, EntryID: entryID, MaxLevel: h.maxLevel, Nodes: make(map[string][32]byte, len(h.nodes))}
+ 	for _, n := range h.nodes {
+-		hash := sha256.New()
+-		writeHashString(hash, n.ID)
+-		writeHashU32(hash, uint32(n.Level))
+-		writeHashU32(hash, uint32(len(n.Vector)))
+-		var b [4]byte
+-		for _, x := range n.Vector {
+-			binary.LittleEndian.PutUint32(b[:], math.Float32bits(x))
+-			_, _ = hash.Write(b[:])
++		out.Nodes[n.ID] = h.nodeFingerprintLocked(n)
++	}
++	return out
++}
++
++// Delta returns only nodes whose vector/graph representation changed since prev,
++// plus a compact hash shadow for the current graph. Unlike Snapshot(), this does
++// not deep-copy every vector on each checkpoint, which keeps bulk-ingest memory
++// bounded as the HNSW grows.
++func (h *HNSW) Delta(prev HNSWShadow) (HNSWShadow, []HNSWSnapshotNode, []string) {
++	h.mu.RLock()
++	defer h.mu.RUnlock()
++	entryID := ""
++	if h.entry >= 0 && h.entry < len(h.nodes) {
++		entryID = h.nodes[h.entry].ID
++	}
++	cur := HNSWShadow{Config: h.cfg, EntryID: entryID, MaxLevel: h.maxLevel, Nodes: make(map[string][32]byte, len(h.nodes))}
++	upserts := make([]HNSWSnapshotNode, 0)
++	for _, n := range h.nodes {
++		fp := h.nodeFingerprintLocked(n)
++		cur.Nodes[n.ID] = fp
++		if old, ok := prev.Nodes[n.ID]; !ok || old != fp {
++			upserts = append(upserts, h.snapshotNodeLocked(n))
+ 		}
+-		for level := 0; level <= n.Level; level++ {
+-			writeHashU32(hash, uint32(level))
+-			edges := n.Neighbors[level]
+-			writeHashU32(hash, uint32(len(edges)))
+-			for _, edge := range edges {
+-				idx := int(edge.idx)
+-				if idx >= 0 && idx < len(h.nodes) {
+-					writeHashString(hash, h.nodes[idx].ID)
+-				}
+-			}
++	}
++	deletes := make([]string, 0)
++	for id := range prev.Nodes {
++		if _, ok := cur.Nodes[id]; !ok {
++			deletes = append(deletes, id)
+ 		}
+-		var sum [32]byte
+-		copy(sum[:], hash.Sum(nil))
+-		out.Nodes[n.ID] = sum
+ 	}
+-	return out
++	sort.Strings(deletes)
++	return cur, upserts, deletes
+ }
+ 
+ func writeHashString(w io.Writer, s string) {
+diff --git a/platform/neuroforge/internal/vector/hnsw_delta_test.go b/platform/neuroforge/internal/vector/hnsw_delta_test.go
+new file mode 100644
+index 0000000..7e678ce
+--- /dev/null
++++ b/platform/neuroforge/internal/vector/hnsw_delta_test.go
+@@ -0,0 +1,38 @@
++package vector
++
++import "testing"
++
++func TestHNSWDeltaDoesNotSnapshotUnchangedVectors(t *testing.T) {
++	h := NewHNSW(HNSWConfig{M: 4, EfConstruction: 16, EfSearch: 8})
++	h.Add("a", []float32{1, 0, 0})
++	h.Add("b", []float32{0.9, 0.1, 0})
++	base := h.Shadow()
++	cur, upserts, deletes := h.Delta(base)
++	if len(upserts) != 0 || len(deletes) != 0 {
++		t.Fatalf("unchanged delta upserts=%d deletes=%d", len(upserts), len(deletes))
++	}
++	if len(cur.Nodes) != 2 {
++		t.Fatalf("shadow nodes=%d", len(cur.Nodes))
++	}
++
++	h.Add("c", []float32{0.8, 0.2, 0})
++	cur2, upserts, deletes := h.Delta(base)
++	if len(upserts) == 0 {
++		t.Fatalf("expected changed/new nodes")
++	}
++	if len(deletes) != 0 {
++		t.Fatalf("unexpected deletes: %v", deletes)
++	}
++	if len(cur2.Nodes) != 3 {
++		t.Fatalf("shadow nodes=%d", len(cur2.Nodes))
++	}
++	foundC := false
++	for _, n := range upserts {
++		if n.ID == "c" {
++			foundC = true
++		}
++	}
++	if !foundC {
++		t.Fatalf("new node c missing from delta")
++	}
++}
+diff --git a/platform/neuroforge/openapi.yaml b/platform/neuroforge/openapi.yaml
+index afbe818..155728a 100644
+--- a/platform/neuroforge/openapi.yaml
++++ b/platform/neuroforge/openapi.yaml
+@@ -1,7 +1,7 @@
+ openapi: 3.1.0
+ info:
+   title: NeuroForge API
+-  version: 0.8.2
++  version: 0.8.3
+   description: REST API for NeuroForge associative learning, explainable vector recall,
+     provenance, document/text ingestion, SearXNG-backed autonomous research, source-grounded
+     goal cycles, responsive knowledge graph, model routing, cost controls, Prometheus
+diff --git a/services/control/engineering-graph.json b/services/control/engineering-graph.json
+index 3665df0..e7c5396 100644
+--- a/services/control/engineering-graph.json
++++ b/services/control/engineering-graph.json
+@@ -562,6 +562,16 @@
+         "path": "platform/neuroforge/internal/store/sqar_vector.go"
+       }
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "kind": "file",
++      "label": "startup_compact.go",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "path": "platform/neuroforge/internal/store/startup_compact.go"
++      }
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/store.go",
+       "kind": "file",
+@@ -9742,6 +9752,42 @@
+         "path": "platform/neuroforge/cmd/bench/main.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP",
++      "kind": "function",
++      "label": "bootstrapHandler.ServeHTTP",
++      "group": "engineering",
++      "community": "neuroforge/cmd/server",
++      "meta": {
++        "exported": true,
++        "line": 129,
++        "path": "platform/neuroforge/cmd/server/main.go"
++      }
++    },
++    {
++      "id": "function:neuroforge/cmd/server:bootstrapHandler.SetHandler",
++      "kind": "function",
++      "label": "bootstrapHandler.SetHandler",
++      "group": "engineering",
++      "community": "neuroforge/cmd/server",
++      "meta": {
++        "exported": true,
++        "line": 122,
++        "path": "platform/neuroforge/cmd/server/main.go"
++      }
++    },
++    {
++      "id": "function:neuroforge/cmd/server:bootstrapHandler.SetPhase",
++      "kind": "function",
++      "label": "bootstrapHandler.SetPhase",
++      "group": "engineering",
++      "community": "neuroforge/cmd/server",
++      "meta": {
++        "exported": true,
++        "line": 116,
++        "path": "platform/neuroforge/cmd/server/main.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/cmd/server:envBool",
+       "kind": "function",
+@@ -9750,7 +9796,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 26,
++        "line": 28,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9762,7 +9808,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 50,
++        "line": 52,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9774,7 +9820,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 38,
++        "line": 40,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9786,7 +9832,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 514,
++        "line": 623,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9798,7 +9844,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 104,
++        "line": 159,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9810,7 +9856,19 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 97,
++        "line": 99,
++        "path": "platform/neuroforge/cmd/server/main.go"
++      }
++    },
++    {
++      "id": "function:neuroforge/cmd/server:newBootstrapHandler",
++      "kind": "function",
++      "label": "newBootstrapHandler",
++      "group": "engineering",
++      "community": "neuroforge/cmd/server",
++      "meta": {
++        "exported": false,
++        "line": 112,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9822,7 +9880,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 111,
++        "line": 166,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9834,7 +9892,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 62,
++        "line": 64,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -9846,7 +9904,7 @@
+       "community": "neuroforge/cmd/server",
+       "meta": {
+         "exported": false,
+-        "line": 77,
++        "line": 79,
+         "path": "platform/neuroforge/cmd/server/main.go"
+       }
+     },
+@@ -12066,7 +12124,7 @@
+       "community": "neuroforge/internal/core",
+       "meta": {
+         "exported": true,
+-        "line": 740,
++        "line": 741,
+         "path": "platform/neuroforge/internal/core/types.go"
+       }
+     },
+@@ -14562,7 +14620,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 52,
++        "line": 56,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -14574,7 +14632,19 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 650,
++        "line": 747,
++        "path": "platform/neuroforge/internal/store/store.go"
++      }
++    },
++    {
++      "id": "function:neuroforge/internal/store:NewWithProgress",
++      "kind": "function",
++      "label": "NewWithProgress",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": true,
++        "line": 60,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -14886,7 +14956,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 863,
++        "line": 960,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -14910,7 +14980,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1312,
++        "line": 1409,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -14934,7 +15004,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 735,
++        "line": 795,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -14946,7 +15016,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 389,
++        "line": 398,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -14958,7 +15028,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 393,
++        "line": 402,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -14970,7 +15040,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 652,
++        "line": 749,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15034,6 +15104,18 @@
+         "path": "platform/neuroforge/internal/store/cluster.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
++      "kind": "function",
++      "label": "Store.CompactCompletedRelinkJobs",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": true,
++        "line": 780,
++        "path": "platform/neuroforge/internal/store/orchestrator.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/store:Store.CompactIndexSegments",
+       "kind": "function",
+@@ -15042,7 +15124,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 439,
++        "line": 426,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -15054,7 +15136,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 668,
++        "line": 765,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15066,7 +15148,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 436,
++        "line": 445,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15078,7 +15160,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 440,
++        "line": 449,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15090,7 +15172,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 689,
++        "line": 786,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15114,7 +15196,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1157,
++        "line": 1254,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15126,7 +15208,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1109,
++        "line": 1206,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15162,7 +15244,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1357,
++        "line": 1454,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15210,7 +15292,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 91,
++        "line": 93,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15222,7 +15304,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 95,
++        "line": 97,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15234,7 +15316,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1378,
++        "line": 1475,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15246,7 +15328,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 686,
++        "line": 702,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15270,7 +15352,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 397,
++        "line": 411,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -15294,7 +15376,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 929,
++        "line": 1026,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15390,7 +15472,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 585,
++        "line": 594,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15402,7 +15484,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 294,
++        "line": 303,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15414,7 +15496,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 431,
++        "line": 418,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -15426,7 +15508,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 477,
++        "line": 464,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -15438,7 +15520,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 829,
++        "line": 889,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15450,7 +15532,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 499,
++        "line": 508,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15462,7 +15544,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 512,
++        "line": 521,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15534,7 +15616,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1252,
++        "line": 1349,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15546,7 +15628,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1210,
++        "line": 1307,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15570,7 +15652,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1229,
++        "line": 1326,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15618,7 +15700,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 598,
++        "line": 607,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15654,7 +15736,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 636,
++        "line": 652,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15666,7 +15748,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 654,
++        "line": 670,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15690,7 +15772,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 759,
++        "line": 819,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15738,7 +15820,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1344,
++        "line": 1441,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15762,7 +15844,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 284,
++        "line": 293,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15774,7 +15856,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1098,
++        "line": 1195,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15834,7 +15916,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 538,
++        "line": 547,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -15870,7 +15952,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 986,
++        "line": 1083,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15882,7 +15964,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1709,
++        "line": 1806,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15894,7 +15976,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1718,
++        "line": 1815,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15906,7 +15988,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 746,
++        "line": 843,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15918,7 +16000,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 680,
++        "line": 777,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15942,7 +16024,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1185,
++        "line": 1282,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -15954,7 +16036,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1196,
++        "line": 1293,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16002,7 +16084,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1265,
++        "line": 1362,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16038,7 +16120,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1242,
++        "line": 1339,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16074,7 +16156,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1133,
++        "line": 1230,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16098,7 +16180,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 690,
++        "line": 787,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16110,7 +16192,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1258,
++        "line": 1355,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16122,7 +16204,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 753,
++        "line": 850,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16182,7 +16264,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1328,
++        "line": 1425,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16194,7 +16276,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 1396,
++        "line": 1493,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16218,7 +16300,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 403,
++        "line": 417,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -16230,7 +16312,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": true,
+-        "line": 559,
++        "line": 568,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -16302,7 +16384,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 323,
++        "line": 331,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -16342,6 +16424,18 @@
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
++      "kind": "function",
++      "label": "Store.compactCompletedRelinkJobsLocked",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": false,
++        "line": 764,
++        "path": "platform/neuroforge/internal/store/orchestrator.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/store:Store.currentSnapshotsLocked",
+       "kind": "function",
+@@ -16374,7 +16468,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 214,
++        "line": 223,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -16410,7 +16504,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 940,
++        "line": 1037,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16434,7 +16528,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 370,
++        "line": 357,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -16506,7 +16600,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 383,
++        "line": 397,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -16518,7 +16612,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 615,
++        "line": 655,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16530,7 +16624,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 396,
++        "line": 383,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -16542,7 +16636,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 299,
++        "line": 286,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -16566,7 +16660,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 771,
++        "line": 868,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16578,7 +16672,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 325,
++        "line": 334,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -16614,7 +16708,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 635,
++        "line": 732,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16626,7 +16720,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 638,
++        "line": 735,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16638,7 +16732,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 354,
++        "line": 368,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -16650,7 +16744,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 776,
++        "line": 873,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16662,7 +16756,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 813,
++        "line": 910,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16698,7 +16792,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 244,
++        "line": 253,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -16746,7 +16840,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 992,
++        "line": 1089,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16830,7 +16924,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 1402,
++        "line": 1499,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -16866,7 +16960,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 451,
++        "line": 438,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -16878,7 +16972,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 376,
++        "line": 390,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -16890,7 +16984,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 388,
++        "line": 375,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -17070,7 +17164,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 267,
++        "line": 254,
+         "path": "platform/neuroforge/internal/store/index_segments.go"
+       }
+     },
+@@ -17082,7 +17176,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 217,
++        "line": 254,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17130,7 +17224,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 75,
++        "line": 77,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -17166,7 +17260,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 965,
++        "line": 1062,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17202,7 +17296,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 763,
++        "line": 860,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17218,6 +17312,30 @@
+         "path": "platform/neuroforge/internal/store/raftlog.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "kind": "function",
++      "label": "compactLegacyTerminalRelinkCheckpoint",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": false,
++        "line": 25,
++        "path": "platform/neuroforge/internal/store/startup_compact.go"
++      }
++    },
++    {
++      "id": "function:neuroforge/internal/store:copyJSONValue",
++      "kind": "function",
++      "label": "copyJSONValue",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": false,
++        "line": 209,
++        "path": "platform/neuroforge/internal/store/startup_compact.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/store:decodeVectorPayload",
+       "kind": "function",
+@@ -17262,7 +17380,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 1091,
++        "line": 1188,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17382,7 +17500,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 602,
++        "line": 642,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17454,7 +17572,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 380,
++        "line": 389,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -17514,7 +17632,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 393,
++        "line": 407,
+         "path": "platform/neuroforge/internal/store/wal.go"
+       }
+     },
+@@ -17538,7 +17656,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 563,
++        "line": 603,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17574,7 +17692,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 60,
++        "line": 62,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -17670,7 +17788,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 1102,
++        "line": 1199,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17754,7 +17872,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 642,
++        "line": 739,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -17782,6 +17900,30 @@
+         "path": "platform/neuroforge/internal/store/sqar_vector.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "kind": "function",
++      "label": "rewriteCheckpointObject",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": false,
++        "line": 86,
++        "path": "platform/neuroforge/internal/store/startup_compact.go"
++      }
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteJobsObject",
++      "kind": "function",
++      "label": "rewriteJobsObject",
++      "group": "engineering",
++      "community": "neuroforge/internal/store",
++      "meta": {
++        "exported": false,
++        "line": 148,
++        "path": "platform/neuroforge/internal/store/startup_compact.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/store:sameClusterMemory",
+       "kind": "function",
+@@ -17886,7 +18028,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 235,
++        "line": 244,
+         "path": "platform/neuroforge/internal/store/orchestrator.go"
+       }
+     },
+@@ -17898,7 +18040,7 @@
+       "community": "neuroforge/internal/store",
+       "meta": {
+         "exported": false,
+-        "line": 623,
++        "line": 680,
+         "path": "platform/neuroforge/internal/store/store.go"
+       }
+     },
+@@ -18010,6 +18152,18 @@
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.Delta",
++      "kind": "function",
++      "label": "HNSW.Delta",
++      "group": "engineering",
++      "community": "neuroforge/internal/vector",
++      "meta": {
++        "exported": true,
++        "line": 744,
++        "path": "platform/neuroforge/internal/vector/hnsw.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/vector:HNSW.Len",
+       "kind": "function",
+@@ -18042,7 +18196,7 @@
+       "community": "neuroforge/internal/vector",
+       "meta": {
+         "exported": true,
+-        "line": 682,
++        "line": 726,
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
+@@ -18066,7 +18220,7 @@
+       "community": "neuroforge/internal/vector",
+       "meta": {
+         "exported": true,
+-        "line": 733,
++        "line": 785,
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
+@@ -18106,6 +18260,18 @@
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "kind": "function",
++      "label": "HNSW.nodeFingerprintLocked",
++      "group": "engineering",
++      "community": "neuroforge/internal/vector",
++      "meta": {
++        "exported": false,
++        "line": 682,
++        "path": "platform/neuroforge/internal/vector/hnsw.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/vector:HNSW.pruneLocked",
+       "kind": "function",
+@@ -18130,6 +18296,18 @@
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.snapshotNodeLocked",
++      "kind": "function",
++      "label": "HNSW.snapshotNodeLocked",
++      "group": "engineering",
++      "community": "neuroforge/internal/vector",
++      "meta": {
++        "exported": false,
++        "line": 708,
++        "path": "platform/neuroforge/internal/vector/hnsw.go"
++      }
++    },
+     {
+       "id": "function:neuroforge/internal/vector:NewHNSW",
+       "kind": "function",
+@@ -18270,7 +18448,7 @@
+       "community": "neuroforge/internal/vector",
+       "meta": {
+         "exported": true,
+-        "line": 785,
++        "line": 837,
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
+@@ -18678,7 +18856,7 @@
+       "community": "neuroforge/internal/vector",
+       "meta": {
+         "exported": false,
+-        "line": 718,
++        "line": 770,
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
+@@ -18690,7 +18868,7 @@
+       "community": "neuroforge/internal/vector",
+       "meta": {
+         "exported": false,
+-        "line": 722,
++        "line": 774,
+         "path": "platform/neuroforge/internal/vector/hnsw.go"
+       }
+     },
+@@ -20924,7 +21102,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -20935,7 +21113,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -20946,7 +21124,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -20957,7 +21135,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -20968,7 +21146,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -20979,7 +21157,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -20990,7 +21168,7 @@
+       "community": "compose",
+       "status": "configured",
+       "meta": {
+-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
++        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.1}"
+       }
+     },
+     {
+@@ -21329,6 +21507,24 @@
+       "to": "package:time",
+       "kind": "imports"
+     },
++    {
++      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:bootstrapHandler.ServeHTTP:defines",
++      "from": "file:platform/neuroforge/cmd/server/main.go",
++      "to": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP",
++      "kind": "defines"
++    },
++    {
++      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetHandler:defines",
++      "from": "file:platform/neuroforge/cmd/server/main.go",
++      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetHandler",
++      "kind": "defines"
++    },
++    {
++      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetPhase:defines",
++      "from": "file:platform/neuroforge/cmd/server/main.go",
++      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetPhase",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:envBool:defines",
+       "from": "file:platform/neuroforge/cmd/server/main.go",
+@@ -21365,6 +21561,12 @@
+       "to": "function:neuroforge/cmd/server:maxIntMain",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:newBootstrapHandler:defines",
++      "from": "file:platform/neuroforge/cmd/server/main.go",
++      "to": "function:neuroforge/cmd/server:newBootstrapHandler",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:run:defines",
+       "from": "file:platform/neuroforge/cmd/server/main.go",
+@@ -21419,6 +21621,12 @@
+       "to": "package:net/http",
+       "kind": "imports"
+     },
++    {
++      "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:net:imports",
++      "from": "file:platform/neuroforge/cmd/server/main.go",
++      "to": "package:net",
++      "kind": "imports"
++    },
+     {
+       "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:neuroforge/internal/brain:imports",
+       "from": "file:platform/neuroforge/cmd/server/main.go",
+@@ -21485,6 +21693,12 @@
+       "to": "package:strings",
+       "kind": "imports"
+     },
++    {
++      "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:sync:imports",
++      "from": "file:platform/neuroforge/cmd/server/main.go",
++      "to": "package:sync",
++      "kind": "imports"
++    },
+     {
+       "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:syscall:imports",
+       "from": "file:platform/neuroforge/cmd/server/main.go",
+@@ -26135,6 +26349,12 @@
+       "to": "function:neuroforge/internal/store:Store.ClaimJobForWorker",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.CompactCompletedRelinkJobs:defines",
++      "from": "file:platform/neuroforge/internal/store/orchestrator.go",
++      "to": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.CompleteJob:defines",
+       "from": "file:platform/neuroforge/internal/store/orchestrator.go",
+@@ -26237,6 +26457,12 @@
+       "to": "function:neuroforge/internal/store:Store.WorkersSnapshot",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked:defines",
++      "from": "file:platform/neuroforge/internal/store/orchestrator.go",
++      "to": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.dependencyStateLocked:defines",
+       "from": "file:platform/neuroforge/internal/store/orchestrator.go",
+@@ -27125,6 +27351,78 @@
+       "to": "package:io",
+       "kind": "imports"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint:defines",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "kind": "defines"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:copyJSONValue:defines",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "function:neuroforge/internal/store:copyJSONValue",
++      "kind": "defines"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:rewriteCheckpointObject:defines",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "kind": "defines"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:rewriteJobsObject:defines",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "function:neuroforge/internal/store:rewriteJobsObject",
++      "kind": "defines"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:bufio:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:bufio",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:encoding/json:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:encoding/json",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:errors:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:errors",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:fmt:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:fmt",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:io:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:io",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:neuroforge/internal/core:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:neuroforge/internal/core",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:os:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:os",
++      "kind": "imports"
++    },
++    {
++      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:path/filepath:imports",
++      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "to": "package:path/filepath",
++      "kind": "imports"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/store.go-\u003efunction:neuroforge/internal/store:New:defines",
+       "from": "file:platform/neuroforge/internal/store/store.go",
+@@ -27137,6 +27435,12 @@
+       "to": "function:neuroforge/internal/store:NewID",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/store.go-\u003efunction:neuroforge/internal/store:NewWithProgress:defines",
++      "from": "file:platform/neuroforge/internal/store/store.go",
++      "to": "function:neuroforge/internal/store:NewWithProgress",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/store.go-\u003efunction:neuroforge/internal/store:Store.AddMemory:defines",
+       "from": "file:platform/neuroforge/internal/store/store.go",
+@@ -27425,6 +27729,12 @@
+       "to": "function:neuroforge/internal/store:writeAtomic",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:bufio:imports",
++      "from": "file:platform/neuroforge/internal/store/store.go",
++      "to": "package:bufio",
++      "kind": "imports"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:crypto/rand:imports",
+       "from": "file:platform/neuroforge/internal/store/store.go",
+@@ -27455,6 +27765,12 @@
+       "to": "package:fmt",
+       "kind": "imports"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:io:imports",
++      "from": "file:platform/neuroforge/internal/store/store.go",
++      "to": "package:io",
++      "kind": "imports"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:math:imports",
+       "from": "file:platform/neuroforge/internal/store/store.go",
+@@ -28109,6 +28425,12 @@
+       "to": "function:neuroforge/internal/vector:HNSW.AddBatch",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.Delta:defines",
++      "from": "file:platform/neuroforge/internal/vector/hnsw.go",
++      "to": "function:neuroforge/internal/vector:HNSW.Delta",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.Len:defines",
+       "from": "file:platform/neuroforge/internal/vector/hnsw.go",
+@@ -28157,6 +28479,12 @@
+       "to": "function:neuroforge/internal/vector:HNSW.levelForID",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.nodeFingerprintLocked:defines",
++      "from": "file:platform/neuroforge/internal/vector/hnsw.go",
++      "to": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.pruneLocked:defines",
+       "from": "file:platform/neuroforge/internal/vector/hnsw.go",
+@@ -28169,6 +28497,12 @@
+       "to": "function:neuroforge/internal/vector:HNSW.searchLayerLocked",
+       "kind": "defines"
+     },
++    {
++      "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.snapshotNodeLocked:defines",
++      "from": "file:platform/neuroforge/internal/vector/hnsw.go",
++      "to": "function:neuroforge/internal/vector:HNSW.snapshotNodeLocked",
++      "kind": "defines"
++    },
+     {
+       "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:NewHNSW:defines",
+       "from": "file:platform/neuroforge/internal/vector/hnsw.go",
+@@ -49274,6 +49608,13 @@
+       "kind": "calls_package",
+       "label": "Sqrt"
+     },
++    {
++      "id": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP-\u003epackage:fmt:calls_package",
++      "from": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP",
++      "to": "package:fmt",
++      "kind": "calls_package",
++      "label": "Fprintf"
++    },
+     {
+       "id": "function:neuroforge/cmd/server:envBool-\u003epackage:os:calls_package",
+       "from": "function:neuroforge/cmd/server:envBool",
+@@ -49364,6 +49705,18 @@
+       "kind": "calls_package",
+       "label": "Exit"
+     },
++    {
++      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetHandler:calls",
++      "from": "function:neuroforge/cmd/server:run",
++      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetHandler",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetPhase:calls",
++      "from": "function:neuroforge/cmd/server:run",
++      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetPhase",
++      "kind": "calls"
++    },
+     {
+       "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:envBool:calls",
+       "from": "function:neuroforge/cmd/server:run",
+@@ -49394,6 +49747,12 @@
+       "to": "function:neuroforge/cmd/server:maxIntMain",
+       "kind": "calls"
+     },
++    {
++      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:newBootstrapHandler:calls",
++      "from": "function:neuroforge/cmd/server:run",
++      "to": "function:neuroforge/cmd/server:newBootstrapHandler",
++      "kind": "calls"
++    },
+     {
+       "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:validateManagedSecretsFromEnv:calls",
+       "from": "function:neuroforge/cmd/server:run",
+@@ -49405,7 +49764,7 @@
+       "from": "function:neuroforge/cmd/server:run",
+       "to": "package:context",
+       "kind": "calls_package",
+-      "label": "Background"
++      "label": "WithTimeout"
+     },
+     {
+       "id": "function:neuroforge/cmd/server:run-\u003epackage:errors:calls_package",
+@@ -49435,6 +49794,13 @@
+       "kind": "calls_package",
+       "label": "Printf"
+     },
++    {
++      "id": "function:neuroforge/cmd/server:run-\u003epackage:net:calls_package",
++      "from": "function:neuroforge/cmd/server:run",
++      "to": "package:net",
++      "kind": "calls_package",
++      "label": "Listen"
++    },
+     {
+       "id": "function:neuroforge/cmd/server:run-\u003epackage:neuroforge/internal/brain:calls_package",
+       "from": "function:neuroforge/cmd/server:run",
+@@ -49442,6 +49808,13 @@
+       "kind": "calls_package",
+       "label": "New"
+     },
++    {
++      "id": "function:neuroforge/cmd/server:run-\u003epackage:neuroforge/internal/core:calls_package",
++      "from": "function:neuroforge/cmd/server:run",
++      "to": "package:neuroforge/internal/core",
++      "kind": "calls_package",
++      "label": "DefaultConfig"
++    },
+     {
+       "id": "function:neuroforge/cmd/server:run-\u003epackage:neuroforge/internal/cost:calls_package",
+       "from": "function:neuroforge/cmd/server:run",
+@@ -49468,7 +49841,7 @@
+       "from": "function:neuroforge/cmd/server:run",
+       "to": "package:neuroforge/internal/store",
+       "kind": "calls_package",
+-      "label": "New"
++      "label": "NewWithProgress"
+     },
+     {
+       "id": "function:neuroforge/cmd/server:run-\u003epackage:os/signal:calls_package",
+@@ -57100,192 +57473,216 @@
+       "label": "Base"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:SegmentStore.ConsumeMetadata:calls",
++      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:NewWithProgress:calls",
+       "from": "function:neuroforge/internal/store:New",
++      "to": "function:neuroforge/internal/store:NewWithProgress",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:NewID-\u003efunction:neuroforge/internal/store:randomID:calls",
++      "from": "function:neuroforge/internal/store:NewID",
++      "to": "function:neuroforge/internal/store:randomID",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:New:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
++      "to": "function:neuroforge/internal/store:New",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:SegmentStore.ConsumeMetadata:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:SegmentStore.ConsumeMetadata",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:SegmentStore.HasRecords:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:SegmentStore.HasRecords:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:SegmentStore.HasRecords",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:SegmentStore.Rebuild:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:SegmentStore.Rebuild:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.checkpointLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.checkpointLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.checkpointLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.initHotTrackerLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
++      "to": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.initHotTrackerLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.initHotTrackerLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.initializeClusterRoleLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.initializeClusterRoleLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.initializeClusterRoleLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.loadDiskANNLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.loadDiskANNLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.loadDiskANNLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.loadIndexSnapshotLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.loadIndexSnapshotLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.loadIndexSnapshotLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.loadJSON",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.persistSecretsLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.persistSecretsLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.persistSecretsLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.rebuildIndexesLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.rebuildIndexesLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.rebuildIndexesLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.rebuildSynapseAdjLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.rebuildSynapseAdjLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.rebuildSynapseAdjLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.replayWAL:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.replayWAL:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.replayWAL",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.tierMemoryBodiesLocked:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.tierMemoryBodiesLocked:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:Store.tierMemoryBodiesLocked",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:applyNewDefaults:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:applyNewDefaults:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:applyNewDefaults",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:migrateMemories:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
++      "to": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:migrateMemories:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:migrateMemories",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:newMemoryPageCache:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:newMemoryPageCache:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:newMemoryPageCache",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:openSegmentStore:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:openSegmentStore:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:openSegmentStore",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:openVectorJournal:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:openVectorJournal:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:openVectorJournal",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:randomID:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:randomID:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:randomID",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:vectorJournalOptionsFromConfig:calls",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:vectorJournalOptionsFromConfig:calls",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "function:neuroforge/internal/store:vectorJournalOptionsFromConfig",
+       "kind": "calls"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:errors:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:errors:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:errors",
+       "kind": "calls_package",
+-      "label": "New"
++      "label": "Is"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:fmt:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:fmt:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:fmt",
+       "kind": "calls_package",
+-      "label": "Sprint"
++      "label": "Errorf"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:neuroforge/internal/core:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:neuroforge/internal/core:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:neuroforge/internal/core",
+       "kind": "calls_package",
+       "label": "DefaultConfig"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:os:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:os:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:os",
+       "kind": "calls_package",
+       "label": "MkdirAll"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:path/filepath:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:path/filepath:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:path/filepath",
+       "kind": "calls_package",
+       "label": "Join"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:strings:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:strings:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:strings",
+       "kind": "calls_package",
+       "label": "TrimSpace"
+     },
+     {
+-      "id": "function:neuroforge/internal/store:New-\u003epackage:time:calls_package",
+-      "from": "function:neuroforge/internal/store:New",
++      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:time:calls_package",
++      "from": "function:neuroforge/internal/store:NewWithProgress",
+       "to": "package:time",
+       "kind": "calls_package",
+       "label": "Now"
+     },
+-    {
+-      "id": "function:neuroforge/internal/store:NewID-\u003efunction:neuroforge/internal/store:randomID:calls",
+-      "from": "function:neuroforge/internal/store:NewID",
+-      "to": "function:neuroforge/internal/store:randomID",
+-      "kind": "calls"
+-    },
+     {
+       "id": "function:neuroforge/internal/store:SegmentStore.AppendDelete-\u003efunction:neuroforge/internal/store:ClusterLog.append:calls",
+       "from": "function:neuroforge/internal/store:SegmentStore.AppendDelete",
+@@ -58166,6 +58563,18 @@
+       "kind": "calls_package",
+       "label": "Now"
+     },
++    {
++      "id": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs-\u003efunction:neuroforge/internal/store:Store.checkpointLocked:calls",
++      "from": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
++      "to": "function:neuroforge/internal/store:Store.checkpointLocked",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs-\u003efunction:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked:calls",
++      "from": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
++      "to": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
++      "kind": "calls"
++    },
+     {
+       "id": "function:neuroforge/internal/store:Store.CompactIndexSegments-\u003efunction:neuroforge/internal/store:Store.IndexSnapshotStatusUnlocked:calls",
+       "from": "function:neuroforge/internal/store:Store.CompactIndexSegments",
+@@ -60943,19 +61352,46 @@
+       "to": "function:neuroforge/internal/store:indexMode",
+       "kind": "calls"
+     },
++    {
++      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
++      "from": "function:neuroforge/internal/store:Store.loadJSON",
++      "to": "function:neuroforge/internal/store:ClusterLog.Close",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:bufio:calls_package",
++      "from": "function:neuroforge/internal/store:Store.loadJSON",
++      "to": "package:bufio",
++      "kind": "calls_package",
++      "label": "NewReaderSize"
++    },
+     {
+       "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:encoding/json:calls_package",
+       "from": "function:neuroforge/internal/store:Store.loadJSON",
+       "to": "package:encoding/json",
+       "kind": "calls_package",
+-      "label": "Unmarshal"
++      "label": "NewDecoder"
++    },
++    {
++      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:fmt:calls_package",
++      "from": "function:neuroforge/internal/store:Store.loadJSON",
++      "to": "package:fmt",
++      "kind": "calls_package",
++      "label": "Errorf"
+     },
+     {
+       "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:os:calls_package",
+       "from": "function:neuroforge/internal/store:Store.loadJSON",
+       "to": "package:os",
+       "kind": "calls_package",
+-      "label": "ReadFile"
++      "label": "Open"
++    },
++    {
++      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:path/filepath:calls_package",
++      "from": "function:neuroforge/internal/store:Store.loadJSON",
++      "to": "package:path/filepath",
++      "kind": "calls_package",
++      "label": "Base"
+     },
+     {
+       "id": "function:neuroforge/internal/store:Store.loadLegacyIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
+@@ -61731,12 +62167,6 @@
+       "to": "function:neuroforge/internal/store:ClusterLog.append",
+       "kind": "calls"
+     },
+-    {
+-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:Store.currentSnapshotsLocked:calls",
+-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+-      "to": "function:neuroforge/internal/store:Store.currentSnapshotsLocked",
+-      "kind": "calls"
+-    },
+     {
+       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
+       "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+@@ -61755,24 +62185,12 @@
+       "to": "function:neuroforge/internal/store:Store.writeLegacyIndexSnapshotLocked",
+       "kind": "calls"
+     },
+-    {
+-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:buildIndexShadow:calls",
+-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+-      "to": "function:neuroforge/internal/store:buildIndexShadow",
+-      "kind": "calls"
+-    },
+     {
+       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:cleanupOldIndexBases:calls",
+       "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+       "to": "function:neuroforge/internal/store:cleanupOldIndexBases",
+       "kind": "calls"
+     },
+-    {
+-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:hashSnapshotNode:calls",
+-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+-      "to": "function:neuroforge/internal/store:hashSnapshotNode",
+-      "kind": "calls"
+-    },
+     {
+       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:shadowFromHNSW:calls",
+       "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+@@ -61806,13 +62224,6 @@
+       "kind": "calls_package",
+       "label": "Join"
+     },
+-    {
+-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003epackage:sort:calls_package",
+-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+-      "to": "package:sort",
+-      "kind": "calls_package",
+-      "label": "Strings"
+-    },
+     {
+       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003epackage:strconv:calls_package",
+       "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
+@@ -62285,6 +62696,74 @@
+       "kind": "calls_package",
+       "label": "Sprintf"
+     },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "function:neuroforge/internal/store:ClusterLog.Close",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003efunction:neuroforge/internal/store:rewriteCheckpointObject:calls",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:bufio:calls_package",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "package:bufio",
++      "kind": "calls_package",
++      "label": "NewReaderSize"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:encoding/json:calls_package",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "package:encoding/json",
++      "kind": "calls_package",
++      "label": "NewDecoder"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:errors:calls_package",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "package:errors",
++      "kind": "calls_package",
++      "label": "Is"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:fmt:calls_package",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "package:fmt",
++      "kind": "calls_package",
++      "label": "Sprintf"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:os:calls_package",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "package:os",
++      "kind": "calls_package",
++      "label": "Stat"
++    },
++    {
++      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:path/filepath:calls_package",
++      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
++      "to": "package:path/filepath",
++      "kind": "calls_package",
++      "label": "Join"
++    },
++    {
++      "id": "function:neuroforge/internal/store:copyJSONValue-\u003epackage:encoding/json:calls_package",
++      "from": "function:neuroforge/internal/store:copyJSONValue",
++      "to": "package:encoding/json",
++      "kind": "calls_package",
++      "label": "Marshal"
++    },
++    {
++      "id": "function:neuroforge/internal/store:copyJSONValue-\u003epackage:fmt:calls_package",
++      "from": "function:neuroforge/internal/store:copyJSONValue",
++      "to": "package:fmt",
++      "kind": "calls_package",
++      "label": "Errorf"
++    },
+     {
+       "id": "function:neuroforge/internal/store:decodeVectorPayload-\u003efunction:neuroforge/internal/store:ClusterLog.append:calls",
+       "from": "function:neuroforge/internal/store:decodeVectorPayload",
+@@ -62715,6 +63194,51 @@
+       "to": "function:neuroforge/internal/store:vectorPredictorValue",
+       "kind": "calls"
+     },
++    {
++      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003efunction:neuroforge/internal/store:New:calls",
++      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "to": "function:neuroforge/internal/store:New",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003efunction:neuroforge/internal/store:copyJSONValue:calls",
++      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "to": "function:neuroforge/internal/store:copyJSONValue",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003efunction:neuroforge/internal/store:rewriteJobsObject:calls",
++      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "to": "function:neuroforge/internal/store:rewriteJobsObject",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003epackage:encoding/json:calls_package",
++      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "to": "package:encoding/json",
++      "kind": "calls_package",
++      "label": "Marshal"
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003epackage:fmt:calls_package",
++      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
++      "to": "package:fmt",
++      "kind": "calls_package",
++      "label": "Errorf"
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteJobsObject-\u003efunction:neuroforge/internal/store:New:calls",
++      "from": "function:neuroforge/internal/store:rewriteJobsObject",
++      "to": "function:neuroforge/internal/store:New",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:rewriteJobsObject-\u003epackage:encoding/json:calls_package",
++      "from": "function:neuroforge/internal/store:rewriteJobsObject",
++      "to": "package:encoding/json",
++      "kind": "calls_package",
++      "label": "Marshal"
++    },
+     {
+       "id": "function:neuroforge/internal/store:segmentName-\u003epackage:fmt:calls_package",
+       "from": "function:neuroforge/internal/store:segmentName",
+@@ -62821,19 +63345,39 @@
+       "kind": "calls_package",
+       "label": "ToLower"
+     },
++    {
++      "id": "function:neuroforge/internal/store:writeAtomic-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
++      "from": "function:neuroforge/internal/store:writeAtomic",
++      "to": "function:neuroforge/internal/store:ClusterLog.Close",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:bufio:calls_package",
++      "from": "function:neuroforge/internal/store:writeAtomic",
++      "to": "package:bufio",
++      "kind": "calls_package",
++      "label": "NewWriterSize"
++    },
+     {
+       "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:encoding/json:calls_package",
+       "from": "function:neuroforge/internal/store:writeAtomic",
+       "to": "package:encoding/json",
+       "kind": "calls_package",
+-      "label": "MarshalIndent"
++      "label": "NewEncoder"
+     },
+     {
+       "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:os:calls_package",
+       "from": "function:neuroforge/internal/store:writeAtomic",
+       "to": "package:os",
+       "kind": "calls_package",
+-      "label": "WriteFile"
++      "label": "Remove"
++    },
++    {
++      "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:path/filepath:calls_package",
++      "from": "function:neuroforge/internal/store:writeAtomic",
++      "to": "package:path/filepath",
++      "kind": "calls_package",
++      "label": "Dir"
+     },
+     {
+       "id": "function:neuroforge/internal/store:writeHNSWAtomic-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
+@@ -63028,6 +63572,25 @@
+       "to": "function:neuroforge/internal/vector:normalizeCopy",
+       "kind": "calls"
+     },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.Delta-\u003efunction:neuroforge/internal/vector:HNSW.nodeFingerprintLocked:calls",
++      "from": "function:neuroforge/internal/vector:HNSW.Delta",
++      "to": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.Delta-\u003efunction:neuroforge/internal/vector:HNSW.snapshotNodeLocked:calls",
++      "from": "function:neuroforge/internal/vector:HNSW.Delta",
++      "to": "function:neuroforge/internal/vector:HNSW.snapshotNodeLocked",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.Delta-\u003epackage:sort:calls_package",
++      "from": "function:neuroforge/internal/vector:HNSW.Delta",
++      "to": "package:sort",
++      "kind": "calls_package",
++      "label": "Strings"
++    },
+     {
+       "id": "function:neuroforge/internal/vector:HNSW.Search-\u003efunction:neuroforge/internal/vector:HNSW.Add:calls",
+       "from": "function:neuroforge/internal/vector:HNSW.Search",
+@@ -63121,31 +63684,11 @@
+       "label": "Slice"
+     },
+     {
+-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003efunction:neuroforge/internal/vector:writeHashString:calls",
++      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003efunction:neuroforge/internal/vector:HNSW.nodeFingerprintLocked:calls",
+       "from": "function:neuroforge/internal/vector:HNSW.Shadow",
+-      "to": "function:neuroforge/internal/vector:writeHashString",
++      "to": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+       "kind": "calls"
+     },
+-    {
+-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003efunction:neuroforge/internal/vector:writeHashU32:calls",
+-      "from": "function:neuroforge/internal/vector:HNSW.Shadow",
+-      "to": "function:neuroforge/internal/vector:writeHashU32",
+-      "kind": "calls"
+-    },
+-    {
+-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003epackage:crypto/sha256:calls_package",
+-      "from": "function:neuroforge/internal/vector:HNSW.Shadow",
+-      "to": "package:crypto/sha256",
+-      "kind": "calls_package",
+-      "label": "New"
+-    },
+-    {
+-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003epackage:math:calls_package",
+-      "from": "function:neuroforge/internal/vector:HNSW.Shadow",
+-      "to": "package:math",
+-      "kind": "calls_package",
+-      "label": "Float32bits"
+-    },
+     {
+       "id": "function:neuroforge/internal/vector:HNSW.Snapshot-\u003epackage:sort:calls_package",
+       "from": "function:neuroforge/internal/vector:HNSW.Snapshot",
+@@ -63230,6 +63773,32 @@
+       "kind": "calls_package",
+       "label": "Log"
+     },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003efunction:neuroforge/internal/vector:writeHashString:calls",
++      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "to": "function:neuroforge/internal/vector:writeHashString",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003efunction:neuroforge/internal/vector:writeHashU32:calls",
++      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "to": "function:neuroforge/internal/vector:writeHashU32",
++      "kind": "calls"
++    },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003epackage:crypto/sha256:calls_package",
++      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "to": "package:crypto/sha256",
++      "kind": "calls_package",
++      "label": "New"
++    },
++    {
++      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003epackage:math:calls_package",
++      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
++      "to": "package:math",
++      "kind": "calls_package",
++      "label": "Float32bits"
++    },
+     {
+       "id": "function:neuroforge/internal/vector:HNSW.searchLayerLocked-\u003efunction:neuroforge/internal/vector:dotNormalized:calls",
+       "from": "function:neuroforge/internal/vector:HNSW.searchLayerLocked",
+@@ -65188,6 +65757,12 @@
+       "to": "file:platform/neuroforge/internal/store/sqar_vector.go",
+       "kind": "contains_file"
+     },
++    {
++      "id": "package:neuroforge/internal/store-\u003efile:platform/neuroforge/internal/store/startup_compact.go:contains_file",
++      "from": "package:neuroforge/internal/store",
++      "to": "file:platform/neuroforge/internal/store/startup_compact.go",
++      "kind": "contains_file"
++    },
+     {
+       "id": "package:neuroforge/internal/store-\u003efile:platform/neuroforge/internal/store/store.go:contains_file",
+       "from": "package:neuroforge/internal/store",
+@@ -66288,10 +66863,10 @@
+     }
+   ],
+   "meta": {
+-    "edges": 7210,
++    "edges": 7273,
+     "format_version": 1,
+     "generator": "go-ast+compose",
+     "modules": 4,
+-    "nodes": 1830
++    "nodes": 1845
+   }
+ }

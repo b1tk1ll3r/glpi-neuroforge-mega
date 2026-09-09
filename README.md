@@ -1,9 +1,17 @@
-# GLPI NeuroForge Mega v1.6.0
+# GLPI NeuroForge Mega v1.6.2
 
-> Release: **v1.6.0** · Durable Master/Subagent Orchestration + Knowledge-Graph Convergence: CPU-/GPU-Arbeit wird capability-basiert, lease-gefenced und persistent geplant; importierte Memories werden bounded zu einem n:m-Synapsengraphen verknüpft und Retrieval kann mehrere Hops traversieren.
+> Release: **v1.6.2** · kanonischer Vollrelease mit Full-Mega-, Distributed- und Standalone-Betriebsmodi. Die v1.6.1 Recovery/OOM-Härtung ist vollständig enthalten.
+
+v1.6.2 konsolidiert die zuvor getrennten Pakete wieder in **ein vollständiges Monorepo**: NeuroForge Master, CPU/GPU-Subagents, GLPI Agent, Knowledge, Control, Ollama, Research sowie eigenständig betreibbare Agent-/Knowledge-/Ollama-Core-Kits und Prometheus/Grafana-Beispiele.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
+
+## Crash-/Recovery-Hardening (seit v1.6.1, in v1.6.2 enthalten)
+
+Die in v1.6.1 eingeführte Härtung behebt einen RAM-/Recovery-Fehler, der bei großen Graph-Backfills nach mehreren Stunden Laufzeit auftreten konnte. Erfolgreiche `vector.relink`-Jobs verwerfen ihre großen transienten Vector-Payloads unmittelbar nach dem autoritativen Master-Apply; ein Queue-Payload-Budget verhindert neue ungebremste Speicherbelegung. Beim ersten Start migriert NeuroForge alte v1.6.0-Checkpoints streaming, bevor `state.json` vollständig in den RAM geladen wird.
+
+HNSW-Deltas werden nicht mehr über einen vollständigen Deep-Copy aller Vektoren erzeugt. Checkpoints persistieren den Index vor `state.json`, sodass ein Crash während der Indexpersistenz den autoritativen Checkpoint nicht vor den verwendbaren Index ziehen kann. Bei Containerstarts mit explizitem `-listen` ist sofort eine Bootstrap-Liveness-/Startup-Seite erreichbar; Logs zeigen die aktuelle Recovery-Phase (`checkpoint.precompact`, `memory-segments.scan`, `wal.replay`, `hnsw.snapshot.load`, `hnsw.rebuild`, ...).
 
 ## Research → Human-Review-Staging (v1.5.0)
 
@@ -25,6 +33,22 @@ Lokale Standardrollen:
 - `neuroforge-worker-gpu`: `gpu,model.chat,model.embed`
 
 Zusätzliche Hosts können mit `docker-compose.subagent.yml` angebunden werden. Das Control Center bleibt read-only und zeigt Master-, Worker-, Queue- und Graphzustand. Details: [`docs/MASTER-SUBAGENT-ORCHESTRATOR.md`](docs/MASTER-SUBAGENT-ORCHESTRATOR.md).
+
+
+## Deployment-Modi
+
+Das Repository enthält bewusst mehrere, voneinander entkoppelte Betriebsformen:
+
+- `docker-compose.yml`: vollständiger Mega-Stack mit lokalem CPU- und GPU-Worker.
+- `deployments/master`: autoritativer Master ohne lokale Worker, für getrennte CPU-/GPU-Hosts.
+- `deployments/cpu-subagent`: abgesetzter CPU-Worker für `cpu,vector.relink`.
+- `deployments/gpu-subagent`: abgesetzter GPU-Worker plus Ollama für `gpu,model.chat,model.embed`.
+- `deployments/agent`: GLPI Agent standalone mit lokalem Vector-Backend, ohne NeuroForge-Zwang.
+- `deployments/knowledge`: Knowledge standalone.
+- `deployments/ollama`: Ollama standalone.
+- `deployments/combined`: Agent + Knowledge + Ollama ohne NeuroForge.
+
+Details: [`deployments/README.md`](deployments/README.md).
 
 ## Unified Graph Explorer (v1.4.0)
 

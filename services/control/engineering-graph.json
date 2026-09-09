@@ -563,6 +563,16 @@
       }
     },
     {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "kind": "file",
+      "label": "startup_compact.go",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "path": "platform/neuroforge/internal/store/startup_compact.go"
+      }
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/store.go",
       "kind": "file",
       "label": "store.go",
@@ -9743,6 +9753,42 @@
       }
     },
     {
+      "id": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP",
+      "kind": "function",
+      "label": "bootstrapHandler.ServeHTTP",
+      "group": "engineering",
+      "community": "neuroforge/cmd/server",
+      "meta": {
+        "exported": true,
+        "line": 129,
+        "path": "platform/neuroforge/cmd/server/main.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/cmd/server:bootstrapHandler.SetHandler",
+      "kind": "function",
+      "label": "bootstrapHandler.SetHandler",
+      "group": "engineering",
+      "community": "neuroforge/cmd/server",
+      "meta": {
+        "exported": true,
+        "line": 122,
+        "path": "platform/neuroforge/cmd/server/main.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/cmd/server:bootstrapHandler.SetPhase",
+      "kind": "function",
+      "label": "bootstrapHandler.SetPhase",
+      "group": "engineering",
+      "community": "neuroforge/cmd/server",
+      "meta": {
+        "exported": true,
+        "line": 116,
+        "path": "platform/neuroforge/cmd/server/main.go"
+      }
+    },
+    {
       "id": "function:neuroforge/cmd/server:envBool",
       "kind": "function",
       "label": "envBool",
@@ -9750,7 +9796,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 26,
+        "line": 28,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9762,7 +9808,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 50,
+        "line": 52,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9774,7 +9820,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 38,
+        "line": 40,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9786,7 +9832,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 514,
+        "line": 623,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9798,7 +9844,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 104,
+        "line": 159,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9810,7 +9856,19 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 97,
+        "line": 99,
+        "path": "platform/neuroforge/cmd/server/main.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/cmd/server:newBootstrapHandler",
+      "kind": "function",
+      "label": "newBootstrapHandler",
+      "group": "engineering",
+      "community": "neuroforge/cmd/server",
+      "meta": {
+        "exported": false,
+        "line": 112,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9822,7 +9880,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 111,
+        "line": 166,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9834,7 +9892,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 62,
+        "line": 64,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9846,7 +9904,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 77,
+        "line": 79,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -12066,7 +12124,7 @@
       "community": "neuroforge/internal/core",
       "meta": {
         "exported": true,
-        "line": 740,
+        "line": 741,
         "path": "platform/neuroforge/internal/core/types.go"
       }
     },
@@ -14562,7 +14620,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 52,
+        "line": 56,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14574,7 +14632,19 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 650,
+        "line": 747,
+        "path": "platform/neuroforge/internal/store/store.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress",
+      "kind": "function",
+      "label": "NewWithProgress",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": true,
+        "line": 60,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14886,7 +14956,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 863,
+        "line": 960,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14910,7 +14980,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1312,
+        "line": 1409,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14934,7 +15004,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 735,
+        "line": 795,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -14946,7 +15016,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 389,
+        "line": 398,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -14958,7 +15028,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 393,
+        "line": 402,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -14970,7 +15040,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 652,
+        "line": 749,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15035,6 +15105,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
+      "kind": "function",
+      "label": "Store.CompactCompletedRelinkJobs",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": true,
+        "line": 780,
+        "path": "platform/neuroforge/internal/store/orchestrator.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/store:Store.CompactIndexSegments",
       "kind": "function",
       "label": "Store.CompactIndexSegments",
@@ -15042,7 +15124,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 439,
+        "line": 426,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -15054,7 +15136,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 668,
+        "line": 765,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15066,7 +15148,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 436,
+        "line": 445,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15078,7 +15160,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 440,
+        "line": 449,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15090,7 +15172,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 689,
+        "line": 786,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15114,7 +15196,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1157,
+        "line": 1254,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15126,7 +15208,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1109,
+        "line": 1206,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15162,7 +15244,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1357,
+        "line": 1454,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15210,7 +15292,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 91,
+        "line": 93,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15222,7 +15304,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 95,
+        "line": 97,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15234,7 +15316,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1378,
+        "line": 1475,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15246,7 +15328,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 686,
+        "line": 702,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15270,7 +15352,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 397,
+        "line": 411,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -15294,7 +15376,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 929,
+        "line": 1026,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15390,7 +15472,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 585,
+        "line": 594,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15402,7 +15484,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 294,
+        "line": 303,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15414,7 +15496,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 431,
+        "line": 418,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -15426,7 +15508,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 477,
+        "line": 464,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -15438,7 +15520,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 829,
+        "line": 889,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15450,7 +15532,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 499,
+        "line": 508,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15462,7 +15544,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 512,
+        "line": 521,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15534,7 +15616,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1252,
+        "line": 1349,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15546,7 +15628,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1210,
+        "line": 1307,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15570,7 +15652,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1229,
+        "line": 1326,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15618,7 +15700,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 598,
+        "line": 607,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15654,7 +15736,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 636,
+        "line": 652,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15666,7 +15748,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 654,
+        "line": 670,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15690,7 +15772,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 759,
+        "line": 819,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15738,7 +15820,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1344,
+        "line": 1441,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15762,7 +15844,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 284,
+        "line": 293,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15774,7 +15856,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1098,
+        "line": 1195,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15834,7 +15916,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 538,
+        "line": 547,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -15870,7 +15952,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 986,
+        "line": 1083,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15882,7 +15964,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1709,
+        "line": 1806,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15894,7 +15976,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1718,
+        "line": 1815,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15906,7 +15988,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 746,
+        "line": 843,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15918,7 +16000,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 680,
+        "line": 777,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15942,7 +16024,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1185,
+        "line": 1282,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15954,7 +16036,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1196,
+        "line": 1293,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16002,7 +16084,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1265,
+        "line": 1362,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16038,7 +16120,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1242,
+        "line": 1339,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16074,7 +16156,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1133,
+        "line": 1230,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16098,7 +16180,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 690,
+        "line": 787,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16110,7 +16192,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1258,
+        "line": 1355,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16122,7 +16204,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 753,
+        "line": 850,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16182,7 +16264,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1328,
+        "line": 1425,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16194,7 +16276,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1396,
+        "line": 1493,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16218,7 +16300,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 403,
+        "line": 417,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16230,7 +16312,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 559,
+        "line": 568,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -16302,7 +16384,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 323,
+        "line": 331,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16343,6 +16425,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
+      "kind": "function",
+      "label": "Store.compactCompletedRelinkJobsLocked",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 764,
+        "path": "platform/neuroforge/internal/store/orchestrator.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/store:Store.currentSnapshotsLocked",
       "kind": "function",
       "label": "Store.currentSnapshotsLocked",
@@ -16374,7 +16468,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 214,
+        "line": 223,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -16410,7 +16504,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 940,
+        "line": 1037,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16434,7 +16528,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 370,
+        "line": 357,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -16506,7 +16600,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 383,
+        "line": 397,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16518,7 +16612,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 615,
+        "line": 655,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16530,7 +16624,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 396,
+        "line": 383,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -16542,7 +16636,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 299,
+        "line": 286,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -16566,7 +16660,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 771,
+        "line": 868,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16578,7 +16672,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 325,
+        "line": 334,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -16614,7 +16708,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 635,
+        "line": 732,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16626,7 +16720,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 638,
+        "line": 735,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16638,7 +16732,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 354,
+        "line": 368,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16650,7 +16744,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 776,
+        "line": 873,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16662,7 +16756,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 813,
+        "line": 910,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16698,7 +16792,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 244,
+        "line": 253,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -16746,7 +16840,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 992,
+        "line": 1089,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16830,7 +16924,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1402,
+        "line": 1499,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16866,7 +16960,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 451,
+        "line": 438,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -16878,7 +16972,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 376,
+        "line": 390,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16890,7 +16984,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 388,
+        "line": 375,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -17070,7 +17164,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 267,
+        "line": 254,
         "path": "platform/neuroforge/internal/store/index_segments.go"
       }
     },
@@ -17082,7 +17176,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 217,
+        "line": 254,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17130,7 +17224,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 75,
+        "line": 77,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -17166,7 +17260,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 965,
+        "line": 1062,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17202,7 +17296,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 763,
+        "line": 860,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17216,6 +17310,30 @@
         "exported": false,
         "line": 63,
         "path": "platform/neuroforge/internal/store/raftlog.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "kind": "function",
+      "label": "compactLegacyTerminalRelinkCheckpoint",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 25,
+        "path": "platform/neuroforge/internal/store/startup_compact.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:copyJSONValue",
+      "kind": "function",
+      "label": "copyJSONValue",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 209,
+        "path": "platform/neuroforge/internal/store/startup_compact.go"
       }
     },
     {
@@ -17262,7 +17380,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1091,
+        "line": 1188,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17382,7 +17500,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 602,
+        "line": 642,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17454,7 +17572,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 380,
+        "line": 389,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -17514,7 +17632,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 393,
+        "line": 407,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -17538,7 +17656,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 563,
+        "line": 603,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17574,7 +17692,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 60,
+        "line": 62,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -17670,7 +17788,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1102,
+        "line": 1199,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17754,7 +17872,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 642,
+        "line": 739,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17780,6 +17898,30 @@
         "exported": false,
         "line": 141,
         "path": "platform/neuroforge/internal/store/sqar_vector.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "kind": "function",
+      "label": "rewriteCheckpointObject",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 86,
+        "path": "platform/neuroforge/internal/store/startup_compact.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteJobsObject",
+      "kind": "function",
+      "label": "rewriteJobsObject",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 148,
+        "path": "platform/neuroforge/internal/store/startup_compact.go"
       }
     },
     {
@@ -17886,7 +18028,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 235,
+        "line": 244,
         "path": "platform/neuroforge/internal/store/orchestrator.go"
       }
     },
@@ -17898,7 +18040,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 623,
+        "line": 680,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -18011,6 +18153,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/vector:HNSW.Delta",
+      "kind": "function",
+      "label": "HNSW.Delta",
+      "group": "engineering",
+      "community": "neuroforge/internal/vector",
+      "meta": {
+        "exported": true,
+        "line": 744,
+        "path": "platform/neuroforge/internal/vector/hnsw.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/vector:HNSW.Len",
       "kind": "function",
       "label": "HNSW.Len",
@@ -18042,7 +18196,7 @@
       "community": "neuroforge/internal/vector",
       "meta": {
         "exported": true,
-        "line": 682,
+        "line": 726,
         "path": "platform/neuroforge/internal/vector/hnsw.go"
       }
     },
@@ -18066,7 +18220,7 @@
       "community": "neuroforge/internal/vector",
       "meta": {
         "exported": true,
-        "line": 733,
+        "line": 785,
         "path": "platform/neuroforge/internal/vector/hnsw.go"
       }
     },
@@ -18107,6 +18261,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "kind": "function",
+      "label": "HNSW.nodeFingerprintLocked",
+      "group": "engineering",
+      "community": "neuroforge/internal/vector",
+      "meta": {
+        "exported": false,
+        "line": 682,
+        "path": "platform/neuroforge/internal/vector/hnsw.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/vector:HNSW.pruneLocked",
       "kind": "function",
       "label": "HNSW.pruneLocked",
@@ -18127,6 +18293,18 @@
       "meta": {
         "exported": false,
         "line": 302,
+        "path": "platform/neuroforge/internal/vector/hnsw.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.snapshotNodeLocked",
+      "kind": "function",
+      "label": "HNSW.snapshotNodeLocked",
+      "group": "engineering",
+      "community": "neuroforge/internal/vector",
+      "meta": {
+        "exported": false,
+        "line": 708,
         "path": "platform/neuroforge/internal/vector/hnsw.go"
       }
     },
@@ -18270,7 +18448,7 @@
       "community": "neuroforge/internal/vector",
       "meta": {
         "exported": true,
-        "line": 785,
+        "line": 837,
         "path": "platform/neuroforge/internal/vector/hnsw.go"
       }
     },
@@ -18678,7 +18856,7 @@
       "community": "neuroforge/internal/vector",
       "meta": {
         "exported": false,
-        "line": 718,
+        "line": 770,
         "path": "platform/neuroforge/internal/vector/hnsw.go"
       }
     },
@@ -18690,7 +18868,7 @@
       "community": "neuroforge/internal/vector",
       "meta": {
         "exported": false,
-        "line": 722,
+        "line": 774,
         "path": "platform/neuroforge/internal/vector/hnsw.go"
       }
     },
@@ -20924,7 +21102,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -20935,7 +21113,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-agent-data-init:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -20946,7 +21124,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -20957,7 +21135,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -20968,7 +21146,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -20979,7 +21157,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -20990,7 +21168,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.0}"
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
       }
     },
     {
@@ -21330,6 +21508,24 @@
       "kind": "imports"
     },
     {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:bootstrapHandler.ServeHTTP:defines",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetHandler:defines",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetHandler",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetPhase:defines",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetPhase",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:envBool:defines",
       "from": "file:platform/neuroforge/cmd/server/main.go",
       "to": "function:neuroforge/cmd/server:envBool",
@@ -21363,6 +21559,12 @@
       "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:maxIntMain:defines",
       "from": "file:platform/neuroforge/cmd/server/main.go",
       "to": "function:neuroforge/cmd/server:maxIntMain",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003efunction:neuroforge/cmd/server:newBootstrapHandler:defines",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "function:neuroforge/cmd/server:newBootstrapHandler",
       "kind": "defines"
     },
     {
@@ -21417,6 +21619,12 @@
       "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:net/http:imports",
       "from": "file:platform/neuroforge/cmd/server/main.go",
       "to": "package:net/http",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:net:imports",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "package:net",
       "kind": "imports"
     },
     {
@@ -21483,6 +21691,12 @@
       "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:strings:imports",
       "from": "file:platform/neuroforge/cmd/server/main.go",
       "to": "package:strings",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/cmd/server/main.go-\u003epackage:sync:imports",
+      "from": "file:platform/neuroforge/cmd/server/main.go",
+      "to": "package:sync",
       "kind": "imports"
     },
     {
@@ -26136,6 +26350,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.CompactCompletedRelinkJobs:defines",
+      "from": "file:platform/neuroforge/internal/store/orchestrator.go",
+      "to": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.CompleteJob:defines",
       "from": "file:platform/neuroforge/internal/store/orchestrator.go",
       "to": "function:neuroforge/internal/store:Store.CompleteJob",
@@ -26235,6 +26455,12 @@
       "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.WorkersSnapshot:defines",
       "from": "file:platform/neuroforge/internal/store/orchestrator.go",
       "to": "function:neuroforge/internal/store:Store.WorkersSnapshot",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/orchestrator.go-\u003efunction:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked:defines",
+      "from": "file:platform/neuroforge/internal/store/orchestrator.go",
+      "to": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
       "kind": "defines"
     },
     {
@@ -27126,6 +27352,78 @@
       "kind": "imports"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint:defines",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:copyJSONValue:defines",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "function:neuroforge/internal/store:copyJSONValue",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:rewriteCheckpointObject:defines",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003efunction:neuroforge/internal/store:rewriteJobsObject:defines",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "function:neuroforge/internal/store:rewriteJobsObject",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:bufio:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:bufio",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:encoding/json:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:encoding/json",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:errors:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:errors",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:fmt:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:fmt",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:io:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:io",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:neuroforge/internal/core:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:neuroforge/internal/core",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:os:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:os",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/startup_compact.go-\u003epackage:path/filepath:imports",
+      "from": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "to": "package:path/filepath",
+      "kind": "imports"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/store.go-\u003efunction:neuroforge/internal/store:New:defines",
       "from": "file:platform/neuroforge/internal/store/store.go",
       "to": "function:neuroforge/internal/store:New",
@@ -27135,6 +27433,12 @@
       "id": "file:platform/neuroforge/internal/store/store.go-\u003efunction:neuroforge/internal/store:NewID:defines",
       "from": "file:platform/neuroforge/internal/store/store.go",
       "to": "function:neuroforge/internal/store:NewID",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/store.go-\u003efunction:neuroforge/internal/store:NewWithProgress:defines",
+      "from": "file:platform/neuroforge/internal/store/store.go",
+      "to": "function:neuroforge/internal/store:NewWithProgress",
       "kind": "defines"
     },
     {
@@ -27426,6 +27730,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:bufio:imports",
+      "from": "file:platform/neuroforge/internal/store/store.go",
+      "to": "package:bufio",
+      "kind": "imports"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:crypto/rand:imports",
       "from": "file:platform/neuroforge/internal/store/store.go",
       "to": "package:crypto/rand",
@@ -27453,6 +27763,12 @@
       "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:fmt:imports",
       "from": "file:platform/neuroforge/internal/store/store.go",
       "to": "package:fmt",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:io:imports",
+      "from": "file:platform/neuroforge/internal/store/store.go",
+      "to": "package:io",
       "kind": "imports"
     },
     {
@@ -28110,6 +28426,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.Delta:defines",
+      "from": "file:platform/neuroforge/internal/vector/hnsw.go",
+      "to": "function:neuroforge/internal/vector:HNSW.Delta",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.Len:defines",
       "from": "file:platform/neuroforge/internal/vector/hnsw.go",
       "to": "function:neuroforge/internal/vector:HNSW.Len",
@@ -28158,6 +28480,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.nodeFingerprintLocked:defines",
+      "from": "file:platform/neuroforge/internal/vector/hnsw.go",
+      "to": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.pruneLocked:defines",
       "from": "file:platform/neuroforge/internal/vector/hnsw.go",
       "to": "function:neuroforge/internal/vector:HNSW.pruneLocked",
@@ -28167,6 +28495,12 @@
       "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.searchLayerLocked:defines",
       "from": "file:platform/neuroforge/internal/vector/hnsw.go",
       "to": "function:neuroforge/internal/vector:HNSW.searchLayerLocked",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/vector/hnsw.go-\u003efunction:neuroforge/internal/vector:HNSW.snapshotNodeLocked:defines",
+      "from": "file:platform/neuroforge/internal/vector/hnsw.go",
+      "to": "function:neuroforge/internal/vector:HNSW.snapshotNodeLocked",
       "kind": "defines"
     },
     {
@@ -49275,6 +49609,13 @@
       "label": "Sqrt"
     },
     {
+      "id": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/cmd/server:bootstrapHandler.ServeHTTP",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Fprintf"
+    },
+    {
       "id": "function:neuroforge/cmd/server:envBool-\u003epackage:os:calls_package",
       "from": "function:neuroforge/cmd/server:envBool",
       "to": "package:os",
@@ -49365,6 +49706,18 @@
       "label": "Exit"
     },
     {
+      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetHandler:calls",
+      "from": "function:neuroforge/cmd/server:run",
+      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetHandler",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:bootstrapHandler.SetPhase:calls",
+      "from": "function:neuroforge/cmd/server:run",
+      "to": "function:neuroforge/cmd/server:bootstrapHandler.SetPhase",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:envBool:calls",
       "from": "function:neuroforge/cmd/server:run",
       "to": "function:neuroforge/cmd/server:envBool",
@@ -49395,6 +49748,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:newBootstrapHandler:calls",
+      "from": "function:neuroforge/cmd/server:run",
+      "to": "function:neuroforge/cmd/server:newBootstrapHandler",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/cmd/server:run-\u003efunction:neuroforge/cmd/server:validateManagedSecretsFromEnv:calls",
       "from": "function:neuroforge/cmd/server:run",
       "to": "function:neuroforge/cmd/server:validateManagedSecretsFromEnv",
@@ -49405,7 +49764,7 @@
       "from": "function:neuroforge/cmd/server:run",
       "to": "package:context",
       "kind": "calls_package",
-      "label": "Background"
+      "label": "WithTimeout"
     },
     {
       "id": "function:neuroforge/cmd/server:run-\u003epackage:errors:calls_package",
@@ -49436,11 +49795,25 @@
       "label": "Printf"
     },
     {
+      "id": "function:neuroforge/cmd/server:run-\u003epackage:net:calls_package",
+      "from": "function:neuroforge/cmd/server:run",
+      "to": "package:net",
+      "kind": "calls_package",
+      "label": "Listen"
+    },
+    {
       "id": "function:neuroforge/cmd/server:run-\u003epackage:neuroforge/internal/brain:calls_package",
       "from": "function:neuroforge/cmd/server:run",
       "to": "package:neuroforge/internal/brain",
       "kind": "calls_package",
       "label": "New"
+    },
+    {
+      "id": "function:neuroforge/cmd/server:run-\u003epackage:neuroforge/internal/core:calls_package",
+      "from": "function:neuroforge/cmd/server:run",
+      "to": "package:neuroforge/internal/core",
+      "kind": "calls_package",
+      "label": "DefaultConfig"
     },
     {
       "id": "function:neuroforge/cmd/server:run-\u003epackage:neuroforge/internal/cost:calls_package",
@@ -49468,7 +49841,7 @@
       "from": "function:neuroforge/cmd/server:run",
       "to": "package:neuroforge/internal/store",
       "kind": "calls_package",
-      "label": "New"
+      "label": "NewWithProgress"
     },
     {
       "id": "function:neuroforge/cmd/server:run-\u003epackage:os/signal:calls_package",
@@ -57100,191 +57473,215 @@
       "label": "Base"
     },
     {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:SegmentStore.ConsumeMetadata:calls",
+      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:NewWithProgress:calls",
       "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:SegmentStore.ConsumeMetadata",
+      "to": "function:neuroforge/internal/store:NewWithProgress",
       "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:SegmentStore.HasRecords:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:SegmentStore.HasRecords",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:SegmentStore.Rebuild:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:SegmentStore.Rebuild",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.checkpointLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.checkpointLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.initHotTrackerLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.initHotTrackerLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.initializeClusterRoleLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.initializeClusterRoleLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.loadDiskANNLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.loadDiskANNLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.loadIndexSnapshotLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.loadIndexSnapshotLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.loadJSON",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.persistSecretsLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.persistSecretsLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.rebuildIndexesLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.rebuildIndexesLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.rebuildSynapseAdjLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.rebuildSynapseAdjLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.replayWAL:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.replayWAL",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:Store.tierMemoryBodiesLocked:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:Store.tierMemoryBodiesLocked",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:applyNewDefaults:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:applyNewDefaults",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:migrateMemories:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:migrateMemories",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:newMemoryPageCache:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:newMemoryPageCache",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:openSegmentStore:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:openSegmentStore",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:openVectorJournal:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:openVectorJournal",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:randomID:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:randomID",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003efunction:neuroforge/internal/store:vectorJournalOptionsFromConfig:calls",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "function:neuroforge/internal/store:vectorJournalOptionsFromConfig",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:errors:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:errors",
-      "kind": "calls_package",
-      "label": "New"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:fmt:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:fmt",
-      "kind": "calls_package",
-      "label": "Sprint"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:neuroforge/internal/core:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:neuroforge/internal/core",
-      "kind": "calls_package",
-      "label": "DefaultConfig"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:os:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:os",
-      "kind": "calls_package",
-      "label": "MkdirAll"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:path/filepath:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:path/filepath",
-      "kind": "calls_package",
-      "label": "Join"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:strings:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:strings",
-      "kind": "calls_package",
-      "label": "TrimSpace"
-    },
-    {
-      "id": "function:neuroforge/internal/store:New-\u003epackage:time:calls_package",
-      "from": "function:neuroforge/internal/store:New",
-      "to": "package:time",
-      "kind": "calls_package",
-      "label": "Now"
     },
     {
       "id": "function:neuroforge/internal/store:NewID-\u003efunction:neuroforge/internal/store:randomID:calls",
       "from": "function:neuroforge/internal/store:NewID",
       "to": "function:neuroforge/internal/store:randomID",
       "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:New:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:New",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:SegmentStore.ConsumeMetadata:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:SegmentStore.ConsumeMetadata",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:SegmentStore.HasRecords:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:SegmentStore.HasRecords",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:SegmentStore.Rebuild:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.checkpointLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.checkpointLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.initHotTrackerLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.initHotTrackerLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.initializeClusterRoleLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.initializeClusterRoleLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.loadDiskANNLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.loadDiskANNLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.loadIndexSnapshotLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.loadIndexSnapshotLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.loadJSON",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.persistSecretsLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.persistSecretsLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.rebuildIndexesLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.rebuildIndexesLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.rebuildProvenanceSourceIndexLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.rebuildSynapseAdjLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.rebuildSynapseAdjLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.replayWAL:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.replayWAL",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:Store.tierMemoryBodiesLocked:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:Store.tierMemoryBodiesLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:applyNewDefaults:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:applyNewDefaults",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:migrateMemories:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:migrateMemories",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:newMemoryPageCache:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:newMemoryPageCache",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:openSegmentStore:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:openSegmentStore",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:openVectorJournal:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:openVectorJournal",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:randomID:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:randomID",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003efunction:neuroforge/internal/store:vectorJournalOptionsFromConfig:calls",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "function:neuroforge/internal/store:vectorJournalOptionsFromConfig",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:errors:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:errors",
+      "kind": "calls_package",
+      "label": "Is"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:neuroforge/internal/core:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:neuroforge/internal/core",
+      "kind": "calls_package",
+      "label": "DefaultConfig"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:os:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "MkdirAll"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:path/filepath:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Join"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
+    },
+    {
+      "id": "function:neuroforge/internal/store:NewWithProgress-\u003epackage:time:calls_package",
+      "from": "function:neuroforge/internal/store:NewWithProgress",
+      "to": "package:time",
+      "kind": "calls_package",
+      "label": "Now"
     },
     {
       "id": "function:neuroforge/internal/store:SegmentStore.AppendDelete-\u003efunction:neuroforge/internal/store:ClusterLog.append:calls",
@@ -58165,6 +58562,18 @@
       "to": "package:time",
       "kind": "calls_package",
       "label": "Now"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs-\u003efunction:neuroforge/internal/store:Store.checkpointLocked:calls",
+      "from": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
+      "to": "function:neuroforge/internal/store:Store.checkpointLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs-\u003efunction:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked:calls",
+      "from": "function:neuroforge/internal/store:Store.CompactCompletedRelinkJobs",
+      "to": "function:neuroforge/internal/store:Store.compactCompletedRelinkJobsLocked",
+      "kind": "calls"
     },
     {
       "id": "function:neuroforge/internal/store:Store.CompactIndexSegments-\u003efunction:neuroforge/internal/store:Store.IndexSnapshotStatusUnlocked:calls",
@@ -60944,18 +61353,45 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
+      "from": "function:neuroforge/internal/store:Store.loadJSON",
+      "to": "function:neuroforge/internal/store:ClusterLog.Close",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:bufio:calls_package",
+      "from": "function:neuroforge/internal/store:Store.loadJSON",
+      "to": "package:bufio",
+      "kind": "calls_package",
+      "label": "NewReaderSize"
+    },
+    {
       "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:encoding/json:calls_package",
       "from": "function:neuroforge/internal/store:Store.loadJSON",
       "to": "package:encoding/json",
       "kind": "calls_package",
-      "label": "Unmarshal"
+      "label": "NewDecoder"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:Store.loadJSON",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
     },
     {
       "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:os:calls_package",
       "from": "function:neuroforge/internal/store:Store.loadJSON",
       "to": "package:os",
       "kind": "calls_package",
-      "label": "ReadFile"
+      "label": "Open"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.loadJSON-\u003epackage:path/filepath:calls_package",
+      "from": "function:neuroforge/internal/store:Store.loadJSON",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Base"
     },
     {
       "id": "function:neuroforge/internal/store:Store.loadLegacyIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
@@ -61732,12 +62168,6 @@
       "kind": "calls"
     },
     {
-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:Store.currentSnapshotsLocked:calls",
-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
-      "to": "function:neuroforge/internal/store:Store.currentSnapshotsLocked",
-      "kind": "calls"
-    },
-    {
       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:Store.loadJSON:calls",
       "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
       "to": "function:neuroforge/internal/store:Store.loadJSON",
@@ -61756,21 +62186,9 @@
       "kind": "calls"
     },
     {
-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:buildIndexShadow:calls",
-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
-      "to": "function:neuroforge/internal/store:buildIndexShadow",
-      "kind": "calls"
-    },
-    {
       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:cleanupOldIndexBases:calls",
       "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
       "to": "function:neuroforge/internal/store:cleanupOldIndexBases",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003efunction:neuroforge/internal/store:hashSnapshotNode:calls",
-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
-      "to": "function:neuroforge/internal/store:hashSnapshotNode",
       "kind": "calls"
     },
     {
@@ -61805,13 +62223,6 @@
       "to": "package:path/filepath",
       "kind": "calls_package",
       "label": "Join"
-    },
-    {
-      "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003epackage:sort:calls_package",
-      "from": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked",
-      "to": "package:sort",
-      "kind": "calls_package",
-      "label": "Strings"
     },
     {
       "id": "function:neuroforge/internal/store:Store.writeSegmentedIndexSnapshotLocked-\u003epackage:strconv:calls_package",
@@ -62286,6 +62697,74 @@
       "label": "Sprintf"
     },
     {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "function:neuroforge/internal/store:ClusterLog.Close",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003efunction:neuroforge/internal/store:rewriteCheckpointObject:calls",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:bufio:calls_package",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "package:bufio",
+      "kind": "calls_package",
+      "label": "NewReaderSize"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:encoding/json:calls_package",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "NewDecoder"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:errors:calls_package",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "package:errors",
+      "kind": "calls_package",
+      "label": "Is"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Sprintf"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:os:calls_package",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "Stat"
+    },
+    {
+      "id": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint-\u003epackage:path/filepath:calls_package",
+      "from": "function:neuroforge/internal/store:compactLegacyTerminalRelinkCheckpoint",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Join"
+    },
+    {
+      "id": "function:neuroforge/internal/store:copyJSONValue-\u003epackage:encoding/json:calls_package",
+      "from": "function:neuroforge/internal/store:copyJSONValue",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "Marshal"
+    },
+    {
+      "id": "function:neuroforge/internal/store:copyJSONValue-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:copyJSONValue",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
+    },
+    {
       "id": "function:neuroforge/internal/store:decodeVectorPayload-\u003efunction:neuroforge/internal/store:ClusterLog.append:calls",
       "from": "function:neuroforge/internal/store:decodeVectorPayload",
       "to": "function:neuroforge/internal/store:ClusterLog.append",
@@ -62716,6 +63195,51 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003efunction:neuroforge/internal/store:New:calls",
+      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "to": "function:neuroforge/internal/store:New",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003efunction:neuroforge/internal/store:copyJSONValue:calls",
+      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "to": "function:neuroforge/internal/store:copyJSONValue",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003efunction:neuroforge/internal/store:rewriteJobsObject:calls",
+      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "to": "function:neuroforge/internal/store:rewriteJobsObject",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003epackage:encoding/json:calls_package",
+      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "Marshal"
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteCheckpointObject-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:rewriteCheckpointObject",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteJobsObject-\u003efunction:neuroforge/internal/store:New:calls",
+      "from": "function:neuroforge/internal/store:rewriteJobsObject",
+      "to": "function:neuroforge/internal/store:New",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:rewriteJobsObject-\u003epackage:encoding/json:calls_package",
+      "from": "function:neuroforge/internal/store:rewriteJobsObject",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "Marshal"
+    },
+    {
       "id": "function:neuroforge/internal/store:segmentName-\u003epackage:fmt:calls_package",
       "from": "function:neuroforge/internal/store:segmentName",
       "to": "package:fmt",
@@ -62822,18 +63346,38 @@
       "label": "ToLower"
     },
     {
+      "id": "function:neuroforge/internal/store:writeAtomic-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
+      "from": "function:neuroforge/internal/store:writeAtomic",
+      "to": "function:neuroforge/internal/store:ClusterLog.Close",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:bufio:calls_package",
+      "from": "function:neuroforge/internal/store:writeAtomic",
+      "to": "package:bufio",
+      "kind": "calls_package",
+      "label": "NewWriterSize"
+    },
+    {
       "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:encoding/json:calls_package",
       "from": "function:neuroforge/internal/store:writeAtomic",
       "to": "package:encoding/json",
       "kind": "calls_package",
-      "label": "MarshalIndent"
+      "label": "NewEncoder"
     },
     {
       "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:os:calls_package",
       "from": "function:neuroforge/internal/store:writeAtomic",
       "to": "package:os",
       "kind": "calls_package",
-      "label": "WriteFile"
+      "label": "Remove"
+    },
+    {
+      "id": "function:neuroforge/internal/store:writeAtomic-\u003epackage:path/filepath:calls_package",
+      "from": "function:neuroforge/internal/store:writeAtomic",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Dir"
     },
     {
       "id": "function:neuroforge/internal/store:writeHNSWAtomic-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
@@ -63029,6 +63573,25 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/vector:HNSW.Delta-\u003efunction:neuroforge/internal/vector:HNSW.nodeFingerprintLocked:calls",
+      "from": "function:neuroforge/internal/vector:HNSW.Delta",
+      "to": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.Delta-\u003efunction:neuroforge/internal/vector:HNSW.snapshotNodeLocked:calls",
+      "from": "function:neuroforge/internal/vector:HNSW.Delta",
+      "to": "function:neuroforge/internal/vector:HNSW.snapshotNodeLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.Delta-\u003epackage:sort:calls_package",
+      "from": "function:neuroforge/internal/vector:HNSW.Delta",
+      "to": "package:sort",
+      "kind": "calls_package",
+      "label": "Strings"
+    },
+    {
       "id": "function:neuroforge/internal/vector:HNSW.Search-\u003efunction:neuroforge/internal/vector:HNSW.Add:calls",
       "from": "function:neuroforge/internal/vector:HNSW.Search",
       "to": "function:neuroforge/internal/vector:HNSW.Add",
@@ -63121,30 +63684,10 @@
       "label": "Slice"
     },
     {
-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003efunction:neuroforge/internal/vector:writeHashString:calls",
+      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003efunction:neuroforge/internal/vector:HNSW.nodeFingerprintLocked:calls",
       "from": "function:neuroforge/internal/vector:HNSW.Shadow",
-      "to": "function:neuroforge/internal/vector:writeHashString",
+      "to": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
       "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003efunction:neuroforge/internal/vector:writeHashU32:calls",
-      "from": "function:neuroforge/internal/vector:HNSW.Shadow",
-      "to": "function:neuroforge/internal/vector:writeHashU32",
-      "kind": "calls"
-    },
-    {
-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003epackage:crypto/sha256:calls_package",
-      "from": "function:neuroforge/internal/vector:HNSW.Shadow",
-      "to": "package:crypto/sha256",
-      "kind": "calls_package",
-      "label": "New"
-    },
-    {
-      "id": "function:neuroforge/internal/vector:HNSW.Shadow-\u003epackage:math:calls_package",
-      "from": "function:neuroforge/internal/vector:HNSW.Shadow",
-      "to": "package:math",
-      "kind": "calls_package",
-      "label": "Float32bits"
     },
     {
       "id": "function:neuroforge/internal/vector:HNSW.Snapshot-\u003epackage:sort:calls_package",
@@ -63229,6 +63772,32 @@
       "to": "package:math",
       "kind": "calls_package",
       "label": "Log"
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003efunction:neuroforge/internal/vector:writeHashString:calls",
+      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "to": "function:neuroforge/internal/vector:writeHashString",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003efunction:neuroforge/internal/vector:writeHashU32:calls",
+      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "to": "function:neuroforge/internal/vector:writeHashU32",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003epackage:crypto/sha256:calls_package",
+      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "to": "package:crypto/sha256",
+      "kind": "calls_package",
+      "label": "New"
+    },
+    {
+      "id": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked-\u003epackage:math:calls_package",
+      "from": "function:neuroforge/internal/vector:HNSW.nodeFingerprintLocked",
+      "to": "package:math",
+      "kind": "calls_package",
+      "label": "Float32bits"
     },
     {
       "id": "function:neuroforge/internal/vector:HNSW.searchLayerLocked-\u003efunction:neuroforge/internal/vector:dotNormalized:calls",
@@ -65189,6 +65758,12 @@
       "kind": "contains_file"
     },
     {
+      "id": "package:neuroforge/internal/store-\u003efile:platform/neuroforge/internal/store/startup_compact.go:contains_file",
+      "from": "package:neuroforge/internal/store",
+      "to": "file:platform/neuroforge/internal/store/startup_compact.go",
+      "kind": "contains_file"
+    },
+    {
       "id": "package:neuroforge/internal/store-\u003efile:platform/neuroforge/internal/store/store.go:contains_file",
       "from": "package:neuroforge/internal/store",
       "to": "file:platform/neuroforge/internal/store/store.go",
@@ -66288,10 +66863,10 @@
     }
   ],
   "meta": {
-    "edges": 7210,
+    "edges": 7273,
     "format_version": 1,
     "generator": "go-ast+compose",
     "modules": 4,
-    "nodes": 1830
+    "nodes": 1845
   }
 }

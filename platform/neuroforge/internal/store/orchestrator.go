@@ -43,18 +43,20 @@ type WorkerHeartbeat struct {
 }
 
 type OrchestratorStatus struct {
-	Workers        []core.WorkerState `json:"workers"`
-	JobsByStatus   map[string]int     `json:"jobs_by_status"`
-	JobsByType     map[string]int     `json:"jobs_by_type"`
-	JobsByResource map[string]int     `json:"jobs_by_resource"`
-	OldestQueued   time.Time          `json:"oldest_queued,omitempty"`
-	Queued         int                `json:"queued"`
-	Claimed        int                `json:"claimed"`
-	Retrying       int                `json:"retrying"`
-	Applying       int                `json:"applying"`
-	Blocked        int                `json:"blocked"`
-	Failed         int                `json:"failed"`
-	Done           int                `json:"done"`
+	Workers              []core.WorkerState `json:"workers"`
+	JobsByStatus         map[string]int     `json:"jobs_by_status"`
+	JobsByType           map[string]int     `json:"jobs_by_type"`
+	JobsByResource       map[string]int     `json:"jobs_by_resource"`
+	OldestQueued         time.Time          `json:"oldest_queued,omitempty"`
+	Queued               int                `json:"queued"`
+	Claimed              int                `json:"claimed"`
+	Retrying             int                `json:"retrying"`
+	Applying             int                `json:"applying"`
+	Blocked              int                `json:"blocked"`
+	Failed               int                `json:"failed"`
+	Done                 int                `json:"done"`
+	PendingPayloadBytes  int64              `json:"pending_payload_bytes"`
+	TerminalPayloadBytes int64              `json:"terminal_payload_bytes"`
 }
 
 func normalizeCapabilities(in []string) []string {
@@ -104,15 +106,22 @@ func (s *Store) EnqueueJobSpec(spec JobSpec) (*core.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	cfg := s.state.Config.Worker
-	if cfg.MaxQueuedJobs > 0 {
-		pending := 0
-		for _, j := range s.state.Jobs {
-			if j != nil && (j.Status == "queued" || j.Status == "claimed" || j.Status == "retry_wait" || j.Status == "blocked" || j.Status == "apply_wait") {
-				pending++
-			}
+	pending := 0
+	var pendingPayloadBytes int64
+	for _, j := range s.state.Jobs {
+		if j == nil || (j.Status != "queued" && j.Status != "claimed" && j.Status != "retry_wait" && j.Status != "blocked" && j.Status != "apply_wait") {
+			continue
 		}
-		if pending >= cfg.MaxQueuedJobs {
-			return nil, fmt.Errorf("orchestrator queue full: %d >= %d", pending, cfg.MaxQueuedJobs)
+		pending++
+		pendingPayloadBytes += int64(len(j.Payload) + len(j.Result))
+	}
+	if cfg.MaxQueuedJobs > 0 && pending >= cfg.MaxQueuedJobs {
+		return nil, fmt.Errorf("orchestrator queue full: %d >= %d", pending, cfg.MaxQueuedJobs)
+	}
+	if cfg.MaxQueuedPayloadMB > 0 {
+		limit := int64(cfg.MaxQueuedPayloadMB) << 20
+		if pendingPayloadBytes+int64(len(b)) > limit {
+			return nil, fmt.Errorf("orchestrator queued payload budget exceeded: %d + %d > %d bytes", pendingPayloadBytes, len(b), limit)
 		}
 	}
 	if key := strings.TrimSpace(spec.IdempotencyKey); key != "" {
@@ -603,6 +612,13 @@ func (s *Store) OrchestratorStatus() OrchestratorStatus {
 		if j == nil {
 			continue
 		}
+		payloadBytes := int64(len(j.Payload) + len(j.Result))
+		switch j.Status {
+		case "queued", "claimed", "retry_wait", "blocked", "apply_wait":
+			out.PendingPayloadBytes += payloadBytes
+		case "done", "failed", "canceled":
+			out.TerminalPayloadBytes += payloadBytes
+		}
 		out.JobsByStatus[j.Status]++
 		out.JobsByType[j.Type]++
 		resource := j.ResourceClass
@@ -701,6 +717,15 @@ func (s *Store) FinishMasterApply(id string, applyErr error) (*core.Job, error) 
 		j.ApplyError = ""
 		j.ApplyNextAttemptAt = time.Time{}
 		j.FinishedAt = now
+		// vector.relink payloads contain the target plus a bounded set of full
+		// candidate vectors. Once the authoritative master apply succeeded these
+		// blobs have no retry value and retaining thousands of them can consume
+		// gigabytes during a large graph backfill. Keep the durable audit metadata
+		// (type/idempotency/status/timestamps) but release the transient vectors.
+		if j.Type == "vector.relink" {
+			j.Payload = nil
+			j.Result = nil
+		}
 	} else {
 		j.ApplyError = strings.TrimSpace(applyErr.Error())
 		maxAttempts := j.MaxApplyAttempts
@@ -730,6 +755,41 @@ func (s *Store) FinishMasterApply(id string, applyErr error) (*core.Job, error) 
 	}
 	cp := *j
 	return &cp, s.commitLocked("job.upsert", cp)
+}
+
+// compactCompletedRelinkJobsLocked removes transient vector blobs from jobs
+// that already reached their durable terminal state. It is also used on boot to
+// migrate v1.6.0 checkpoints that may contain thousands of completed backfill
+// payloads. Caller must hold s.mu.
+func (s *Store) compactCompletedRelinkJobsLocked() int {
+	n := 0
+	for _, j := range s.state.Jobs {
+		if j == nil || j.Type != "vector.relink" || j.Status != "done" {
+			continue
+		}
+		if len(j.Payload) == 0 && len(j.Result) == 0 {
+			continue
+		}
+		j.Payload = nil
+		j.Result = nil
+		n++
+	}
+	return n
+}
+
+func (s *Store) CompactCompletedRelinkJobs() (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	n := s.compactCompletedRelinkJobsLocked()
+	if n == 0 {
+		return 0, nil
+	}
+	// One checkpoint is substantially cheaper than one WAL event per historical
+	// job and atomically rewrites state.json without the obsolete vector blobs.
+	if err := s.checkpointLocked(); err != nil {
+		return 0, err
+	}
+	return n, nil
 }
 
 func (s *Store) CancelJob(id, reason string) error {

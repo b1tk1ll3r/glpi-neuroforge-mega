@@ -6,12 +6,14 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -101,6 +103,59 @@ func maxIntMain(a, b int) int {
 	return b
 }
 
+type bootstrapHandler struct {
+	mu      sync.RWMutex
+	phase   string
+	handler http.Handler
+}
+
+func newBootstrapHandler() *bootstrapHandler {
+	return &bootstrapHandler{phase: "process.start"}
+}
+
+func (b *bootstrapHandler) SetPhase(phase string) {
+	b.mu.Lock()
+	b.phase = phase
+	b.mu.Unlock()
+}
+
+func (b *bootstrapHandler) SetHandler(h http.Handler) {
+	b.mu.Lock()
+	b.handler = h
+	b.phase = "ready"
+	b.mu.Unlock()
+}
+
+func (b *bootstrapHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	b.mu.RLock()
+	h := b.handler
+	phase := b.phase
+	b.mu.RUnlock()
+	if h != nil {
+		h.ServeHTTP(w, r)
+		return
+	}
+	w.Header().Set("Cache-Control", "no-store")
+	switch r.URL.Path {
+	case "/livez", "/healthz":
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = fmt.Fprintf(w, `{"ok":true,"status":"starting","phase":%q}`, phase)
+	case "/readyz":
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = fmt.Fprintf(w, `{"ok":false,"status":"starting","phase":%q}`, phase)
+	case "/", "/admin":
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = fmt.Fprintf(w, `<!doctype html><html><head><meta charset="utf-8"><title>NeuroForge starting</title><meta http-equiv="refresh" content="5"></head><body><h1>NeuroForge startet</h1><p>Recovery-/Startphase: <code>%s</code></p><p>Die autoritativen Daten werden geladen. Diese Seite aktualisiert sich automatisch.</p></body></html>`, phase)
+	default:
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusServiceUnavailable)
+		_, _ = fmt.Fprintf(w, `{"error":"neuroforge is starting","phase":%q}`, phase)
+	}
+}
+
 func main() {
 	if err := run(); err != nil {
 		log.Printf("fatal: %v", err)
@@ -117,7 +172,55 @@ func run() (retErr error) {
 		return err
 	}
 
-	s, err := store.New(*data)
+	var boot *bootstrapHandler
+	var srv *http.Server
+	var errCh chan error
+	// Container deployments pass an explicit -listen address. Bind it before
+	// opening the potentially large store so liveness and a minimal startup UI
+	// remain reachable during WAL/index recovery instead of looking like a dead
+	// container with no logs.
+	if strings.TrimSpace(*listen) != "" {
+		boot = newBootstrapHandler()
+		d := core.DefaultConfig()
+		h := d.HTTP
+		srv = &http.Server{
+			Addr:              *listen,
+			Handler:           boot,
+			ReadHeaderTimeout: time.Duration(h.ReadHeaderTimeoutSeconds) * time.Second,
+			ReadTimeout:       time.Duration(h.ReadTimeoutSeconds) * time.Second,
+			WriteTimeout:      time.Duration(h.WriteTimeoutSeconds) * time.Second,
+			IdleTimeout:       time.Duration(h.IdleTimeoutSeconds) * time.Second,
+			MaxHeaderBytes:    h.MaxHeaderBytes,
+		}
+		ln, err := net.Listen("tcp", *listen)
+		if err != nil {
+			return fmt.Errorf("bootstrap listen %s: %w", *listen, err)
+		}
+		errCh = make(chan error, 1)
+		go func() {
+			err := srv.Serve(ln)
+			if errors.Is(err, http.ErrServerClosed) {
+				err = nil
+			}
+			errCh <- err
+		}()
+		log.Printf("NeuroForge bootstrap listener active on %s", *listen)
+		defer func() {
+			if retErr != nil && srv != nil {
+				ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+				defer cancel()
+				_ = srv.Shutdown(ctx)
+			}
+		}()
+	}
+	reportStartup := func(phase string) {
+		log.Printf("startup phase: %s", phase)
+		if boot != nil {
+			boot.SetPhase(phase)
+		}
+	}
+
+	s, err := store.NewWithProgress(*data, reportStartup)
 	if err != nil {
 		return err
 	}
@@ -258,7 +361,7 @@ func run() (retErr error) {
 	// and environment-owned only when set, preserving admin-managed config otherwise.
 	workerEnv := []string{
 		"NEUROFORGE_WORKER_LEASE_SECONDS", "NEUROFORGE_WORKER_HEARTBEAT_SECONDS", "NEUROFORGE_WORKER_STALE_AFTER_SECONDS",
-		"NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS", "NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS", "NEUROFORGE_WORKER_MAX_QUEUED_JOBS",
+		"NEUROFORGE_WORKER_DEFAULT_MAX_ATTEMPTS", "NEUROFORGE_WORKER_RETRY_BACKOFF_SECONDS", "NEUROFORGE_WORKER_MAX_QUEUED_JOBS", "NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB",
 		"NEUROFORGE_WORKER_JOB_RETENTION_HOURS", "NEUROFORGE_WORKER_MAX_TERMINAL_JOBS",
 		"NEUROFORGE_WORKER_MASTER_APPLY_MAX_ATTEMPTS", "NEUROFORGE_WORKER_MASTER_APPLY_BACKOFF_SECONDS",
 		"NEUROFORGE_GRAPH_BACKFILL_ENABLED", "NEUROFORGE_GRAPH_BACKFILL_INTERVAL_SECONDS", "NEUROFORGE_GRAPH_BACKFILL_BATCH_SIZE",
@@ -293,6 +396,9 @@ func run() (retErr error) {
 		}
 		if v, ok := envInt("NEUROFORGE_WORKER_MAX_QUEUED_JOBS"); ok {
 			cfg.Worker.MaxQueuedJobs = v
+		}
+		if v, ok := envInt("NEUROFORGE_WORKER_MAX_QUEUED_PAYLOAD_MB"); ok {
+			cfg.Worker.MaxQueuedPayloadMB = v
 		}
 		if v, ok := envInt("NEUROFORGE_WORKER_JOB_RETENTION_HOURS"); ok {
 			cfg.Worker.JobRetentionHours = v
@@ -453,29 +559,32 @@ func run() (retErr error) {
 	}
 
 	h := cfg.HTTP
-	srv := &http.Server{
-		Addr:              addr,
-		Handler:           api.Handler(),
-		ReadHeaderTimeout: time.Duration(h.ReadHeaderTimeoutSeconds) * time.Second,
-		ReadTimeout:       time.Duration(h.ReadTimeoutSeconds) * time.Second,
-		WriteTimeout:      time.Duration(h.WriteTimeoutSeconds) * time.Second,
-		IdleTimeout:       time.Duration(h.IdleTimeoutSeconds) * time.Second,
-		MaxHeaderBytes:    h.MaxHeaderBytes,
+	if srv == nil {
+		srv = &http.Server{
+			Addr:              addr,
+			Handler:           api.Handler(),
+			ReadHeaderTimeout: time.Duration(h.ReadHeaderTimeoutSeconds) * time.Second,
+			ReadTimeout:       time.Duration(h.ReadTimeoutSeconds) * time.Second,
+			WriteTimeout:      time.Duration(h.WriteTimeoutSeconds) * time.Second,
+			IdleTimeout:       time.Duration(h.IdleTimeoutSeconds) * time.Second,
+			MaxHeaderBytes:    h.MaxHeaderBytes,
+		}
+		errCh = make(chan error, 1)
+		go func() {
+			err := srv.ListenAndServe()
+			if errors.Is(err, http.ErrServerClosed) {
+				err = nil
+			}
+			errCh <- err
+		}()
+	} else {
+		boot.SetHandler(api.Handler())
 	}
-	log.Printf("NeuroForge v0.8.2 listening on %s", addr)
+	log.Printf("NeuroForge v0.8.3 listening on %s", addr)
 	log.Printf("Admin dashboard: /admin · readiness: /readyz · metrics: /metrics")
 	if os.Getenv("NEUROFORGE_ADMIN_TOKEN") == "" {
 		log.Printf("Admin token is intentionally not printed; read it locally from %s or set NEUROFORGE_ADMIN_TOKEN", filepath.Join(*data, "secrets.json"))
 	}
-
-	errCh := make(chan error, 1)
-	go func() {
-		err := srv.ListenAndServe()
-		if errors.Is(err, http.ErrServerClosed) {
-			err = nil
-		}
-		errCh <- err
-	}()
 
 	var serveErr error
 	select {

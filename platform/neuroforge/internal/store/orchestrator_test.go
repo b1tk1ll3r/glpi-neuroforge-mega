@@ -292,3 +292,52 @@ func TestApplyWaitJobSurvivesRestart(t *testing.T) {
 		t.Fatalf("recovered master apply queue=%+v", pending)
 	}
 }
+
+func TestOrchestratorQueuedPayloadBudget(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	s.mu.Lock()
+	s.state.Config.Worker.MaxQueuedPayloadMB = 1
+	s.mu.Unlock()
+	blob := strings.Repeat("x", 700<<10)
+	if _, err := s.EnqueueJobSpec(JobSpec{Type: "large", Payload: map[string]any{"blob": blob}, ResourceClass: "cpu"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.EnqueueJobSpec(JobSpec{Type: "large2", Payload: map[string]any{"blob": blob}, ResourceClass: "cpu"}); err == nil || !strings.Contains(err.Error(), "payload budget") {
+		t.Fatalf("expected payload budget rejection, err=%v", err)
+	}
+}
+
+func TestCompletedRelinkDropsTransientVectorBlobs(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	j, err := s.EnqueueJobSpec(JobSpec{Type: "vector.relink", Payload: map[string]any{"target": []float32{1, 2, 3}}, ResourceClass: "cpu", RequiredCapabilities: []string{"cpu", "vector.relink"}, RequiresMasterApply: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	w := WorkerHeartbeat{ID: "cpu", ResourceClass: "cpu", Capabilities: []string{"cpu", "vector.relink"}, MaxConcurrency: 1}
+	claimed, err := s.ClaimJobForWorker(w, time.Minute)
+	if err != nil || claimed == nil || claimed.ID != j.ID {
+		t.Fatalf("claim=%+v err=%v", claimed, err)
+	}
+	waiting, err := s.CompleteJobLease(j.ID, w.ID, claimed.LeaseToken, json.RawMessage(`{"target_id":"x","neighbors":[]}`), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if waiting.Status != "apply_wait" {
+		t.Fatalf("status=%s", waiting.Status)
+	}
+	done, err := s.FinishMasterApply(j.ID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if done.Status != "done" || len(done.Payload) != 0 || len(done.Result) != 0 {
+		t.Fatalf("done job retained transient blobs: %+v", done)
+	}
+}

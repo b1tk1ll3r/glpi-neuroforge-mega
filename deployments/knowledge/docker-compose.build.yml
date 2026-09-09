@@ -1,0 +1,5 @@
+services:
+  knowledge:
+    image: glpi-ai-knowledge-local:1.6.2
+    build:
+      context: ../../services/knowledge

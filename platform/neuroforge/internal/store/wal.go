@@ -232,6 +232,14 @@ func (s *Store) applyWALEvent(ev walEvent) error {
 		if err := json.Unmarshal(ev.Data, &x); err != nil {
 			return err
 		}
+		// v1.6.0 could leave a large WAL containing completed vector.relink
+		// jobs with full target/candidate vectors. Compact each terminal event as
+		// it is replayed so recovery memory remains bounded by one WAL record
+		// instead of accumulating every historical vector payload in state.
+		if x.Type == "vector.relink" && x.Status == "done" {
+			x.Payload = nil
+			x.Result = nil
+		}
 		s.state.Jobs[x.ID] = &x
 	case "job.delete":
 		var ids []string
@@ -332,13 +340,19 @@ func (s *Store) checkpointLocked() error {
 		// Keep state.json O(non-memory-state) instead of O(memory-count).
 		checkpoint.Memories = nil
 	}
-	if err := writeAtomic(filepath.Join(s.dir, "state.json"), 0600, &checkpoint); err != nil {
-		return err
-	}
+	// Persist acceleration state before the authoritative non-memory checkpoint.
+	// If the process dies after the index snapshot but before state.json, the WAL
+	// remains intact; boot replays it to the same revision and can immediately use
+	// the already-written index. The previous order could advance state.json first,
+	// then die during a large HNSW snapshot and force a full synchronous rebuild on
+	// every restart.
 	if s.state.Config.Storage.IndexSnapshot && s.state.Config.Brain.Index.Enabled {
 		if err := s.writeIndexSnapshotLocked(); err != nil {
 			return err
 		}
+	}
+	if err := writeAtomic(filepath.Join(s.dir, "state.json"), 0600, &checkpoint); err != nil {
+		return err
 	}
 	// The checkpoint and (when enabled) memory segments now cover every WAL
 	// event through state.Revision. Prune those already-checkpointed log files
