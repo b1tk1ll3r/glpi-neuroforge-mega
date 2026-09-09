@@ -148,6 +148,7 @@ Variable ausdrücklich auf `internal-category` gesetzt werden.
 ## Neue/empfohlene Variablen
 
 ```env
+OLLAMA_NUM_CTX=8192
 OLLAMA_NUM_PREDICT=768
 OLLAMA_JSON_RETRIES=1
 

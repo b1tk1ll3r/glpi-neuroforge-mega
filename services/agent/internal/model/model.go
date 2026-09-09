@@ -380,6 +380,7 @@ type OllamaRequestAttempt struct {
 	PromptEvalDuration int64     `json:"prompt_eval_duration_ns,omitempty"`
 	EvalCount          int64     `json:"eval_count,omitempty"`
 	EvalDuration       int64     `json:"eval_duration_ns,omitempty"`
+	DoneReason         string    `json:"done_reason,omitempty"`
 }
 
 // OllamaProviderTrace summarizes the routing of one logical analysis.

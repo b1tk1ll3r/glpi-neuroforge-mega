@@ -16,6 +16,7 @@ type Client struct {
 	model, embeddingModel        string
 	language, communicationStyle string
 	numPredict                   int
+	numCtx                       int
 	jsonRetries                  int
 	keepAlive                    time.Duration
 	think                        bool
@@ -63,6 +64,20 @@ func (c *Client) Start(ctx context.Context)              { c.pool.Start(ctx) }
 func (c *Client) Ping(ctx context.Context) error         { return c.pool.Ping(ctx) }
 func (c *Client) NodeStatuses() []model.OllamaNodeStatus { return c.pool.NodeStatuses() }
 func (c *Client) RoutingMode() string                    { return c.routingMode }
+
+// SetNumCtx configures the context window sent explicitly with every chat
+// request. Ollama/gateways may otherwise apply a smaller per-request default
+// than the model itself supports, which can truncate structured JSON output.
+// Call this during startup before the client begins serving requests.
+func (c *Client) SetNumCtx(numCtx int) { c.numCtx = numCtx }
+
+func (c *Client) chatOptions() map[string]any {
+	options := map[string]any{"temperature": 0, "num_predict": c.numPredict}
+	if c.numCtx > 0 {
+		options["num_ctx"] = c.numCtx
+	}
+	return options
+}
 func (c *Client) Embed(ctx context.Context, texts []string) ([][]float64, error) {
 	ctx = withStage(ctx, "embedding")
 	return c.embedAdaptive(ctx, texts, 0)
@@ -192,7 +207,7 @@ func (c *Client) AnalyseCategory(ctx context.Context, t model.Ticket, categories
 			"id":         map[string]any{"type": "integer", "enum": categoryIDs},
 			"confidence": map[string]any{"type": "number", "minimum": 0, "maximum": 1},
 		}, "required": []string{"id", "confidence"}},
-		"reason": map[string]any{"type": "string"},
+		"reason": map[string]any{"type": "string", "maxLength": 320},
 	}, "required": []string{"category", "reason"}}
 
 	promptHits := append([]model.KnowledgeHit(nil), categoryHits...)
@@ -208,7 +223,7 @@ func (c *Client) AnalyseCategory(ctx context.Context, t model.Ticket, categories
 	user := fmt.Sprintf("Ticket ID: %d\nAktuelle Kategorie: %d\nBetreff: %s\nInhalt:\n%s\n\nErlaubte Kategorien:\n%s\n\nKategorisierungs-Wissenseintraege:\n%s\n\nRead-only Betriebs- und Asset-Kontext:\n%s", t.ID, t.CategoryID, t.Name, t.Content, string(categoryJSON), string(hitJSON), string(contextJSON))
 	payload := map[string]any{
 		"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think,
-		"options":  map[string]any{"temperature": 0, "num_predict": c.numPredict},
+		"options":  c.chatOptions(),
 		"messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}},
 	}
 	return c.executeDecision(ctx, payload, func(d model.Decision) error {
@@ -249,13 +264,20 @@ func (c *Client) AnalyseStatus(ctx context.Context, t model.Ticket, category mod
 	user := fmt.Sprintf("Ticket ID: %d\nBetreff: %s\nInhalt:\n%s\n\nEffektive Kategorie:\n%s\n\nAktive Uptime-Kuma-Kandidaten:\n%s", t.ID, t.Name, t.Content, string(categoryJSON), string(candidateJSON))
 	payload := map[string]any{
 		"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think,
-		"options":  map[string]any{"temperature": 0, "num_predict": c.numPredict},
+		"options":  c.chatOptions(),
 		"messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}},
 	}
 	var lastErr error
+	lastWasDecode := false
 	for attempt := 0; attempt <= c.jsonRetries; attempt++ {
 		if attempt > 0 {
-			payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": "Die vorherige Ausgabe war ungültig. Wiederhole nur die strukturierte Zuordnung als gültiges JSON."})
+			if lastWasDecode {
+				options := c.chatOptions()
+				options["temperature"] = 0.05
+				payload["options"] = options
+			} else {
+				payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": "Die vorherige strukturierte Zuordnung war semantisch ungültig. Korrigiere sie gemäß Schema."})
+			}
 		}
 		var resp struct {
 			Message struct {
@@ -268,8 +290,10 @@ func (c *Client) AnalyseStatus(ctx context.Context, t model.Ticket, category mod
 		var d model.StatusDecision
 		if err := json.Unmarshal([]byte(resp.Message.Content), &d); err != nil {
 			lastErr = fmt.Errorf("invalid Ollama status response: %w", err)
+			lastWasDecode = true
 			continue
 		}
+		lastWasDecode = false
 		if !d.Matched {
 			d.CandidateID = ""
 			return d, nil
@@ -324,7 +348,7 @@ func (c *Client) AnalyseReply(ctx context.Context, t model.Ticket, category mode
 	user := fmt.Sprintf("Ticket ID: %d\nBetreff: %s\nInhalt:\n%s\n\nEffektive Kategorie fuer die Antwortauswahl:\n%s\n\nErlaubte Antwort-Wissenseintraege:\n%s\n\nRead-only Betriebs- und Asset-Kontext:\n%s", t.ID, t.Name, t.Content, string(categoryJSON), string(hitJSON), string(contextJSON))
 	payload := map[string]any{
 		"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think,
-		"options":  map[string]any{"temperature": 0, "num_predict": c.numPredict},
+		"options":  c.chatOptions(),
 		"messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}},
 	}
 	d, err := c.executeDecision(ctx, payload, func(d model.Decision) error {
@@ -348,9 +372,19 @@ func (c *Client) AnalyseReply(ctx context.Context, t model.Ticket, category mode
 
 func (c *Client) executeDecision(ctx context.Context, payload map[string]any, validate func(model.Decision) error) (model.Decision, error) {
 	var lastErr error
+	lastWasDecode := false
 	for attempt := 0; attempt <= c.jsonRetries; attempt++ {
 		if attempt > 0 {
-			payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": "Die vorherige Ausgabe war unvollstaendig oder ungueltig. Wiederhole die Entscheidung vollstaendig und gib ausschliesslich ein gueltiges JSON-Objekt gemaess Schema zurueck."})
+			if lastWasDecode {
+				// Keep parse-error retries at the same prompt size. Appending an
+				// instruction can consume the remaining output budget when an upstream
+				// Ollama gateway is running with a small context window.
+				options := c.chatOptions()
+				options["temperature"] = 0.05
+				payload["options"] = options
+			} else {
+				payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": "Die vorherige JSON-Entscheidung war semantisch ungültig. Korrigiere sie vollständig gemäß Schema."})
+			}
 		}
 		var resp struct {
 			Message struct {
@@ -363,8 +397,10 @@ func (c *Client) executeDecision(ctx context.Context, payload map[string]any, va
 		var d model.Decision
 		if err := json.Unmarshal([]byte(resp.Message.Content), &d); err != nil {
 			lastErr = fmt.Errorf("invalid Ollama structured response: %w", err)
+			lastWasDecode = true
 			continue
 		}
+		lastWasDecode = false
 		if validate != nil {
 			if err := validate(d); err != nil {
 				lastErr = err
@@ -423,13 +459,20 @@ func (c *Client) Analyse(ctx context.Context, t model.Ticket, categories []model
 		"format":     schema,
 		"keep_alive": c.keepAlive.String(),
 		"think":      c.think,
-		"options":    map[string]any{"temperature": 0, "num_predict": c.numPredict},
+		"options":    c.chatOptions(),
 		"messages":   []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}},
 	}
 	var lastErr error
+	lastWasDecode := false
 	for attempt := 0; attempt <= c.jsonRetries; attempt++ {
 		if attempt > 0 {
-			payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": "Die vorherige Ausgabe war unvollstaendig oder kein gueltiges JSON. Wiederhole die Entscheidung jetzt vollstaendig und gib ausschliesslich ein gueltiges JSON-Objekt gemaess Schema zurueck."})
+			if lastWasDecode {
+				options := c.chatOptions()
+				options["temperature"] = 0.05
+				payload["options"] = options
+			} else {
+				payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": "Die vorherige JSON-Entscheidung war semantisch ungültig. Korrigiere sie vollständig gemäß Schema."})
+			}
 		}
 		var resp struct {
 			Message struct {
@@ -442,8 +485,10 @@ func (c *Client) Analyse(ctx context.Context, t model.Ticket, categories []model
 		var d model.Decision
 		if err := json.Unmarshal([]byte(resp.Message.Content), &d); err != nil {
 			lastErr = fmt.Errorf("invalid Ollama structured response: %w", err)
+			lastWasDecode = true
 			continue
 		}
+		lastWasDecode = false
 		if len(knownKnowledge) == 0 {
 			// A reply is structurally impossible without an explicitly supplied
 			// Knowledge candidate. Ignore any contradictory model output instead
@@ -500,7 +545,7 @@ Die deterministisch extrahierten Belege sind keine fertige Prioritätsentscheidu
 
 Verwende insufficient_information nur, wenn weder Auswirkung noch Dringlichkeit aus Ticket, Kategorie, Kontext oder den deterministischen Belegen belastbar eingeordnet werden können. Wenn ein expliziter Mehrbenutzer-, Standort-, Organisations-, Workaround- oder Kein-Workaround-Beleg vorhanden ist, darf insufficient_information nicht verwendet werden. Bei unzureichenden Angaben verwende genau einmal insufficient_information, empfehle die aktuelle Priorität unverändert und nenne keine weiteren reason_codes. Verwende höchstens drei unterschiedliche reason_codes. Das Feld reason muss eine kurze, verständliche Begründung in ganzen Sätzen sein und darf nicht nur aus einem reason_code bestehen. Die interne Begründung ist in %s und im Stil %s. Gib ausschließlich das geforderte JSON zurück.`, c.language, c.communicationStyle)
 	user := fmt.Sprintf("Ticket ID: %d\nBetreff: %s\nInhalt:\n%s\n\nAktuelle Werte: priority=%d impact=%d urgency=%d status=%d\nEffektive Kategorie:\n%s\n\nDeterministisch extrahierte Belege:\n%s\n\nRead-only Kontext:\n%s", t.ID, t.Name, t.Content, t.Priority, t.Impact, t.Urgency, t.StatusID, string(categoryJSON), string(evidenceJSON), string(contextJSON))
-	payload := map[string]any{"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think, "options": map[string]any{"temperature": 0, "num_predict": c.numPredict}, "messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}}}
+	payload := map[string]any{"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think, "options": c.chatOptions(), "messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}}}
 	var out model.PriorityDecision
 	err := c.executeStructured(ctx, payload, &out, func() error {
 		out.ReasonCodes = model.NormalizeReasonCodes(out.ReasonCodes)
@@ -541,7 +586,7 @@ Verwende die deterministischen Belege als Tatsachen: no_human_response, unassign
 
 Verwende ausschließlich die bereitgestellten reason_codes und Aktionen. Erfinde keine SLA, Frist, Zuständigkeit, Ziel-ID oder Sicherheitslage. Die interne Begründung ist in %s und im Stil %s. Gib ausschließlich das geforderte JSON zurück.`, c.language, c.communicationStyle)
 	user := fmt.Sprintf("Ticket ID: %d\nErstellt: %s\nGeändert: %s\nSLA-Ziel: %s\nStatus: %d\nPriorität: %d\nZugewiesene Gruppen: %v\nZugewiesene Benutzer: %v\nBetreff: %s\nInhalt:\n%s\n\nDeterministische Belege:\n%s\n\nEskalations-Constraints:\n%s\n\nFollowups:\n%s\n\nRead-only Kontext:\n%s", t.ID, t.DateCreation, t.DateMod, t.TimeToResolve, t.StatusID, t.Priority, t.AssignedGroups, t.AssignedUsers, t.Name, t.Content, string(evidenceJSON), string(constraintsJSON), string(followupJSON), string(contextJSON))
-	payload := map[string]any{"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think, "options": map[string]any{"temperature": 0, "num_predict": c.numPredict}, "messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}}}
+	payload := map[string]any{"model": c.model, "stream": false, "format": schema, "keep_alive": c.keepAlive.String(), "think": c.think, "options": c.chatOptions(), "messages": []map[string]string{{"role": "system", "content": system}, {"role": "user", "content": user}}}
 	var out model.EscalationDecision
 	err := c.executeStructured(ctx, payload, &out, func() error {
 		out.ReasonCodes = model.NormalizeReasonCodes(out.ReasonCodes)
@@ -626,13 +671,20 @@ func normalizeEscalationModelActions(values []string) []string {
 
 func (c *Client) executeStructured(ctx context.Context, payload map[string]any, out any, validate func() error) error {
 	var lastErr error
+	lastWasDecode := false
 	for attempt := 0; attempt <= c.jsonRetries; attempt++ {
 		if attempt > 0 {
-			msg := "Die vorherige Ausgabe war ungültig. Wiederhole ausschließlich das vollständige JSON gemäß Schema."
-			if lastErr != nil {
-				msg += " Validierungsfehler: " + lastErr.Error()
+			if lastWasDecode {
+				options := c.chatOptions()
+				options["temperature"] = 0.05
+				payload["options"] = options
+			} else {
+				msg := "Die vorherige JSON-Ausgabe war semantisch ungültig. Korrigiere sie vollständig gemäß Schema."
+				if lastErr != nil {
+					msg += " Validierungsfehler: " + lastErr.Error()
+				}
+				payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": msg})
 			}
-			payload["messages"] = append(payload["messages"].([]map[string]string), map[string]string{"role": "user", "content": msg})
 		}
 		var resp struct {
 			Message struct {
@@ -644,8 +696,10 @@ func (c *Client) executeStructured(ctx context.Context, payload map[string]any, 
 		}
 		if err := json.Unmarshal([]byte(resp.Message.Content), out); err != nil {
 			lastErr = fmt.Errorf("invalid Ollama structured response: %w", err)
+			lastWasDecode = true
 			continue
 		}
+		lastWasDecode = false
 		if validate != nil {
 			if err := validate(); err != nil {
 				lastErr = err

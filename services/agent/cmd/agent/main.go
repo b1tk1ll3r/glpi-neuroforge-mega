@@ -72,8 +72,9 @@ func main() {
 		slog.Error("Ollama pool configuration failed", "error", err)
 		os.Exit(1)
 	}
+	o.SetNumCtx(cfg.OllamaNumCtx)
 	o.Start(ctx)
-	slog.Info("Ollama pool configured", "nodes", len(nodes), "routing", cfg.OllamaRoutingMode, "max_inflight_per_node", cfg.OllamaNodeMaxInflight, "failover", cfg.OllamaFailoverEnabled, "failover_attempts", cfg.OllamaFailoverAttempts, "require_same_digest", cfg.OllamaRequireSameDigest)
+	slog.Info("Ollama pool configured", "nodes", len(nodes), "routing", cfg.OllamaRoutingMode, "max_inflight_per_node", cfg.OllamaNodeMaxInflight, "failover", cfg.OllamaFailoverEnabled, "failover_attempts", cfg.OllamaFailoverAttempts, "require_same_digest", cfg.OllamaRequireSameDigest, "num_ctx", cfg.OllamaNumCtx)
 	if err := g.ValidateContract(ctx); err != nil {
 		slog.Error("GLPI API contract validation failed", "error", err)
 		os.Exit(1)

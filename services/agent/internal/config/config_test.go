@@ -27,9 +27,22 @@ func validConfig() Config {
 		CommunicationStyle:        "formal",
 		OllamaTimeout:             time.Minute,
 		OllamaNumPredict:          256,
+		OllamaNumCtx:              8192,
 		OllamaKeepAlive:           10 * time.Minute,
 		OllamaThink:               false,
 		OllamaMaxConcurrent:       1,
+	}
+}
+
+func TestValidateOllamaNumCtx(t *testing.T) {
+	c := validConfig()
+	c.OllamaNumCtx = 1024
+	if err := c.Validate(); err == nil {
+		t.Fatal("expected too-small OLLAMA_NUM_CTX to be rejected")
+	}
+	c.OllamaNumCtx = 131072
+	if err := c.Validate(); err != nil {
+		t.Fatalf("131072 context should validate: %v", err)
 	}
 }
 

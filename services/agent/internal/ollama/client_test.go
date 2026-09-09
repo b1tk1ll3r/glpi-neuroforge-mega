@@ -31,6 +31,9 @@ func TestAnalyseStructured(t *testing.T) {
 		if options["num_predict"] != float64(256) {
 			t.Errorf("unexpected num_predict: %v", options["num_predict"])
 		}
+		if options["num_ctx"] != float64(131072) {
+			t.Errorf("unexpected num_ctx: %v", options["num_ctx"])
+		}
 		if body["keep_alive"] != "10m0s" {
 			t.Errorf("unexpected keep_alive: %v", body["keep_alive"])
 		}
@@ -41,6 +44,7 @@ func TestAnalyseStructured(t *testing.T) {
 	}))
 	defer srv.Close()
 	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 256, 10*time.Minute, false, 1, 1)
+	c.SetNumCtx(131072)
 	d, err := c.Analyse(context.Background(), model.Ticket{ID: 1}, []model.Category{{ID: 1}}, nil, nil, model.ContextSnapshot{})
 	if err != nil {
 		t.Fatal(err)
@@ -68,6 +72,42 @@ func TestAnalyseRetriesInvalidJSON(t *testing.T) {
 	}
 	if calls != 2 || d.Category.ID != 2 {
 		t.Fatalf("calls=%d decision=%+v", calls, d)
+	}
+}
+
+func TestStructuredRetryDoesNotGrowPrompt(t *testing.T) {
+	calls := 0
+	var firstMessages string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		var body map[string]any
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Fatal(err)
+		}
+		messages, _ := json.Marshal(body["messages"])
+		if calls == 1 {
+			firstMessages = string(messages)
+		} else if string(messages) != firstMessages {
+			t.Fatalf("retry grew or changed messages:\nfirst=%s\nretry=%s", firstMessages, messages)
+		}
+		options, _ := body["options"].(map[string]any)
+		if options["num_ctx"] != float64(8192) {
+			t.Fatalf("retry num_ctx=%v, want 8192", options["num_ctx"])
+		}
+		content := `{"category":`
+		if calls > 1 {
+			content = `{"category":{"id":2,"confidence":0.95},"reason":"ok"}`
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": content}})
+	}))
+	defer srv.Close()
+	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 768, time.Minute, false, 1, 1)
+	c.SetNumCtx(8192)
+	if _, err := c.AnalyseCategory(context.Background(), model.Ticket{ID: 1}, []model.Category{{ID: 2, Name: "VPN"}}, nil, model.ContextSnapshot{}); err != nil {
+		t.Fatal(err)
+	}
+	if calls != 2 {
+		t.Fatalf("calls=%d, want 2", calls)
 	}
 }
 
@@ -160,6 +200,7 @@ func TestAnalyseDoesNotExposeRichAnswerHTMLToModel(t *testing.T) {
 	}))
 	defer srv.Close()
 	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 768, time.Minute, false, 1, 0)
+	c.SetNumCtx(8192)
 	hits := []model.KnowledgeHit{{Doc: model.KnowledgeDoc{ID: "GLPI-KB-1", Title: "Login", Text: "plain", Answer: "plain", AnswerHTML: `<p>RICH_SECRET_MARKUP</p>`}}}
 	if _, err := c.Analyse(context.Background(), model.Ticket{ID: 1}, []model.Category{{ID: 2}}, nil, hits, model.ContextSnapshot{}); err != nil {
 		t.Fatal(err)
@@ -208,6 +249,13 @@ func TestAnalyseCategoryUsesDedicatedSchemaAndSanitizedKnowledge(t *testing.T) {
 		if strings.Contains(string(formatJSON), `"reply"`) {
 			t.Fatalf("reply schema leaked into category stage: %s", formatJSON)
 		}
+		if !strings.Contains(string(formatJSON), `"maxLength":320`) {
+			t.Fatalf("category reason length guard missing: %s", formatJSON)
+		}
+		options, _ := body["options"].(map[string]any)
+		if options["num_ctx"] != float64(8192) {
+			t.Fatalf("category num_ctx=%v, want 8192", options["num_ctx"])
+		}
 		messagesJSON, _ := json.Marshal(body["messages"])
 		if strings.Contains(string(messagesJSON), "SECRET_ANSWER") {
 			t.Fatalf("category answer leaked into prompt: %s", messagesJSON)
@@ -216,6 +264,7 @@ func TestAnalyseCategoryUsesDedicatedSchemaAndSanitizedKnowledge(t *testing.T) {
 	}))
 	defer srv.Close()
 	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 768, time.Minute, false, 1, 0)
+	c.SetNumCtx(8192)
 	hits := []model.KnowledgeHit{{Doc: model.KnowledgeDoc{ID: "CAT", Text: "vpn evidence", Answer: "SECRET_ANSWER"}}}
 	d, err := c.AnalyseCategory(context.Background(), model.Ticket{ID: 1}, []model.Category{{ID: 2, Name: "VPN"}}, hits, model.ContextSnapshot{})
 	if err != nil {

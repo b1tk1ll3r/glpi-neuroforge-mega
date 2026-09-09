@@ -47,6 +47,7 @@ type Config struct {
 	OllamaEmbeddingModel        string
 	OllamaTimeout               time.Duration
 	OllamaNumPredict            int
+	OllamaNumCtx                int
 	OllamaKeepAlive             time.Duration
 	OllamaThink                 bool
 	OllamaMaxConcurrent         int // legacy alias for per-node concurrency
@@ -256,6 +257,7 @@ func Load() (Config, error) {
 		OllamaEmbeddingModel:                   env("OLLAMA_EMBEDDING_MODEL", "embeddinggemma"),
 		OllamaTimeout:                          envDuration("OLLAMA_TIMEOUT", 10*time.Minute),
 		OllamaNumPredict:                       envInt("OLLAMA_NUM_PREDICT", 768),
+		OllamaNumCtx:                           envInt("OLLAMA_NUM_CTX", 8192),
 		OllamaKeepAlive:                        envDuration("OLLAMA_KEEP_ALIVE", 10*time.Minute),
 		OllamaThink:                            envBool("OLLAMA_THINK", false),
 		OllamaMaxConcurrent:                    envInt("OLLAMA_MAX_CONCURRENT", 1),
@@ -498,6 +500,9 @@ func (c Config) Validate() error {
 	}
 	if c.OllamaNumPredict <= 0 || c.OllamaNumPredict > 4096 {
 		return errors.New("OLLAMA_NUM_PREDICT must be between 1 and 4096")
+	}
+	if c.OllamaNumCtx != 0 && (c.OllamaNumCtx < 2048 || c.OllamaNumCtx > 1048576) {
+		return errors.New("OLLAMA_NUM_CTX must be 0 or between 2048 and 1048576")
 	}
 	if c.OllamaKeepAlive < 0 {
 		return errors.New("OLLAMA_KEEP_ALIVE must be >= 0")

@@ -1072,7 +1072,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 260,
+        "line": 261,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -1084,7 +1084,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 211,
+        "line": 212,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -1096,7 +1096,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 227,
+        "line": 228,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -2464,7 +2464,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": true,
-        "line": 1070,
+        "line": 1075,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2476,7 +2476,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": true,
-        "line": 444,
+        "line": 446,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2488,7 +2488,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": true,
-        "line": 226,
+        "line": 227,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2500,7 +2500,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1044,
+        "line": 1049,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2512,7 +2512,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1215,
+        "line": 1220,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2524,7 +2524,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1259,
+        "line": 1264,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2536,7 +2536,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1248,
+        "line": 1253,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2548,7 +2548,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1226,
+        "line": 1231,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2560,7 +2560,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1237,
+        "line": 1242,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2572,7 +2572,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1093,
+        "line": 1098,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2584,7 +2584,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1115,
+        "line": 1120,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2596,7 +2596,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1198,
+        "line": 1203,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2608,7 +2608,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1059,
+        "line": 1064,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2620,7 +2620,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1190,
+        "line": 1195,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2632,7 +2632,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1137,
+        "line": 1142,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2644,7 +2644,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1163,
+        "line": 1168,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2656,7 +2656,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1053,
+        "line": 1058,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2668,7 +2668,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1089,
+        "line": 1094,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2680,7 +2680,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1030,
+        "line": 1035,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2692,7 +2692,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1025,
+        "line": 1030,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2704,7 +2704,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1000,
+        "line": 1005,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -5572,7 +5572,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 379,
+        "line": 415,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5584,7 +5584,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 182,
+        "line": 197,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5596,7 +5596,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 519,
+        "line": 564,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5608,7 +5608,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 475,
+        "line": 520,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5620,7 +5620,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 291,
+        "line": 315,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5632,7 +5632,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 224,
+        "line": 239,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5644,7 +5644,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 66,
+        "line": 81,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5656,7 +5656,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 64,
+        "line": 65,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5668,7 +5668,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 63,
+        "line": 64,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5680,7 +5680,19 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 65,
+        "line": 66,
+        "path": "services/agent/internal/ollama/client.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.SetNumCtx",
+      "kind": "function",
+      "label": "Client.SetNumCtx",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/ollama",
+      "meta": {
+        "exported": true,
+        "line": 72,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5692,7 +5704,19 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 62,
+        "line": 63,
+        "path": "services/agent/internal/ollama/client.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "function",
+      "label": "Client.chatOptions",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/ollama",
+      "meta": {
+        "exported": false,
+        "line": 74,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5704,7 +5728,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 79,
+        "line": 94,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5716,7 +5740,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 126,
+        "line": 141,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5728,7 +5752,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 349,
+        "line": 373,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5740,7 +5764,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 627,
+        "line": 672,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5752,7 +5776,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 471,
+        "line": 516,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5764,7 +5788,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 27,
+        "line": 28,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5776,7 +5800,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 54,
+        "line": 55,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5788,7 +5812,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 273,
+        "line": 274,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5800,7 +5824,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 263,
+        "line": 264,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5812,7 +5836,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 244,
+        "line": 245,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5824,7 +5848,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 677,
+        "line": 678,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5836,7 +5860,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 389,
+        "line": 390,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5848,7 +5872,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 551,
+        "line": 552,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5860,7 +5884,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 606,
+        "line": 607,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5872,7 +5896,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 455,
+        "line": 456,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5884,7 +5908,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 281,
+        "line": 282,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5896,7 +5920,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 587,
+        "line": 588,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5908,7 +5932,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 690,
+        "line": 691,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5920,7 +5944,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 784,
+        "line": 785,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5932,7 +5956,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 741,
+        "line": 742,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5944,7 +5968,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 370,
+        "line": 371,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5956,7 +5980,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 582,
+        "line": 627,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5968,7 +5992,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 719,
+        "line": 720,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5980,7 +6004,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 140,
+        "line": 155,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -5992,7 +6016,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 703,
+        "line": 704,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6004,7 +6028,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 773,
+        "line": 774,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6016,7 +6040,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 725,
+        "line": 726,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6028,7 +6052,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 440,
+        "line": 441,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6040,7 +6064,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 162,
+        "line": 163,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6052,7 +6076,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 592,
+        "line": 637,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -6064,7 +6088,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 616,
+        "line": 661,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -6076,7 +6100,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 713,
+        "line": 714,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6088,7 +6112,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 79,
+        "line": 80,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6100,7 +6124,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 542,
+        "line": 543,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6112,7 +6136,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 93,
+        "line": 94,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6124,7 +6148,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 105,
+        "line": 106,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6136,7 +6160,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 88,
+        "line": 89,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6148,7 +6172,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 136,
+        "line": 137,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6160,7 +6184,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 755,
+        "line": 756,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6172,7 +6196,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 750,
+        "line": 751,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6184,7 +6208,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 580,
+        "line": 581,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6196,7 +6220,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 150,
+        "line": 165,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -6208,7 +6232,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 565,
+        "line": 610,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -6220,7 +6244,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 168,
+        "line": 183,
         "path": "services/agent/internal/ollama/client.go"
       }
     },
@@ -6232,7 +6256,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 746,
+        "line": 747,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -32830,9 +32854,21 @@
       "kind": "defines"
     },
     {
+      "id": "file:services/agent/internal/ollama/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.SetNumCtx:defines",
+      "from": "file:services/agent/internal/ollama/client.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.SetNumCtx",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/agent/internal/ollama/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.Start:defines",
       "from": "file:services/agent/internal/ollama/client.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.Start",
+      "kind": "defines"
+    },
+    {
+      "id": "file:services/agent/internal/ollama/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:defines",
+      "from": "file:services/agent/internal/ollama/client.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
       "kind": "defines"
     },
     {
@@ -43468,6 +43504,12 @@
       "label": "Marshal"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.Analyse-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.Analyse",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.Analyse-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.post:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.Analyse",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.post",
@@ -43507,6 +43549,12 @@
       "label": "TrimSpace"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseCategory-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseCategory",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseCategory-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseCategory",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision",
@@ -43531,6 +43579,12 @@
       "to": "package:fmt",
       "kind": "calls_package",
       "label": "Sprintf"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseEscalation-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseEscalation",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseEscalation-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.executeStructured:calls",
@@ -43596,6 +43650,12 @@
       "label": "NormalizeReasonCodes"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalysePriority-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalysePriority",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalysePriority-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.executeStructured:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalysePriority",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeStructured",
@@ -43642,6 +43702,12 @@
       "label": "Extract"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseReply-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseReply",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseReply-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseReply",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision",
@@ -43679,6 +43745,12 @@
       "to": "package:strings",
       "kind": "calls_package",
       "label": "TrimSpace"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseStatus-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseStatus",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.AnalyseStatus-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.post:calls",
@@ -43820,6 +43892,12 @@
       "label": "Errorf"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.post:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeDecision",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.post",
@@ -43838,6 +43916,12 @@
       "to": "package:fmt",
       "kind": "calls_package",
       "label": "Errorf"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeStructured-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeStructured",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.chatOptions",
+      "kind": "calls"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Client.executeStructured-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:Client.post:calls",
@@ -67192,10 +67276,10 @@
     }
   ],
   "meta": {
-    "edges": 7306,
+    "edges": 7316,
     "format_version": 1,
     "generator": "go-ast+compose",
     "modules": 4,
-    "nodes": 1855
+    "nodes": 1857
   }
 }

@@ -547,13 +547,14 @@ For local LLMs, the default request budget is intentionally longer than a typica
 
 ```env
 OLLAMA_TIMEOUT=10m
+OLLAMA_NUM_CTX=8192
 OLLAMA_NUM_PREDICT=256
 OLLAMA_KEEP_ALIVE=10m
 OLLAMA_THINK=false
 OLLAMA_MAX_CONCURRENT=1
 ```
 
-`OLLAMA_NUM_PREDICT` limits the maximum generated tokens for the small structured decision. `OLLAMA_KEEP_ALIVE` asks Ollama to keep the analysis model loaded between tickets. `OLLAMA_THINK=false` disables optional model thinking for this deterministic classification task. `OLLAMA_NODE_MAX_INFLIGHT=1` serializes inference on each individual pool node. `OLLAMA_MAX_CONCURRENT` remains a backwards-compatible alias when the new per-node value is not set. On very slow CPU-only hosts, use a smaller local model and/or increase `OLLAMA_TIMEOUT`.
+`OLLAMA_NUM_CTX` is sent explicitly with every `/api/chat` request so an Ollama server or compatible gateway cannot silently fall back to a smaller per-request context (for example 4k) and truncate structured JSON. Increase it only when the model/runtime has sufficient memory. `OLLAMA_NUM_PREDICT` limits the maximum generated tokens for the small structured decision. `OLLAMA_KEEP_ALIVE` asks Ollama to keep the analysis model loaded between tickets. `OLLAMA_THINK=false` disables optional model thinking for this deterministic classification task. `OLLAMA_NODE_MAX_INFLIGHT=1` serializes inference on each individual pool node. `OLLAMA_MAX_CONCURRENT` remains a backwards-compatible alias when the new per-node value is not set. On very slow CPU-only hosts, use a smaller local model and/or increase `OLLAMA_TIMEOUT`.
 
 After upgrading an existing Compose deployment, recreate the stack so the init service runs:
 
@@ -591,6 +592,7 @@ Web-verwaltete Artikel landen **nicht** im statischen `KNOWLEDGE_DIR`, sondern u
 Für stabilere Structured Outputs sind die empfohlenen Startwerte:
 
 ```env
+OLLAMA_NUM_CTX=8192
 OLLAMA_NUM_PREDICT=768
 OLLAMA_JSON_RETRIES=1
 ```
