@@ -377,3 +377,106 @@ func TestAnalyseEscalationNormalizesNegativeDecision(t *testing.T) {
 		t.Fatalf("negative escalation was not normalized: %+v", d)
 	}
 }
+
+func TestEmbedSplitsBatchWhenOllamaContextWindowRejectsAggregateInput(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		var body struct {
+			Input    []string `json:"input"`
+			Truncate bool     `json:"truncate"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if body.Truncate {
+			t.Errorf("adaptive embedding must preserve truncate=false")
+		}
+		if len(body.Input) > 1 {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"error": "estimated request size 5933 tokens exceeds model context length 2048"})
+			return
+		}
+		value := map[string]float64{"a": 1, "b": 2, "c": 3}[body.Input[0]]
+		_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float64{{value, 1}}})
+	}))
+	defer srv.Close()
+
+	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 256, time.Minute, false, 1, 0)
+	vectors, err := c.Embed(context.Background(), []string{"a", "b", "c"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(vectors) != 3 || vectors[0][0] != 1 || vectors[1][0] != 2 || vectors[2][0] != 3 {
+		t.Fatalf("unexpected vectors: %#v", vectors)
+	}
+	if calls != 5 {
+		t.Fatalf("calls=%d, want 5 adaptive requests", calls)
+	}
+}
+
+func TestEmbedSplitsOversizedSingleInputWithoutSilentTruncation(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		var body struct {
+			Input    []string `json:"input"`
+			Truncate bool     `json:"truncate"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if body.Truncate {
+			t.Errorf("adaptive embedding must preserve truncate=false")
+		}
+		if len(body.Input) != 1 {
+			t.Errorf("input count=%d, want 1", len(body.Input))
+		}
+		n := len([]rune(body.Input[0]))
+		if n > 8 {
+			w.WriteHeader(http.StatusBadRequest)
+			_ = json.NewEncoder(w).Encode(map[string]any{"error": "input exceeds model context window"})
+			return
+		}
+		_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float64{{float64(n), 1}}})
+	}))
+	defer srv.Close()
+
+	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 256, time.Minute, false, 1, 0)
+	vectors, err := c.Embed(context.Background(), []string{"abcdefghijklmnopqrstuvwxyz123456"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(vectors) != 1 || len(vectors[0]) != 2 {
+		t.Fatalf("unexpected vectors: %#v", vectors)
+	}
+	if vectors[0][0] != 8 || vectors[0][1] != 1 {
+		t.Fatalf("unexpected weighted aggregate vector: %#v", vectors[0])
+	}
+	if calls != 7 {
+		t.Fatalf("calls=%d, want 7 adaptive requests", calls)
+	}
+}
+
+func TestEmbedDoesNotSplitUnrelatedBadRequest(t *testing.T) {
+	calls := 0
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(map[string]any{"error": "model does not support embeddings"})
+	}))
+	defer srv.Close()
+
+	c := New(srv.URL, "m", "e", "de-DE", "formal", time.Second, 256, time.Minute, false, 1, 0)
+	_, err := c.Embed(context.Background(), []string{"a", "b"})
+	if err == nil {
+		t.Fatal("expected embedding error")
+	}
+	if calls != 1 {
+		t.Fatalf("calls=%d, unrelated error must not trigger adaptive splitting", calls)
+	}
+}

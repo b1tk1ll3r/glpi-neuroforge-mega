@@ -189,7 +189,7 @@ func main() {
 			if err := kbSync.LoadCache(ctx); err != nil {
 				slog.Warn("GLPI knowledge cache unavailable", "error", err)
 			}
-			syncCtx, syncCancel := context.WithTimeout(ctx, maxDuration(cfg.GLPITimeout*3, 30*time.Second))
+			syncCtx, syncCancel := context.WithTimeout(ctx, glpikb.SyncTimeout(cfg))
 			if err := kbSync.Sync(syncCtx); err != nil {
 				slog.Error("initial GLPI knowledge base sync failed; continuing with local/cache knowledge", "error", err)
 			}

@@ -133,12 +133,17 @@ func (s *Store) loadPersistentSnapshot() (bool, error) {
 	// them to the current knowledge roots using the stable manifest key.
 	reboundFiles := map[string]string{}
 	for key, rec := range snap.Manifest {
-		name := filepath.Base(key)
+		rel := strings.TrimPrefix(key, "static/")
+		root := s.dir
 		if strings.HasPrefix(key, "managed/") {
-			rec.Path = filepath.Join(s.managedDir, name)
-		} else {
-			rec.Path = filepath.Join(s.dir, name)
+			rel = strings.TrimPrefix(key, "managed/")
+			root = s.managedDir
 		}
+		rel = filepath.Clean(filepath.FromSlash(rel))
+		if rel == "." || filepath.IsAbs(rel) || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return false, fmt.Errorf("persistent knowledge index contains invalid manifest path %q", key)
+		}
+		rec.Path = filepath.Join(root, rel)
 		snap.Manifest[key] = rec
 		if rec.Included && rec.ID != "" {
 			if rec.Managed || reboundFiles[rec.ID] == "" {
@@ -511,7 +516,7 @@ type deltaScanResult struct {
 
 func (s *Store) scanDeltaDir(ctx context.Context, dir, origin string, managed bool, opts LoadOptions, old map[string]fileRecord, oldDocs map[string]model.KnowledgeDoc) (deltaScanResult, error) {
 	res := deltaScanResult{docs: map[string]model.KnowledgeDoc{}, manifest: map[string]fileRecord{}}
-	entries, err := os.ReadDir(dir)
+	entries, err := listKnowledgeJSONFiles(dir)
 	if err != nil {
 		return res, fmt.Errorf("read knowledge directory %q: %w", dir, err)
 	}
@@ -519,16 +524,10 @@ func (s *Store) scanDeltaDir(ctx context.Context, dir, origin string, managed bo
 		if err := ctx.Err(); err != nil {
 			return res, err
 		}
-		if e.IsDir() || !strings.HasSuffix(strings.ToLower(e.Name()), ".json") {
-			continue
-		}
-		key := origin + "/" + e.Name()
-		path := filepath.Join(dir, e.Name())
-		info, err := e.Info()
-		if err != nil {
-			return res, err
-		}
-		if matchesAnyGlob(e.Name(), opts.IgnoreGlobs) {
+		key := origin + "/" + e.Rel
+		path := e.Path
+		info := e.Info
+		if matchesAnyGlob(e.Rel, opts.IgnoreGlobs) {
 			res.manifest[key] = fileRecord{Key: key, Path: path, Size: info.Size(), ModTimeUnixNano: info.ModTime().UnixNano(), Managed: managed, Ignored: true}
 			res.stats.IgnoredFiles++
 			continue
@@ -572,7 +571,7 @@ func (s *Store) scanDeltaDir(ctx context.Context, dir, origin string, managed bo
 		}
 		d, unmapped, skip, err := decodeKnowledgeDoc(b, opts.CategoryMode, s.categoryMap)
 		if err != nil {
-			return res, fmt.Errorf("%s: %w", e.Name(), err)
+			return res, fmt.Errorf("%s: %w", e.Rel, err)
 		}
 		rec := fileRecord{Key: key, Path: path, Size: info.Size(), ModTimeUnixNano: info.ModTime().UnixNano(), RawHash: rawHash, Managed: managed, Unmapped: append([]string(nil), unmapped...)}
 		if len(unmapped) > 0 {
@@ -587,14 +586,14 @@ func (s *Store) scanDeltaDir(ctx context.Context, dir, origin string, managed bo
 			continue
 		}
 		if d.ID == "" || d.Title == "" {
-			return res, fmt.Errorf("%s: id/title required", e.Name())
+			return res, fmt.Errorf("%s: id/title required", e.Rel)
 		}
 		if !safeID(d.ID) {
-			return res, fmt.Errorf("%s: invalid id %q", e.Name(), d.ID)
+			return res, fmt.Errorf("%s: invalid id %q", e.Rel, d.ID)
 		}
 		d.Source = strings.ToLower(strings.TrimSpace(d.Source))
 		if d.Source == "" {
-			return res, fmt.Errorf("%s: source required", e.Name())
+			return res, fmt.Errorf("%s: source required", e.Rel)
 		}
 		if _, allowed := s.allowedSources[d.Source]; !allowed {
 			res.manifest[key] = rec
@@ -629,7 +628,7 @@ func mergeLoadStats(a, b LoadStats) LoadStats {
 	return LoadStats{IgnoredFiles: a.IgnoredFiles + b.IgnoredFiles, UnmappedCategoryFiles: a.UnmappedCategoryFiles + b.UnmappedCategoryFiles, UnmappedCategories: mergeStrings(a.UnmappedCategories, b.UnmappedCategories)}
 }
 
-func buildManifestForDocs(docs []model.KnowledgeDoc, files []string, origin string, managed bool) (map[string]fileRecord, error) {
+func buildManifestForDocs(docs []model.KnowledgeDoc, files []string, root, origin string, managed bool) (map[string]fileRecord, error) {
 	out := make(map[string]fileRecord, len(docs))
 	for i, d := range docs {
 		if i >= len(files) {
@@ -645,7 +644,11 @@ func buildManifestForDocs(docs []model.KnowledgeDoc, files []string, origin stri
 			return nil, err
 		}
 		h := sha256.Sum256(b)
-		key := origin + "/" + filepath.Base(path)
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			return nil, err
+		}
+		key := origin + "/" + filepath.ToSlash(rel)
 		out[key] = fileRecord{Key: key, Path: path, ID: d.ID, Size: info.Size(), ModTimeUnixNano: info.ModTime().UnixNano(), RawHash: hex.EncodeToString(h[:]), Managed: managed, Included: true, Unmapped: append([]string(nil), d.UnmappedExternalCategories...)}
 	}
 	return out, nil
@@ -688,24 +691,18 @@ func (s *Store) persistExternalVectorCache(source string) error {
 // delta scans do not repeatedly open files that are intentionally not part of
 // the active corpus.
 func augmentManifestAllFiles(dir, origin string, managed bool, opts LoadOptions, manifest map[string]fileRecord) error {
-	entries, err := os.ReadDir(dir)
+	entries, err := listKnowledgeJSONFiles(dir)
 	if err != nil {
 		return err
 	}
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(strings.ToLower(e.Name()), ".json") {
-			continue
-		}
-		key := origin + "/" + e.Name()
+		key := origin + "/" + e.Rel
 		if _, ok := manifest[key]; ok {
 			continue
 		}
-		info, err := e.Info()
-		if err != nil {
-			return err
-		}
-		path := filepath.Join(dir, e.Name())
-		rec := fileRecord{Key: key, Path: path, Size: info.Size(), ModTimeUnixNano: info.ModTime().UnixNano(), Managed: managed, Included: false, Ignored: matchesAnyGlob(e.Name(), opts.IgnoreGlobs)}
+		info := e.Info
+		path := e.Path
+		rec := fileRecord{Key: key, Path: path, Size: info.Size(), ModTimeUnixNano: info.ModTime().UnixNano(), Managed: managed, Included: false, Ignored: matchesAnyGlob(e.Rel, opts.IgnoreGlobs)}
 		if !rec.Ignored {
 			b, err := os.ReadFile(path)
 			if err != nil {

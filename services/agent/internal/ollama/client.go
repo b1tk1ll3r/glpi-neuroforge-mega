@@ -65,9 +65,65 @@ func (c *Client) NodeStatuses() []model.OllamaNodeStatus { return c.pool.NodeSta
 func (c *Client) RoutingMode() string                    { return c.routingMode }
 func (c *Client) Embed(ctx context.Context, texts []string) ([][]float64, error) {
 	ctx = withStage(ctx, "embedding")
+	return c.embedAdaptive(ctx, texts, 0)
+}
+
+const maxEmbeddingSplitDepth = 24
+
+// embedAdaptive keeps truncate=false so knowledge is never silently discarded.
+// Some Ollama embedding models enforce their context window across the complete
+// input array, not only per individual string. When such a request is rejected,
+// split the batch and retry. If one pathological input still exceeds the model
+// context (for example a very long URL/base64-like token), split that text and
+// combine the partial embeddings into one length-weighted vector.
+func (c *Client) embedAdaptive(ctx context.Context, texts []string, depth int) ([][]float64, error) {
 	if len(texts) == 0 {
 		return nil, nil
 	}
+	vectors, err := c.embedOnce(ctx, texts)
+	if err == nil {
+		return vectors, nil
+	}
+	if !isEmbeddingContextLengthError(err) || depth >= maxEmbeddingSplitDepth {
+		return nil, err
+	}
+
+	if len(texts) > 1 {
+		mid := len(texts) / 2
+		left, leftErr := c.embedAdaptive(ctx, texts[:mid], depth+1)
+		if leftErr != nil {
+			return nil, leftErr
+		}
+		right, rightErr := c.embedAdaptive(ctx, texts[mid:], depth+1)
+		if rightErr != nil {
+			return nil, rightErr
+		}
+		return append(left, right...), nil
+	}
+
+	leftText, rightText, ok := splitEmbeddingText(texts[0])
+	if !ok {
+		return nil, err
+	}
+	left, leftErr := c.embedAdaptive(ctx, []string{leftText}, depth+1)
+	if leftErr != nil {
+		return nil, leftErr
+	}
+	right, rightErr := c.embedAdaptive(ctx, []string{rightText}, depth+1)
+	if rightErr != nil {
+		return nil, rightErr
+	}
+	if len(left) != 1 || len(right) != 1 {
+		return nil, fmt.Errorf("adaptive embedding split returned invalid vector counts: left=%d right=%d", len(left), len(right))
+	}
+	combined, combineErr := weightedEmbeddingAverage(left[0], right[0], len([]rune(leftText)), len([]rune(rightText)))
+	if combineErr != nil {
+		return nil, combineErr
+	}
+	return [][]float64{combined}, nil
+}
+
+func (c *Client) embedOnce(ctx context.Context, texts []string) ([][]float64, error) {
 	payload := map[string]any{"model": c.embeddingModel, "input": texts, "truncate": false}
 	var out struct {
 		Embeddings [][]float64 `json:"embeddings"`
@@ -79,6 +135,49 @@ func (c *Client) Embed(ctx context.Context, texts []string) ([][]float64, error)
 		return nil, fmt.Errorf("Ollama returned %d embeddings for %d inputs", len(out.Embeddings), len(texts))
 	}
 	return out.Embeddings, nil
+}
+
+func isEmbeddingContextLengthError(err error) bool {
+	if err == nil {
+		return false
+	}
+	msg := strings.ToLower(err.Error())
+	return strings.Contains(msg, "context length") ||
+		strings.Contains(msg, "context window") ||
+		(strings.Contains(msg, "context") && strings.Contains(msg, "exceed"))
+}
+
+func splitEmbeddingText(text string) (string, string, bool) {
+	runes := []rune(strings.TrimSpace(text))
+	if len(runes) < 2 {
+		return "", "", false
+	}
+	mid := len(runes) / 2
+	left := strings.TrimSpace(string(runes[:mid]))
+	right := strings.TrimSpace(string(runes[mid:]))
+	if left == "" || right == "" {
+		left = string(runes[:mid])
+		right = string(runes[mid:])
+	}
+	if left == "" || right == "" || left == text || right == text {
+		return "", "", false
+	}
+	return left, right, true
+}
+
+func weightedEmbeddingAverage(a, b []float64, aWeight, bWeight int) ([]float64, error) {
+	if len(a) == 0 || len(b) == 0 || len(a) != len(b) {
+		return nil, fmt.Errorf("cannot combine embedding vectors with dimensions %d and %d", len(a), len(b))
+	}
+	if aWeight <= 0 || bWeight <= 0 {
+		return nil, fmt.Errorf("cannot combine embedding vectors with non-positive weights %d and %d", aWeight, bWeight)
+	}
+	total := float64(aWeight + bWeight)
+	out := make([]float64, len(a))
+	for i := range a {
+		out[i] = (a[i]*float64(aWeight) + b[i]*float64(bWeight)) / total
+	}
+	return out, nil
 }
 func (c *Client) AnalyseCategory(ctx context.Context, t model.Ticket, categories []model.Category, categoryHits []model.KnowledgeHit, contextData model.ContextSnapshot) (model.Decision, error) {
 	ctx = withStage(ctx, "category")

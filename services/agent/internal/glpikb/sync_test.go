@@ -269,3 +269,12 @@ func TestSyncPreservesGLPIKnowledgeLinkedItems(t *testing.T) {
 		t.Fatalf("unexpected linked item: %#v", got)
 	}
 }
+
+func TestSyncTimeoutUsesDedicatedKnowledgeBudget(t *testing.T) {
+	if got := SyncTimeout(config.Config{}); got != 30*time.Minute {
+		t.Fatalf("default sync timeout=%s, want 30m", got)
+	}
+	if got := SyncTimeout(config.Config{GLPIKBSyncTimeout: 7 * time.Minute}); got != 7*time.Minute {
+		t.Fatalf("configured sync timeout=%s, want 7m", got)
+	}
+}

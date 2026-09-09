@@ -237,6 +237,15 @@ func (s *Store) Initialize(ctx context.Context) (err error) {
 			if _, err := s.syncLoadedSemanticBackend(ctx); err != nil {
 				return err
 			}
+			// A persistent snapshot is a warm start, not proof that the mounted
+			// knowledge directory is unchanged. Reconcile it before ticket workers
+			// start so files copied while the agent was stopped are available on the
+			// first ticket instead of only after the background scan eventually ends.
+			if mode == "incremental" {
+				if err := s.SyncLocal(ctx); err != nil {
+					return fmt.Errorf("reconcile persistent knowledge index: %w", err)
+				}
+			}
 			return nil
 		} else if mode == "readonly" {
 			return fmt.Errorf("KNOWLEDGE_INDEX_MODE=readonly requires a compatible persistent index at %s", s.snapshotPath)
@@ -294,11 +303,11 @@ func (s *Store) fullRebuild(ctx context.Context) (err error) {
 	stats.UnmappedCategoryFiles += managedStats.UnmappedCategoryFiles
 	stats.UnmappedCategories = mergeStrings(stats.UnmappedCategories, managedStats.UnmappedCategories)
 
-	staticManifest, err := buildManifestForDocs(static, staticFiles, "static", false)
+	staticManifest, err := buildManifestForDocs(static, staticFiles, s.dir, "static", false)
 	if err != nil {
 		return fmt.Errorf("build static knowledge manifest: %w", err)
 	}
-	managedManifest, err := buildManifestForDocs(managed, managedFiles, "managed", true)
+	managedManifest, err := buildManifestForDocs(managed, managedFiles, s.managedDir, "managed", true)
 	if err != nil {
 		return fmt.Errorf("build managed knowledge manifest: %w", err)
 	}
@@ -405,44 +414,71 @@ func (s *Store) InitStatus() InitStatus {
 
 func (s *Store) Ready() bool { return s != nil && s.InitStatus().State == "ready" }
 
+type knowledgeJSONFile struct {
+	Rel  string
+	Path string
+	Info os.FileInfo
+}
+
+// listKnowledgeJSONFiles recursively discovers JSON knowledge documents. Large
+// exports are commonly grouped into category/subcategory folders; limiting the
+// scan to the top-level directory makes such a mounted corpus appear empty.
+func listKnowledgeJSONFiles(dir string) ([]knowledgeJSONFile, error) {
+	files := make([]knowledgeJSONFile, 0)
+	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() || !strings.HasSuffix(strings.ToLower(entry.Name()), ".json") {
+			return nil
+		}
+		rel, err := filepath.Rel(dir, path)
+		if err != nil {
+			return err
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		files = append(files, knowledgeJSONFile{Rel: filepath.ToSlash(rel), Path: path, Info: info})
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	sort.Slice(files, func(i, j int) bool { return files[i].Rel < files[j].Rel })
+	return files, nil
+}
+
 func readDocs(dir string, allowed map[string]struct{}, opts LoadOptions, categoryMap map[string][]int64, progress func(total, processed, loaded int)) ([]model.KnowledgeDoc, []string, LoadStats, error) {
-	entries, err := os.ReadDir(dir)
+	entries, err := listKnowledgeJSONFiles(dir)
 	if err != nil {
 		return nil, nil, LoadStats{}, fmt.Errorf("read knowledge directory %q: %w", dir, err)
 	}
 	var docs []model.KnowledgeDoc
 	var files []string
 	stats := LoadStats{}
-	total := 0
-	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(strings.ToLower(e.Name()), ".json") {
-			total++
-		}
-	}
+	total := len(entries)
 	processed := 0
 	if progress != nil {
 		progress(total, 0, 0)
 	}
 	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(strings.ToLower(e.Name()), ".json") {
-			continue
-		}
 		processed++
-		if matchesAnyGlob(e.Name(), opts.IgnoreGlobs) {
+		if matchesAnyGlob(e.Rel, opts.IgnoreGlobs) {
 			stats.IgnoredFiles++
 			if progress != nil {
 				progress(total, processed, len(docs))
 			}
 			continue
 		}
-		path := filepath.Join(dir, e.Name())
-		b, err := os.ReadFile(path)
+		b, err := os.ReadFile(e.Path)
 		if err != nil {
 			return nil, nil, stats, err
 		}
 		d, unmapped, skip, err := decodeKnowledgeDoc(b, opts.CategoryMode, categoryMap)
 		if err != nil {
-			return nil, nil, stats, fmt.Errorf("%s: %w", e.Name(), err)
+			return nil, nil, stats, fmt.Errorf("%s: %w", e.Rel, err)
 		}
 		if len(unmapped) > 0 {
 			stats.UnmappedCategoryFiles++
@@ -456,14 +492,14 @@ func readDocs(dir string, allowed map[string]struct{}, opts LoadOptions, categor
 			continue
 		}
 		if d.ID == "" || d.Title == "" {
-			return nil, nil, stats, fmt.Errorf("%s: id/title required", e.Name())
+			return nil, nil, stats, fmt.Errorf("%s: id/title required", e.Rel)
 		}
 		if !safeID(d.ID) {
-			return nil, nil, stats, fmt.Errorf("%s: invalid id %q", e.Name(), d.ID)
+			return nil, nil, stats, fmt.Errorf("%s: invalid id %q", e.Rel, d.ID)
 		}
 		d.Source = strings.ToLower(strings.TrimSpace(d.Source))
 		if d.Source == "" {
-			return nil, nil, stats, fmt.Errorf("%s: source required", e.Name())
+			return nil, nil, stats, fmt.Errorf("%s: source required", e.Rel)
 		}
 		if _, ok := allowed[d.Source]; !ok {
 			if progress != nil {
@@ -474,7 +510,7 @@ func readDocs(dir string, allowed map[string]struct{}, opts LoadOptions, categor
 		d.Language = strings.TrimSpace(d.Language)
 		d.CommunicationStyle = strings.ToLower(strings.TrimSpace(d.CommunicationStyle))
 		docs = append(docs, d)
-		files = append(files, path)
+		files = append(files, e.Path)
 		if progress != nil {
 			progress(total, processed, len(docs))
 		}
@@ -654,9 +690,22 @@ func parseMappingIDs(raw json.RawMessage) ([]int64, error) {
 }
 
 func matchesAnyGlob(name string, patterns []string) bool {
+	name = filepath.ToSlash(name)
+	base := filepath.Base(filepath.FromSlash(name))
 	for _, pattern := range patterns {
-		if ok, _ := filepath.Match(pattern, name); ok {
+		pattern = filepath.ToSlash(strings.TrimSpace(pattern))
+		if pattern == "" {
+			continue
+		}
+		if ok, _ := filepath.Match(filepath.FromSlash(pattern), filepath.FromSlash(name)); ok {
 			return true
+		}
+		// Backwards compatibility: filename-only patterns continue to match files
+		// inside newly supported nested knowledge directories.
+		if !strings.Contains(pattern, "/") {
+			if ok, _ := filepath.Match(pattern, base); ok {
+				return true
+			}
 		}
 	}
 	return false

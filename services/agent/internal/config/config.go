@@ -99,6 +99,7 @@ type Config struct {
 	GLPIKBFilter               string
 	GLPIKBLimit                int
 	GLPIKBSyncInterval         time.Duration
+	GLPIKBSyncTimeout          time.Duration
 	GLPIKBSource               string
 	GLPIKBAutoReply            bool
 	GLPIKBAutoReplyCategoryIDs []int64
@@ -306,6 +307,7 @@ func Load() (Config, error) {
 		GLPIKBFilter:                           strings.TrimSpace(os.Getenv("GLPI_KB_FILTER")),
 		GLPIKBLimit:                            envInt("GLPI_KB_LIMIT", 500),
 		GLPIKBSyncInterval:                     envDuration("GLPI_KB_SYNC_INTERVAL", 10*time.Minute),
+		GLPIKBSyncTimeout:                      envDuration("GLPI_KB_SYNC_TIMEOUT", 30*time.Minute),
 		GLPIKBSource:                           strings.ToLower(env("GLPI_KB_SOURCE", "glpi-kb")),
 		GLPIKBAutoReply:                        envBool("GLPI_KB_AUTO_REPLY", false),
 		GLPIKBAutoReplyCategoryIDs:             envInt64ListAllowEmpty("GLPI_KB_AUTO_REPLY_CATEGORY_IDS"),
@@ -737,6 +739,9 @@ func (c Config) Validate() error {
 		}
 		if c.GLPIKBSyncInterval < time.Minute {
 			return errors.New("GLPI_KB_SYNC_INTERVAL must be at least 1m")
+		}
+		if c.GLPIKBSyncTimeout < 0 || (c.GLPIKBSyncTimeout > 0 && c.GLPIKBSyncTimeout < time.Minute) {
+			return errors.New("GLPI_KB_SYNC_TIMEOUT must be 0 or at least 1m")
 		}
 		if c.GLPIKBPath != "auto" && !validAPIPath(c.GLPIKBPath) {
 			return errors.New("GLPI_KB_PATH must be 'auto' or an absolute API path")

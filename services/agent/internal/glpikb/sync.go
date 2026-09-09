@@ -51,7 +51,21 @@ type Syncer struct {
 	count        int
 }
 
-const cachePolicyVersion = 2
+const (
+	cachePolicyVersion        = 2
+	defaultKnowledgeSyncLimit = 30 * time.Minute
+)
+
+// SyncTimeout is the total budget for one complete GLPI knowledge refresh,
+// including embedding/re-indexing. GLPI_TIMEOUT remains the per-request HTTP
+// timeout; using it as the total sync budget aborts larger knowledge bases long
+// before their embeddings can finish.
+func SyncTimeout(cfg config.Config) time.Duration {
+	if cfg.GLPIKBSyncTimeout > 0 {
+		return cfg.GLPIKBSyncTimeout
+	}
+	return defaultKnowledgeSyncLimit
+}
 
 type cacheFile struct {
 	PolicyVersion int                  `json:"policy_version"`
@@ -246,7 +260,7 @@ func (s *Syncer) Start(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			case <-t.C:
-				c, cancel := context.WithTimeout(ctx, maxDuration(s.cfg.GLPITimeout*3, 30*time.Second))
+				c, cancel := context.WithTimeout(ctx, SyncTimeout(s.cfg))
 				if err := s.Sync(c); err != nil {
 					slog.Error("GLPI knowledge base sync failed", "error", err)
 				}

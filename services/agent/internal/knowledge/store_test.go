@@ -716,3 +716,109 @@ func TestNeuroForgeSearchFailureHonorsFailOpenPolicy(t *testing.T) {
 		t.Fatal("fail-closed search must surface backend failure")
 	}
 }
+
+func TestKnowledgeLoadsAndIncrementallyTracksNestedJSONFiles(t *testing.T) {
+	dir := t.TempDir()
+	data := t.TempDir()
+	nested := filepath.Join(dir, "department", "network")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	doc1 := `{"id":"NESTED-1","title":"VPN nested","text":"gateway vpn","answer":"x","source":"internal-kb","language":"de-DE","communication_style":"formal"}`
+	if err := os.WriteFile(filepath.Join(nested, "vpn.json"), []byte(doc1), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := Load(context.Background(), dir, data, nil, false, []string{"internal-kb"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Count() != 1 {
+		t.Fatalf("nested initial count=%d, want 1", s.Count())
+	}
+	if _, ok := s.manifest["static/department/network/vpn.json"]; !ok {
+		t.Fatalf("nested manifest key missing: %#v", s.manifest)
+	}
+
+	doc2 := `{"id":"NESTED-2","title":"DNS nested","text":"resolver dns","answer":"x","source":"internal-kb","language":"de-DE","communication_style":"formal"}`
+	deeper := filepath.Join(dir, "department", "dns", "prod")
+	if err := os.MkdirAll(deeper, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(deeper, "dns.json"), []byte(doc2), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.SyncLocal(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if s.Count() != 2 {
+		t.Fatalf("nested incremental count=%d, want 2", s.Count())
+	}
+	if _, ok := s.manifest["static/department/dns/prod/dns.json"]; !ok {
+		t.Fatalf("nested incremental manifest key missing: %#v", s.manifest)
+	}
+}
+
+func TestNestedKnowledgeSnapshotRebindsFullRelativePath(t *testing.T) {
+	dir := t.TempDir()
+	data := t.TempDir()
+	nested := filepath.Join(dir, "a", "b")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	doc := `{"id":"SNAP-NESTED","title":"Nested snapshot","text":"nested knowledge","answer":"x","source":"internal-kb","language":"de-DE","communication_style":"formal"}`
+	path := filepath.Join(nested, "item.json")
+	if err := os.WriteFile(path, []byte(doc), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	first, err := Load(context.Background(), dir, data, nil, false, []string{"internal-kb"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.files["SNAP-NESTED"] != path {
+		t.Fatalf("initial nested path=%q, want %q", first.files["SNAP-NESTED"], path)
+	}
+
+	second, err := Load(context.Background(), dir, data, nil, false, []string{"internal-kb"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.files["SNAP-NESTED"] != path {
+		t.Fatalf("rebound nested path=%q, want %q", second.files["SNAP-NESTED"], path)
+	}
+	if !second.InitStatus().SnapshotLoaded {
+		t.Fatal("expected second load to use persistent snapshot")
+	}
+}
+
+func TestInitializeReconcilesFilesAddedAfterEmptySnapshot(t *testing.T) {
+	dir := t.TempDir()
+	data := t.TempDir()
+	first, err := Load(context.Background(), dir, data, nil, false, []string{"internal-kb"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.Count() != 0 {
+		t.Fatalf("initial count=%d, want 0", first.Count())
+	}
+
+	nested := filepath.Join(dir, "import", "batch-1")
+	if err := os.MkdirAll(nested, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	doc := `{"id":"AFTER-SNAPSHOT","title":"Imported after snapshot","text":"new knowledge","answer":"x","source":"internal-kb","language":"de-DE","communication_style":"formal"}`
+	if err := os.WriteFile(filepath.Join(nested, "new.json"), []byte(doc), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	second, err := Load(context.Background(), dir, data, nil, false, []string{"internal-kb"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.Count() != 1 {
+		t.Fatalf("reconciled count=%d, want 1", second.Count())
+	}
+	if _, ok := second.ByID("AFTER-SNAPSHOT"); !ok {
+		t.Fatal("file added after snapshot was not reconciled during Initialize")
+	}
+}
