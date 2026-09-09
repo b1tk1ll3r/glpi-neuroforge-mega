@@ -18,6 +18,7 @@ import (
 type Config struct {
 	BaseURL       string
 	Model         string
+	APIKey        string
 	Timeout       time.Duration
 	MaxConcurrent int
 	AutoReply     bool
@@ -148,6 +149,9 @@ func (s *Service) askOllama(ctx context.Context, query string) (staging.Draft, e
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	if token := strings.TrimSpace(s.cfg.APIKey); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 	resp, err := s.client.Do(req)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) || errors.Is(ctx.Err(), context.DeadlineExceeded) {

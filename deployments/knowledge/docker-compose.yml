@@ -11,6 +11,7 @@ services:
       BACKUP_DIR: /data/backups
       STAGING_DIR: /data/staging
       LISTEN_ADDR: :8080
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
       BRAIN_ACTIVITY_URL: ""
       BRAIN_ACTIVITY_API_KEY: ""
     ports:

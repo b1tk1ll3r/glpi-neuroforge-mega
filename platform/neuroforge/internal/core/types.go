@@ -419,6 +419,7 @@ type Config struct {
 
 type Secrets struct {
 	OpenAIAPIKey      string            `json:"openai_api_key"`
+	OllamaAPIKey      string            `json:"ollama_api_key,omitempty"`
 	AppAPIKey         string            `json:"app_api_key"`
 	IntegrationToken  string            `json:"integration_token,omitempty"`
 	ControlReadToken  string            `json:"control_read_token,omitempty"`

@@ -234,6 +234,7 @@ func run() (retErr error) {
 	changed := false
 	for name, dst := range map[string]*string{
 		"OPENAI_API_KEY":                &sec.OpenAIAPIKey,
+		"NEUROFORGE_OLLAMA_API_KEY":     &sec.OllamaAPIKey,
 		"NEUROFORGE_ADMIN_TOKEN":        &sec.AdminToken,
 		"NEUROFORGE_APP_API_KEY":        &sec.AppAPIKey,
 		"NEUROFORGE_INTEGRATION_TOKEN":  &sec.IntegrationToken,
@@ -244,6 +245,14 @@ func run() (retErr error) {
 	} {
 		if v := os.Getenv(name); v != "" {
 			*dst = v
+			changed = true
+		}
+	}
+	// OLLAMA_API_KEY is a convenient shared alias. The NeuroForge-specific
+	// variable wins when both are set.
+	if strings.TrimSpace(os.Getenv("NEUROFORGE_OLLAMA_API_KEY")) == "" {
+		if v := strings.TrimSpace(os.Getenv("OLLAMA_API_KEY")); v != "" {
+			sec.OllamaAPIKey = v
 			changed = true
 		}
 	}

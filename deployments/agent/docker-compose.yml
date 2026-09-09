@@ -24,6 +24,7 @@ services:
       DATA_DIR: /app/data
       KNOWLEDGE_DIR: /app/knowledge
       KNOWLEDGE_VECTOR_BACKEND: local
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
       OUTCOME_LEARNING_ENABLED: "false"
       OUTCOME_RETRIEVAL_ENABLED: "false"
       BRAIN_ACTIVITY_URL: ""

@@ -20,7 +20,8 @@
     "worker_to_neuroforge": "worker_token",
     "research_to_kb_staging": "kb_integration_token",
     "control_to_agent_graph": "control_read_token",
-    "control_to_neuroforge_graph": "app_api_key_read_only_endpoints"
+    "control_to_neuroforge_graph": "app_api_key_read_only_endpoints",
+    "ollama": "optional bearer token via OLLAMA_API_KEY; role-specific NeuroForge overrides supported"
   },
   "knowledge_export": {
     "format": "Obsidian Markdown + YAML frontmatter + Wikilinks",
@@ -28,7 +29,7 @@
     "schema": "Wiki/Schema.md",
     "glpi_relations": "KnowbaseItem_Item when exposed by GLPI OpenAPI"
   },
-  "version": "1.5.6",
+  "version": "1.6.2",
   "controlled_learning": {
     "raw_chat_auto_learning": false,
     "validated_outcomes": [

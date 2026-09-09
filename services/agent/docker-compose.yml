@@ -24,6 +24,7 @@ services:
       DATA_DIR: /app/data
       KNOWLEDGE_DIR: /app/knowledge
       OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
       # Local CPU inference can take several minutes on the first request.
       OLLAMA_TIMEOUT: ${OLLAMA_TIMEOUT:-10m}
       OLLAMA_NUM_PREDICT: ${OLLAMA_NUM_PREDICT:-768}

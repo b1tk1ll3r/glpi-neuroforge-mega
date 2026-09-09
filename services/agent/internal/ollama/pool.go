@@ -29,6 +29,7 @@ type NodeConfig struct {
 }
 
 type PoolConfig struct {
+	APIKey                 string
 	Nodes                  []NodeConfig
 	RoutingMode            string
 	NodeMaxInflight        int
@@ -390,6 +391,7 @@ func (p *Pool) checkNode(ctx context.Context, n *poolNode) (string, string, erro
 	if err != nil {
 		return "", "", err
 	}
+	setBearer(req, p.cfg.APIKey)
 	resp, err := p.http.Do(req)
 	if err != nil {
 		return "", "", err
@@ -559,6 +561,7 @@ func (p *Pool) doPost(ctx context.Context, n *poolNode, path string, body []byte
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
+	setBearer(req, p.cfg.APIKey)
 	resp, err := p.http.Do(req)
 	if err != nil {
 		return 0, nil, err
@@ -572,6 +575,13 @@ func (p *Pool) doPost(ctx context.Context, n *poolNode, path string, body []byte
 		return resp.StatusCode, raw, fmt.Errorf("Ollama %s failed: HTTP %d: %s", path, resp.StatusCode, strings.TrimSpace(string(raw)))
 	}
 	return resp.StatusCode, raw, nil
+}
+
+func setBearer(req *http.Request, token string) {
+	token = strings.TrimSpace(token)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 }
 
 func (p *Pool) selectNode(ctx context.Context, excluded map[string]struct{}, stage string) (*poolNode, int64, error) {

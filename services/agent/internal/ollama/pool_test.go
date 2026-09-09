@@ -388,3 +388,41 @@ func TestPoolFastestRecentProbesUnmeasuredNodes(t *testing.T) {
 		t.Fatalf("fastest_recent must measure both nodes before preferring one: a=%d b=%d", callsA.Load(), callsB.Load())
 	}
 }
+
+func TestPoolSendsBearerToHealthAndInference(t *testing.T) {
+	const token = "ollama-secret"
+	var tagsAuth, embedAuth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/tags":
+			tagsAuth = r.Header.Get("Authorization")
+			tagsResponse(w, "chat-digest", "embed-digest")
+		case "/api/embed":
+			embedAuth = r.Header.Get("Authorization")
+			_ = json.NewEncoder(w).Encode(map[string]any{"embeddings": [][]float64{{1, 0}}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	c, err := NewPool(PoolConfig{
+		APIKey: token, Nodes: []NodeConfig{{Name: "secure", URL: srv.URL, Weight: 1}}, RoutingMode: "least_inflight",
+		NodeMaxInflight: 1, HealthInterval: time.Minute, FailureCooldown: time.Second, NodeRequestTimeout: time.Second,
+		FailoverEnabled: false, FailoverAttempts: 1, RequireSameModelDigest: true, RequireEmbeddingModel: true, Model: "m", EmbeddingModel: "e",
+	}, "m", "e", "de-DE", "formal", 128, time.Minute, false, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := c.Ping(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Embed(context.Background(), []string{"x"}); err != nil {
+		t.Fatal(err)
+	}
+	if tagsAuth != "Bearer "+token {
+		t.Fatalf("tags authorization=%q", tagsAuth)
+	}
+	if embedAuth != "Bearer "+token {
+		t.Fatalf("embed authorization=%q", embedAuth)
+	}
+}

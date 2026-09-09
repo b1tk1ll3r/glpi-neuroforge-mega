@@ -307,7 +307,7 @@ func (r *Router) chatOllama(ctx context.Context, o core.OllamaServer, model, ins
 	}
 	requestCtx, cancel := optionalTimeout(ctx, o.RequestTimeoutSeconds)
 	defer cancel()
-	if err := r.doJSON(requestCtx, "POST", cleanBase(o.BaseURL)+"/api/chat", "", body, &out); err != nil {
+	if err := r.doJSON(requestCtx, "POST", cleanBase(o.BaseURL)+"/api/chat", r.store.Secrets().OllamaAPIKey, body, &out); err != nil {
 		return ChatResult{}, fmt.Errorf("ollama %s: %w", o.Name, err)
 	}
 	if strings.TrimSpace(out.Message.Content) == "" {
@@ -327,7 +327,7 @@ func (r *Router) embedOllama(ctx context.Context, o core.OllamaServer, model, te
 	}
 	requestCtx, cancel := optionalTimeout(ctx, o.RequestTimeoutSeconds)
 	defer cancel()
-	if err := r.doJSON(requestCtx, "POST", cleanBase(o.BaseURL)+"/api/embed", "", body, &out); err != nil {
+	if err := r.doJSON(requestCtx, "POST", cleanBase(o.BaseURL)+"/api/embed", r.store.Secrets().OllamaAPIKey, body, &out); err != nil {
 		return EmbedResult{}, fmt.Errorf("ollama %s: %w", o.Name, err)
 	}
 	if len(out.Embeddings) == 0 || len(out.Embeddings[0]) == 0 {
@@ -459,6 +459,9 @@ func (r *Router) Health(ctx context.Context) []map[string]any {
 		}
 		healthCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		req, _ := http.NewRequestWithContext(healthCtx, "GET", cleanBase(o.BaseURL)+"/api/tags", nil)
+		if token := strings.TrimSpace(r.store.Secrets().OllamaAPIKey); token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
+		}
 		resp, err := r.http.Do(req)
 		if err != nil {
 			cancel()

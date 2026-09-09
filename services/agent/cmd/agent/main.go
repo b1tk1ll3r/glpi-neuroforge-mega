@@ -62,7 +62,7 @@ func main() {
 		nodes = append(nodes, ollama.NodeConfig{Name: name, URL: nodeURL, Weight: weight})
 	}
 	o, err := ollama.NewPool(ollama.PoolConfig{
-		Nodes: nodes, RoutingMode: cfg.OllamaRoutingMode, NodeMaxInflight: cfg.OllamaNodeMaxInflight,
+		APIKey: cfg.OllamaAPIKey, Nodes: nodes, RoutingMode: cfg.OllamaRoutingMode, NodeMaxInflight: cfg.OllamaNodeMaxInflight,
 		HealthInterval: cfg.OllamaNodeHealthInterval, FailureCooldown: cfg.OllamaNodeFailureCooldown,
 		NodeRequestTimeout: cfg.OllamaNodeRequestTimeout, FailoverEnabled: cfg.OllamaFailoverEnabled,
 		FailoverAttempts: cfg.OllamaFailoverAttempts, RequireSameModelDigest: cfg.OllamaRequireSameDigest,

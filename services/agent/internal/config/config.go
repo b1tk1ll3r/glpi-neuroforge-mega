@@ -39,6 +39,7 @@ type Config struct {
 	GLPIAllowedStatusIDs  []int64
 
 	OllamaURL                   string // legacy single-node value
+	OllamaAPIKey                string // optional Bearer token sent to every Ollama node
 	OllamaURLs                  []string
 	OllamaNodeNames             []string
 	OllamaNodeWeights           []int
@@ -246,6 +247,7 @@ func Load() (Config, error) {
 		GLPIAllowInsecureHTTP:                  envBool("GLPI_ALLOW_INSECURE_HTTP", false),
 		GLPIAllowedStatusIDs:                   envInt64List("GLPI_ALLOWED_STATUS_IDS", "1"),
 		OllamaURL:                              strings.TrimRight(env("OLLAMA_URL", "http://ollama:11434"), "/"),
+		OllamaAPIKey:                           strings.TrimSpace(os.Getenv("OLLAMA_API_KEY")),
 		OllamaURLs:                             envStringListPreserveCase("OLLAMA_URLS", ""),
 		OllamaNodeNames:                        envStringListPreserveCase("OLLAMA_NODE_NAMES", ""),
 		OllamaNodeWeights:                      envIntListAllowEmpty("OLLAMA_NODE_WEIGHTS"),

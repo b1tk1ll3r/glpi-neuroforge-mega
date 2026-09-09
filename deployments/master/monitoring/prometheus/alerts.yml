@@ -63,7 +63,7 @@ groups:
         labels: {severity: warning}
         annotations:
           summary: "NeuroForge pending job payload memory is high"
-          description: "Pending durable job payload/result bytes exceed 100 MiB for 5 minutes; backfill should remain below the v1.6.2 safety budget."
+          description: "Pending durable job payload/result bytes exceed 100 MiB for 5 minutes; backfill should remain below the v1.6.1 safety budget."
 
       - alert: NeuroForgeTerminalPayloadHigh
         expr: neuroforge_job_payload_bytes{state="terminal"} > 67108864
@@ -71,4 +71,4 @@ groups:
         labels: {severity: warning}
         annotations:
           summary: "NeuroForge terminal job payload retention is high"
-          description: "Terminal job payload/result bytes exceed 64 MiB. Completed vector.relink jobs should be compacted automatically in v1.6.2."
+          description: "Terminal job payload/result bytes exceed 64 MiB. Completed vector.relink jobs should be compacted automatically in v1.6.1."

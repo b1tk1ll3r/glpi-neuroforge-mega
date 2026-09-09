@@ -1,4 +1,4 @@
-name: mega-release
+name: release
 
 on:
   push:
@@ -10,136 +10,33 @@ jobs:
     runs-on: ubuntu-latest
     env:
       REGISTRY: git.send.nrw/sendnrw
+      RUNNER_TOOL_CACHE: /toolcache
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Validate immutable release version
-        id: meta
-        shell: bash
-        run: |
-          set -euo pipefail
-          REF_NAME="${GITEA_REF_NAME:-${GITHUB_REF_NAME:-}}"
-          VERSION="${REF_NAME#v}"
-          test -n "$VERSION"
-          FILE_VERSION="$(tr -d '\r\n' < VERSION)"
-          test "$VERSION" = "$FILE_VERSION" || {
-            echo "Tag version $VERSION does not match VERSION=$FILE_VERSION" >&2
-            exit 1
-          }
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
         with:
           config-inline: |
             [registry."git.send.nrw"]
               http = true
               insecure = true
-
-      - name: Login to registry
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           registry: git.send.nrw
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-
-
-      - name: Push NeuroForge server
-        uses: docker/build-push-action@v6
-        with:
-          context: ./platform/neuroforge
-          file: ./platform/neuroforge/Dockerfile
-          target: server
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.REGISTRY }}/glpi-neuroforge-mega-neuroforge:${{ steps.meta.outputs.version }}
-
-      - name: Push NeuroForge worker
-        uses: docker/build-push-action@v6
-        with:
-          context: ./platform/neuroforge
-          file: ./platform/neuroforge/Dockerfile
-          target: worker
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.REGISTRY }}/glpi-neuroforge-mega-neuroforge-worker:${{ steps.meta.outputs.version }}
-
-      - name: Push Agent
-        uses: docker/build-push-action@v6
-        with:
-          context: ./services/agent
-          file: ./services/agent/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.REGISTRY }}/glpi-neuroforge-mega-agent:${{ steps.meta.outputs.version }}
-
-      - name: Push Agent data-init
-        uses: docker/build-push-action@v6
-        with:
-          context: ./services/agent
-          file: ./services/agent/Dockerfile
-          target: data-init
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.REGISTRY }}/glpi-neuroforge-mega-agent-data-init:${{ steps.meta.outputs.version }}
-
-      - name: Push Knowledge
-        uses: docker/build-push-action@v6
-        with:
-          context: ./services/knowledge
-          file: ./services/knowledge/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.REGISTRY }}/glpi-neuroforge-mega-knowledge:${{ steps.meta.outputs.version }}
-
-      - name: Push Control
-        uses: docker/build-push-action@v6
-        with:
-          context: ./services/control
-          file: ./services/control/Dockerfile
-          platforms: linux/amd64
-          push: true
-          tags: ${{ env.REGISTRY }}/glpi-neuroforge-mega-control:${{ steps.meta.outputs.version }}
-
-  release-archive:
-    needs: release-images
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Validate and package
+      - name: Resolve immutable release version
+        id: meta
         shell: bash
         run: |
           set -euo pipefail
-          REF_NAME="${GITEA_REF_NAME:-${GITHUB_REF_NAME:-}}"
-          VERSION="${REF_NAME#v}"
-          test "$VERSION" = "$(tr -d '\r\n' < VERSION)"
-          ./scripts/secret-scan.sh
-          find . -type f ! -path './.git/*' ! -name MANIFEST.sha256 -print0 \
-            | sort -z \
-            | xargs -0 sha256sum > MANIFEST.sha256
-          ROOT_DIR="$(pwd)"
-          PKG_DIR="../glpi-neuroforge-mega-v${VERSION}-gitea"
-          rm -rf "$PKG_DIR"
-          mkdir -p "$PKG_DIR"
-          tar --exclude=.git -cf - . | (cd "$PKG_DIR" && tar -xf -)
-          cd ..
-          zip -qr "glpi-neuroforge-mega-v${VERSION}-gitea.zip" "glpi-neuroforge-mega-v${VERSION}-gitea"
-          sha256sum "glpi-neuroforge-mega-v${VERSION}-gitea.zip" > "glpi-neuroforge-mega-v${VERSION}-gitea.zip.sha256"
-
-      - name: Upload release archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: glpi-neuroforge-mega-${{ gitea.ref_name }}
-          path: |
-            ../glpi-neuroforge-mega-*.zip
-            ../glpi-neuroforge-mega-*.zip.sha256
+          VERSION="$(git describe --tags --exact-match HEAD | sed 's/^v//')"
+          test -n "$VERSION"
+          test "$(cat VERSION)" = "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Build and push all release images
+        env:
+          IMAGE_TAG: ${{ steps.meta.outputs.version }}
+        run: docker buildx bake --push

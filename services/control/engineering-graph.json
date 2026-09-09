@@ -2464,7 +2464,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": true,
-        "line": 1063,
+        "line": 1065,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2476,7 +2476,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": true,
-        "line": 440,
+        "line": 442,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2488,7 +2488,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": true,
-        "line": 224,
+        "line": 225,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2500,7 +2500,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1037,
+        "line": 1039,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2512,7 +2512,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1208,
+        "line": 1210,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2524,7 +2524,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1252,
+        "line": 1254,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2536,7 +2536,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1241,
+        "line": 1243,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2548,7 +2548,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1219,
+        "line": 1221,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2560,7 +2560,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1230,
+        "line": 1232,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2572,7 +2572,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1086,
+        "line": 1088,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2584,7 +2584,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1108,
+        "line": 1110,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2596,7 +2596,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1191,
+        "line": 1193,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2608,7 +2608,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1052,
+        "line": 1054,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2620,7 +2620,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1183,
+        "line": 1185,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2632,7 +2632,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1130,
+        "line": 1132,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2644,7 +2644,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1156,
+        "line": 1158,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2656,7 +2656,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1046,
+        "line": 1048,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2668,7 +2668,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1082,
+        "line": 1084,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2680,7 +2680,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1023,
+        "line": 1025,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2692,7 +2692,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 1018,
+        "line": 1020,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -2704,7 +2704,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/config",
       "meta": {
         "exported": false,
-        "line": 993,
+        "line": 995,
         "path": "services/agent/internal/config/config.go"
       }
     },
@@ -5716,7 +5716,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 272,
+        "line": 273,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5728,7 +5728,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 262,
+        "line": 263,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5740,7 +5740,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 243,
+        "line": 244,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5752,7 +5752,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 667,
+        "line": 677,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5764,7 +5764,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 388,
+        "line": 389,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5776,7 +5776,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 549,
+        "line": 551,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5788,7 +5788,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 596,
+        "line": 606,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5800,7 +5800,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 453,
+        "line": 455,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5812,7 +5812,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 280,
+        "line": 281,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5824,7 +5824,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 577,
+        "line": 587,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5836,7 +5836,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 680,
+        "line": 690,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5848,7 +5848,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 774,
+        "line": 784,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5860,7 +5860,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 731,
+        "line": 741,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5872,7 +5872,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 369,
+        "line": 370,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5896,7 +5896,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 709,
+        "line": 719,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5908,7 +5908,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 693,
+        "line": 703,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5920,7 +5920,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 763,
+        "line": 773,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5932,7 +5932,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 715,
+        "line": 725,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5944,7 +5944,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 438,
+        "line": 440,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5956,7 +5956,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 161,
+        "line": 162,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5992,7 +5992,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 703,
+        "line": 713,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6004,7 +6004,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 78,
+        "line": 79,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6016,7 +6016,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 540,
+        "line": 542,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6028,7 +6028,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 92,
+        "line": 93,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6040,7 +6040,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 104,
+        "line": 105,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6052,7 +6052,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 87,
+        "line": 88,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6064,7 +6064,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 135,
+        "line": 136,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6076,7 +6076,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 745,
+        "line": 755,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6088,7 +6088,19 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 740,
+        "line": 750,
+        "path": "services/agent/internal/ollama/pool.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:setBearer",
+      "kind": "function",
+      "label": "setBearer",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/ollama",
+      "meta": {
+        "exported": false,
+        "line": 580,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6112,7 +6124,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 736,
+        "line": 746,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -7756,7 +7768,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 292,
+        "line": 293,
         "path": "services/knowledge/cmd/server/main.go"
       }
     },
@@ -7768,7 +7780,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 304,
+        "line": 305,
         "path": "services/knowledge/cmd/server/main.go"
       }
     },
@@ -7804,7 +7816,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 345,
+        "line": 346,
         "path": "services/knowledge/cmd/server/main.go"
       }
     },
@@ -7828,7 +7840,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 311,
+        "line": 312,
         "path": "services/knowledge/cmd/server/main.go"
       }
     },
@@ -7840,7 +7852,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 284,
+        "line": 285,
         "path": "services/knowledge/cmd/server/main.go"
       }
     },
@@ -7864,7 +7876,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 337,
+        "line": 338,
         "path": "services/knowledge/cmd/server/main.go"
       }
     },
@@ -7948,7 +7960,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": true,
-        "line": 40,
+        "line": 41,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -7960,7 +7972,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": true,
-        "line": 76,
+        "line": 77,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -7972,7 +7984,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": true,
-        "line": 106,
+        "line": 107,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -7984,7 +7996,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": true,
-        "line": 73,
+        "line": 74,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -7996,7 +8008,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": true,
-        "line": 74,
+        "line": 75,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -8008,7 +8020,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": true,
-        "line": 72,
+        "line": 73,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -8020,7 +8032,7 @@
       "community": "kb-editor/internal/aifallback",
       "meta": {
         "exported": false,
-        "line": 110,
+        "line": 111,
         "path": "services/knowledge/internal/aifallback/ollama.go"
       }
     },
@@ -9832,7 +9844,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 623,
+        "line": 632,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -9916,7 +9928,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 255,
+        "line": 257,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -9928,7 +9940,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 416,
+        "line": 421,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -9940,7 +9952,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 454,
+        "line": 459,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -9952,7 +9964,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 507,
+        "line": 512,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -9964,7 +9976,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 495,
+        "line": 500,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -9976,7 +9988,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 486,
+        "line": 491,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -9988,7 +10000,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 468,
+        "line": 473,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10000,7 +10012,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 239,
+        "line": 241,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10012,7 +10024,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 446,
+        "line": 451,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10024,7 +10036,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 100,
+        "line": 101,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10036,7 +10048,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 105,
+        "line": 106,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10048,7 +10060,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 110,
+        "line": 111,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10060,7 +10072,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 478,
+        "line": 483,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10072,7 +10084,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 120,
+        "line": 121,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10084,7 +10096,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 354,
+        "line": 356,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10096,7 +10108,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 332,
+        "line": 334,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10108,7 +10120,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 189,
+        "line": 191,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10120,7 +10132,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 421,
+        "line": 426,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10132,7 +10144,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 394,
+        "line": 396,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10144,7 +10156,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 235,
+        "line": 237,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10156,7 +10168,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 279,
+        "line": 281,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10168,7 +10180,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 178,
+        "line": 180,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10180,7 +10192,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 227,
+        "line": 229,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -12124,7 +12136,7 @@
       "community": "neuroforge/internal/core",
       "meta": {
         "exported": true,
-        "line": 741,
+        "line": 742,
         "path": "platform/neuroforge/internal/core/types.go"
       }
     },
@@ -12340,7 +12352,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 827,
+        "line": 836,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12352,7 +12364,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 801,
+        "line": 810,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12388,7 +12400,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 823,
+        "line": 832,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12544,7 +12556,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 790,
+        "line": 799,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12616,7 +12628,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 785,
+        "line": 794,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12784,7 +12796,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 813,
+        "line": 822,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -12808,7 +12820,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 816,
+        "line": 825,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13348,7 +13360,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 884,
+        "line": 893,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13384,7 +13396,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 949,
+        "line": 961,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13396,7 +13408,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 859,
+        "line": 868,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13456,7 +13468,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 837,
+        "line": 846,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13600,7 +13612,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 902,
+        "line": 911,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -13612,7 +13624,7 @@
       "community": "neuroforge/internal/httpapi",
       "meta": {
         "exported": false,
-        "line": 888,
+        "line": 897,
         "path": "platform/neuroforge/internal/httpapi/httpapi.go"
       }
     },
@@ -32968,6 +32980,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:services/agent/internal/ollama/pool.go-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:setBearer:defines",
+      "from": "file:services/agent/internal/ollama/pool.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:setBearer",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/agent/internal/ollama/pool.go-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:withStage:defines",
       "from": "file:services/agent/internal/ollama/pool.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/ollama:withStage",
@@ -43735,6 +43753,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.checkNode-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:setBearer:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.checkNode",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:setBearer",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.checkNode-\u003epackage:encoding/json:calls_package",
       "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.checkNode",
       "to": "package:encoding/json",
@@ -43768,6 +43792,12 @@
       "to": "package:strings",
       "kind": "calls_package",
       "label": "TrimSpace"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.doPost-\u003efunction:github.com/example/glpi-ai-agent/internal/ollama:setBearer:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.doPost",
+      "to": "function:github.com/example/glpi-ai-agent/internal/ollama:setBearer",
+      "kind": "calls"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:Pool.doPost-\u003epackage:bytes:calls_package",
@@ -44017,6 +44047,13 @@
       "to": "package:time",
       "kind": "calls_package",
       "label": "Now"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/ollama:setBearer-\u003epackage:strings:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/ollama:setBearer",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/ollama:uniqueStrings-\u003epackage:strings:calls_package",
@@ -56621,6 +56658,13 @@
       "label": "NewRequestWithContext"
     },
     {
+      "id": "function:neuroforge/internal/provider:Router.Health-\u003epackage:strings:calls_package",
+      "from": "function:neuroforge/internal/provider:Router.Health",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
+    },
+    {
       "id": "function:neuroforge/internal/provider:Router.chatOllama-\u003efunction:neuroforge/internal/provider:Router.doJSON:calls",
       "from": "function:neuroforge/internal/provider:Router.chatOllama",
       "to": "function:neuroforge/internal/provider:Router.doJSON",
@@ -66863,10 +66907,10 @@
     }
   ],
   "meta": {
-    "edges": 7273,
+    "edges": 7278,
     "format_version": 1,
     "generator": "go-ast+compose",
     "modules": 4,
-    "nodes": 1845
+    "nodes": 1846
   }
 }

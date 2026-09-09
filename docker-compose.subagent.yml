@@ -7,7 +7,7 @@ name: neuroforge-subagents
 services:
   cpu-subagent:
     profiles: [cpu]
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.1}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.2}
     command:
       - -server
       - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
@@ -29,7 +29,7 @@ services:
 
   gpu-subagent:
     profiles: [gpu]
-    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.1}
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-neuroforge-worker:${IMAGE_TAG:?Set IMAGE_TAG, e.g. 1.6.2}
     command:
       - -server
       - ${NEUROFORGE_MASTER_URL:?Set the reachable NeuroForge master URL}
@@ -43,6 +43,8 @@ services:
       NEUROFORGE_WORKER_MAX_CONCURRENCY: ${NEUROFORGE_GPU_WORKER_CONCURRENCY:-1}
       NEUROFORGE_WORKER_HEARTBEAT_INTERVAL: ${NEUROFORGE_WORKER_HEARTBEAT_INTERVAL:-15s}
       NEUROFORGE_WORKER_OLLAMA_URL: ${NEUROFORGE_WORKER_OLLAMA_URL:?Set Ollama URL reachable from the GPU subagent}
+      NEUROFORGE_WORKER_OLLAMA_API_KEY: ${NEUROFORGE_WORKER_OLLAMA_API_KEY:-}
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
       NEUROFORGE_WORKER_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL:-gemma3}
       NEUROFORGE_WORKER_OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-embeddinggemma}
       NEUROFORGE_WORKER_OLLAMA_NUM_CTX: ${NEUROFORGE_OLLAMA_NUM_CTX:-8192}

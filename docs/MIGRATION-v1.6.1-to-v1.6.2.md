@@ -1,12 +1,24 @@
 # Migration v1.6.1 -> v1.6.2
 
-v1.6.2 is primarily a packaging/deployment consolidation release. It retains the v1.6.1 NeuroForge recovery and persisted-state behavior.
+No data-volume migration is required. Keep `neuroforge-data`, Agent data and Knowledge directories intact.
 
-1. Back up the persistent data volumes/directories.
-2. Set `IMAGE_TAG=1.6.2` in the selected deployment `.env`.
-3. Keep existing `neuroforge-data`, Agent data and Knowledge files; do not delete volumes.
-4. Replace deployment examples with the v1.6.2 variants, preserving real secrets locally.
-5. Recreate project containers so changed environment/configuration is applied.
-6. Check `/livez`, `/readyz`, Agent `/api/status`, worker status, graph convergence and Prometheus alerts.
+1. Set `IMAGE_TAG=1.6.2`.
+2. Copy the new optional Ollama variables into your `.env`:
 
-The distributed roles now live alongside the standalone Agent/Knowledge/Ollama roles in the same canonical repository.
+   ```env
+   OLLAMA_API_KEY=
+   NEUROFORGE_OLLAMA_API_KEY=
+   NEUROFORGE_WORKER_OLLAMA_API_KEY=
+   ```
+
+   Leave them empty for an unauthenticated native Ollama endpoint.
+3. If Ollama is protected by a Bearer-aware proxy, normally set only `OLLAMA_API_KEY`. Use the two NeuroForge overrides only when the Master and model worker need different credentials.
+4. Pull/recreate services without deleting volumes:
+
+   ```bash
+   docker compose --profile research pull
+   docker compose --profile research up -d --force-recreate --remove-orphans
+   ```
+5. For distributed deployments, use the complete `.env` shipped under `deployments/master`, `deployments/cpu-subagent`, and `deployments/gpu-subagent` and preserve the same `NEUROFORGE_WORKER_TOKEN` on Master and subagents.
+
+The v1.6.1 OOM/recovery fixes are part of v1.6.2 and must not be removed when merging older deployment files.

@@ -1,15 +1,13 @@
-# GLPI NeuroForge Mega v1.6.2
+# GLPI NeuroForge Mega v1.6.1
 
-> Release: **v1.6.2** · kanonischer Vollrelease mit Full-Mega-, Distributed- und Standalone-Betriebsmodi. Die v1.6.1 Recovery/OOM-Härtung ist vollständig enthalten.
-
-v1.6.2 konsolidiert die zuvor getrennten Pakete wieder in **ein vollständiges Monorepo**: NeuroForge Master, CPU/GPU-Subagents, GLPI Agent, Knowledge, Control, Ollama, Research sowie eigenständig betreibbare Agent-/Knowledge-/Ollama-Core-Kits und Prometheus/Grafana-Beispiele.
+> Release: **v1.6.1** · Crash-/Recovery-Hardening für große Knowledge-Korpora auf Basis der v1.6.0 Master/Subagent- und n:m-Graph-Architektur.
 
 Ein kontrolliertes Monorepo aus **GLPI AI Agent**, **GLPI AI Knowledgebase** und **NeuroForge + SQAR**. Ziel ist nicht ein untrennbarer Monolith, sondern eine gemeinsame Plattform mit klaren Zuständigkeiten, getrennten Credentials und nachvollziehbaren Failure-Modi.
 
 
-## Crash-/Recovery-Hardening (seit v1.6.1, in v1.6.2 enthalten)
+## Crash-/Recovery-Hardening (v1.6.1)
 
-Die in v1.6.1 eingeführte Härtung behebt einen RAM-/Recovery-Fehler, der bei großen Graph-Backfills nach mehreren Stunden Laufzeit auftreten konnte. Erfolgreiche `vector.relink`-Jobs verwerfen ihre großen transienten Vector-Payloads unmittelbar nach dem autoritativen Master-Apply; ein Queue-Payload-Budget verhindert neue ungebremste Speicherbelegung. Beim ersten Start migriert NeuroForge alte v1.6.0-Checkpoints streaming, bevor `state.json` vollständig in den RAM geladen wird.
+v1.6.1 behebt einen RAM-/Recovery-Fehler, der bei großen Graph-Backfills nach mehreren Stunden Laufzeit auftreten konnte. Erfolgreiche `vector.relink`-Jobs verwerfen ihre großen transienten Vector-Payloads unmittelbar nach dem autoritativen Master-Apply; ein Queue-Payload-Budget verhindert neue ungebremste Speicherbelegung. Beim ersten Start migriert NeuroForge alte v1.6.0-Checkpoints streaming, bevor `state.json` vollständig in den RAM geladen wird.
 
 HNSW-Deltas werden nicht mehr über einen vollständigen Deep-Copy aller Vektoren erzeugt. Checkpoints persistieren den Index vor `state.json`, sodass ein Crash während der Indexpersistenz den autoritativen Checkpoint nicht vor den verwendbaren Index ziehen kann. Bei Containerstarts mit explizitem `-listen` ist sofort eine Bootstrap-Liveness-/Startup-Seite erreichbar; Logs zeigen die aktuelle Recovery-Phase (`checkpoint.precompact`, `memory-segments.scan`, `wal.replay`, `hnsw.snapshot.load`, `hnsw.rebuild`, ...).
 
@@ -33,22 +31,6 @@ Lokale Standardrollen:
 - `neuroforge-worker-gpu`: `gpu,model.chat,model.embed`
 
 Zusätzliche Hosts können mit `docker-compose.subagent.yml` angebunden werden. Das Control Center bleibt read-only und zeigt Master-, Worker-, Queue- und Graphzustand. Details: [`docs/MASTER-SUBAGENT-ORCHESTRATOR.md`](docs/MASTER-SUBAGENT-ORCHESTRATOR.md).
-
-
-## Deployment-Modi
-
-Das Repository enthält bewusst mehrere, voneinander entkoppelte Betriebsformen:
-
-- `docker-compose.yml`: vollständiger Mega-Stack mit lokalem CPU- und GPU-Worker.
-- `deployments/master`: autoritativer Master ohne lokale Worker, für getrennte CPU-/GPU-Hosts.
-- `deployments/cpu-subagent`: abgesetzter CPU-Worker für `cpu,vector.relink`.
-- `deployments/gpu-subagent`: abgesetzter GPU-Worker plus Ollama für `gpu,model.chat,model.embed`.
-- `deployments/agent`: GLPI Agent standalone mit lokalem Vector-Backend, ohne NeuroForge-Zwang.
-- `deployments/knowledge`: Knowledge standalone.
-- `deployments/ollama`: Ollama standalone.
-- `deployments/combined`: Agent + Knowledge + Ollama ohne NeuroForge.
-
-Details: [`deployments/README.md`](deployments/README.md).
 
 ## Unified Graph Explorer (v1.4.0)
 
@@ -270,3 +252,15 @@ NEUROFORGE_GOAL_LEARNING_ENABLED=true
 ```
 
 Damit bleibt rohes Chat-/Assistant-Lernen weiterhin deaktiviert.
+
+## v1.6.2: vollständige Deployment-Rollen und Ollama Bearer Auth
+
+Das Repository enthält neben dem vollständigen Mega-Compose eigenständige Kits unter `deployments/` für `master`, `cpu-subagent`, `gpu-subagent`, `agent`, `knowledge`, `ollama` und `combined`. Damit können der produktive GLPI-Agent/Knowledge-Core und die NeuroForge-Orchestrierung getrennt oder gemeinsam betrieben werden.
+
+Für Ollama-kompatible Endpunkte hinter einem Bearer-geschützten Gateway kann optional gesetzt werden:
+
+```env
+OLLAMA_API_KEY=
+```
+
+Agent, Knowledge, NeuroForge und modellfähige Subagents senden den Wert dann als `Authorization: Bearer ...`. NeuroForge kennt zusätzlich `NEUROFORGE_OLLAMA_API_KEY` und `NEUROFORGE_WORKER_OLLAMA_API_KEY` als rollenbezogene Overrides. Details: `docs/OLLAMA-BEARER-AUTH.md`.

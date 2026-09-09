@@ -111,3 +111,48 @@ func TestOllamaExplicitRequestTimeoutStillWorks(t *testing.T) {
 		t.Fatalf("configured timeout was not enforced promptly: %v", time.Since(start))
 	}
 }
+
+func TestOllamaBearerTokenIsSentToChatAndHealth(t *testing.T) {
+	const token = "ollama-secret"
+	var chatAuth, tagsAuth string
+	fake := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api/chat":
+			chatAuth = r.Header.Get("Authorization")
+			_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": "ok"}})
+		case "/api/tags":
+			tagsAuth = r.Header.Get("Authorization")
+			_ = json.NewEncoder(w).Encode(map[string]any{"models": []map[string]any{{"name": "chat"}, {"name": "embed"}}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer fake.Close()
+	s, err := store.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	cfg := s.Config()
+	cfg.Ollama = []core.OllamaServer{{ID: "secure", Name: "secure", BaseURL: fake.URL, ChatModel: "chat", EmbeddingModel: "embed", Weight: 1, Enabled: true}}
+	cfg.Routing.ChatProvider = "ollama"
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	sec := s.Secrets()
+	sec.OllamaAPIKey = token
+	if err := s.UpdateSecrets(sec); err != nil {
+		t.Fatal(err)
+	}
+	r := NewRouter(s)
+	if _, err := r.Chat(context.Background(), "ollama", "chat", "", "hello", 32); err != nil {
+		t.Fatal(err)
+	}
+	_ = r.Health(context.Background())
+	if chatAuth != "Bearer "+token {
+		t.Fatalf("chat authorization=%q", chatAuth)
+	}
+	if tagsAuth != "Bearer "+token {
+		t.Fatalf("tags authorization=%q", tagsAuth)
+	}
+}

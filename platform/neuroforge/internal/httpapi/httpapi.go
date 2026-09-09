@@ -693,7 +693,7 @@ func (s *Server) adminPutModelRouting(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) adminSecretsStatus(w http.ResponseWriter, r *http.Request) {
 	sec := s.store.Secrets()
-	s.json(w, 200, map[string]any{"openai_configured": sec.OpenAIAPIKey != "", "app_key_configured": sec.AppAPIKey != "", "integration_token_configured": sec.IntegrationToken != "", "control_read_token_configured": sec.ControlReadToken != "", "worker_token_configured": sec.WorkerToken != "", "metrics_token_configured": sec.MetricsToken != "", "shard_tokens": len(sec.ShardAPIToken), "cluster_token_configured": sec.ClusterToken != ""})
+	s.json(w, 200, map[string]any{"openai_configured": sec.OpenAIAPIKey != "", "ollama_api_key_configured": sec.OllamaAPIKey != "", "app_key_configured": sec.AppAPIKey != "", "integration_token_configured": sec.IntegrationToken != "", "control_read_token_configured": sec.ControlReadToken != "", "worker_token_configured": sec.WorkerToken != "", "metrics_token_configured": sec.MetricsToken != "", "shard_tokens": len(sec.ShardAPIToken), "cluster_token_configured": sec.ClusterToken != ""})
 }
 func maskedSecret(v string) string {
 	if v == "" {
@@ -708,18 +708,19 @@ func (s *Server) adminGetSecrets(w http.ResponseWriter, r *http.Request) {
 	sec := s.store.Secrets()
 	reveal := r.URL.Query().Get("reveal") == "1" && s.store.Config().Security.AllowSecretReveal
 	if reveal {
-		s.json(w, 200, map[string]any{"revealed": true, "app_api_key": sec.AppAPIKey, "integration_token": sec.IntegrationToken, "control_read_token": sec.ControlReadToken, "worker_token": sec.WorkerToken, "metrics_token": sec.MetricsToken, "shard_api_tokens": sec.ShardAPIToken, "cluster_token": sec.ClusterToken})
+		s.json(w, 200, map[string]any{"revealed": true, "ollama_api_key": sec.OllamaAPIKey, "app_api_key": sec.AppAPIKey, "integration_token": sec.IntegrationToken, "control_read_token": sec.ControlReadToken, "worker_token": sec.WorkerToken, "metrics_token": sec.MetricsToken, "shard_api_tokens": sec.ShardAPIToken, "cluster_token": sec.ClusterToken})
 		return
 	}
 	maskedShards := map[string]string{}
 	for k, v := range sec.ShardAPIToken {
 		maskedShards[k] = maskedSecret(v)
 	}
-	s.json(w, 200, map[string]any{"revealed": false, "reveal_allowed": s.store.Config().Security.AllowSecretReveal, "app_api_key": maskedSecret(sec.AppAPIKey), "integration_token": maskedSecret(sec.IntegrationToken), "control_read_token": maskedSecret(sec.ControlReadToken), "worker_token": maskedSecret(sec.WorkerToken), "metrics_token": maskedSecret(sec.MetricsToken), "shard_api_tokens": maskedShards, "cluster_token": maskedSecret(sec.ClusterToken)})
+	s.json(w, 200, map[string]any{"revealed": false, "reveal_allowed": s.store.Config().Security.AllowSecretReveal, "ollama_api_key": maskedSecret(sec.OllamaAPIKey), "app_api_key": maskedSecret(sec.AppAPIKey), "integration_token": maskedSecret(sec.IntegrationToken), "control_read_token": maskedSecret(sec.ControlReadToken), "worker_token": maskedSecret(sec.WorkerToken), "metrics_token": maskedSecret(sec.MetricsToken), "shard_api_tokens": maskedShards, "cluster_token": maskedSecret(sec.ClusterToken)})
 }
 func (s *Server) adminPutSecrets(w http.ResponseWriter, r *http.Request) {
 	var q struct {
 		OpenAIAPIKey     string            `json:"openai_api_key,omitempty"`
+		OllamaAPIKey     string            `json:"ollama_api_key,omitempty"`
 		AppAPIKey        string            `json:"app_api_key,omitempty"`
 		IntegrationToken string            `json:"integration_token,omitempty"`
 		ControlReadToken string            `json:"control_read_token,omitempty"`
@@ -737,8 +738,13 @@ func (s *Server) adminPutSecrets(w http.ResponseWriter, r *http.Request) {
 		_, ok := os.LookupEnv(name)
 		return ok && strings.TrimSpace(os.Getenv(name)) != ""
 	}
+	if q.OllamaAPIKey != "" && (envLocked("NEUROFORGE_OLLAMA_API_KEY") || envLocked("OLLAMA_API_KEY")) {
+		s.err(w, http.StatusConflict, fmt.Errorf("Ollama API key is environment-managed and cannot be changed through the admin API"))
+		return
+	}
 	for name, value := range map[string]string{
 		"OPENAI_API_KEY":                q.OpenAIAPIKey,
+		"NEUROFORGE_OLLAMA_API_KEY":     q.OllamaAPIKey,
 		"NEUROFORGE_APP_API_KEY":        q.AppAPIKey,
 		"NEUROFORGE_INTEGRATION_TOKEN":  q.IntegrationToken,
 		"NEUROFORGE_CONTROL_READ_TOKEN": q.ControlReadToken,
@@ -753,6 +759,9 @@ func (s *Server) adminPutSecrets(w http.ResponseWriter, r *http.Request) {
 	}
 	if q.OpenAIAPIKey != "" {
 		sec.OpenAIAPIKey = q.OpenAIAPIKey
+	}
+	if q.OllamaAPIKey != "" {
+		sec.OllamaAPIKey = q.OllamaAPIKey
 	}
 	if q.AppAPIKey != "" {
 		sec.AppAPIKey = q.AppAPIKey
@@ -899,7 +908,7 @@ func configuredModelAvailable(models map[string]bool, configured string) bool {
 	return false
 }
 
-func checkConfiguredOllamaModels(ctx context.Context, cfg core.Config) (bool, any) {
+func checkConfiguredOllamaModels(ctx context.Context, cfg core.Config, apiKey string) (bool, any) {
 	type tagsResponse struct {
 		Models []struct {
 			Name string `json:"name"`
@@ -916,6 +925,9 @@ func checkConfiguredOllamaModels(ctx context.Context, cfg core.Config) (bool, an
 		if err != nil {
 			details[node.ID] = err.Error()
 			continue
+		}
+		if token := strings.TrimSpace(apiKey); token != "" {
+			req.Header.Set("Authorization", "Bearer "+token)
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -977,7 +989,7 @@ func (s *Server) readyz(w http.ResponseWriter, r *http.Request) {
 	if s.readinessOllamaLive {
 		ctx, cancel := context.WithTimeout(r.Context(), 4*time.Second)
 		var detail any
-		ollamaLiveReady, detail = checkConfiguredOllamaModels(ctx, cfg)
+		ollamaLiveReady, detail = checkConfiguredOllamaModels(ctx, cfg, s.store.Secrets().OllamaAPIKey)
 		cancel()
 		components["ollama_live_models"] = detail
 	}

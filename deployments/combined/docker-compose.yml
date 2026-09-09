@@ -33,6 +33,7 @@ services:
       DATA_DIR: /app/data
       KNOWLEDGE_DIR: /app/knowledge
       OLLAMA_URL: http://ollama:11434
+      OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}
       OLLAMA_URLS: http://ollama:11434
       KNOWLEDGE_VECTOR_BACKEND: local
       OUTCOME_LEARNING_ENABLED: "false"

@@ -50,3 +50,27 @@ func TestGenerateUsesStructuredChatAndStoresResult(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGenerateSendsOllamaBearerToken(t *testing.T) {
+	const token = "ollama-secret"
+	var auth string
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth = r.Header.Get("Authorization")
+		_ = json.NewEncoder(w).Encode(map[string]any{"message": map[string]any{"content": `{"title":"T","text":"X","answer":"A","categories":[],"keywords":[]}`}})
+	}))
+	defer server.Close()
+	st, err := staging.New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	svc, err := New(Config{BaseURL: server.URL, Model: "test", APIKey: token, Timeout: time.Second, MaxConcurrent: 1, MinScore: 0.78}, st)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.Generate(context.Background(), "secure ollama request"); err != nil {
+		t.Fatal(err)
+	}
+	if auth != "Bearer "+token {
+		t.Fatalf("authorization=%q", auth)
+	}
+}

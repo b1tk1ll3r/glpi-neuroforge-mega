@@ -269,6 +269,7 @@ func aiServiceFromEnv(mode string, st *staging.Store) (*aifallback.Service, time
 	}
 	svc, err := aifallback.New(aifallback.Config{
 		BaseURL:       envOr("OLLAMA_BASE_URL", "http://ollama:11434"),
+		APIKey:        strings.TrimSpace(os.Getenv("OLLAMA_API_KEY")),
 		Model:         strings.TrimSpace(os.Getenv("OLLAMA_MODEL")),
 		Timeout:       timeout,
 		MaxConcurrent: maxConcurrent,

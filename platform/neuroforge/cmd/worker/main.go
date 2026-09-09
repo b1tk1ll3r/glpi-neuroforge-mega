@@ -86,6 +86,7 @@ type workerConfig struct {
 	MaxConcurrency   int
 	Hostname         string
 	OllamaURL        string
+	OllamaAPIKey     string
 	OllamaChatModel  string
 	OllamaEmbedModel string
 	OllamaNumCtx     int
@@ -145,6 +146,7 @@ func main() {
 		Heartbeat: heartbeat, ResourceClass: resource, Capabilities: caps,
 		MaxConcurrency: maxConcurrency, Hostname: hostname(),
 		OllamaURL:        strings.TrimRight(firstNonEmpty(os.Getenv("NEUROFORGE_WORKER_OLLAMA_URL"), os.Getenv("OLLAMA_BASE_URL"), os.Getenv("OLLAMA_URL")), "/"),
+		OllamaAPIKey:     firstNonEmpty(os.Getenv("NEUROFORGE_WORKER_OLLAMA_API_KEY"), os.Getenv("OLLAMA_API_KEY")),
 		OllamaChatModel:  firstNonEmpty(os.Getenv("NEUROFORGE_WORKER_OLLAMA_CHAT_MODEL"), os.Getenv("OLLAMA_MODEL")),
 		OllamaEmbedModel: firstNonEmpty(os.Getenv("NEUROFORGE_WORKER_OLLAMA_EMBEDDING_MODEL"), os.Getenv("OLLAMA_EMBEDDING_MODEL")),
 		OllamaNumCtx:     envInt("NEUROFORGE_WORKER_OLLAMA_NUM_CTX", 8192),
@@ -342,7 +344,7 @@ func ollamaEmbed(ctx context.Context, c *http.Client, cfg workerConfig, p modelE
 		Embeddings      [][]float32 `json:"embeddings"`
 		PromptEvalCount int64       `json:"prompt_eval_count"`
 	}
-	if err := postOllama(ctx, c, cfg.OllamaURL+"/api/embed", body, &resp); err != nil {
+	if err := postOllama(ctx, c, cfg.OllamaURL+"/api/embed", cfg.OllamaAPIKey, body, &resp); err != nil {
 		return modelResult{}, err
 	}
 	if len(resp.Embeddings) == 0 || len(resp.Embeddings[0]) == 0 {
@@ -385,19 +387,22 @@ func ollamaChat(ctx context.Context, c *http.Client, cfg workerConfig, p modelCh
 		PromptEvalCount int64 `json:"prompt_eval_count"`
 		EvalCount       int64 `json:"eval_count"`
 	}
-	if err := postOllama(ctx, c, cfg.OllamaURL+"/api/chat", body, &resp); err != nil {
+	if err := postOllama(ctx, c, cfg.OllamaURL+"/api/chat", cfg.OllamaAPIKey, body, &resp); err != nil {
 		return modelResult{}, err
 	}
 	return modelResult{Text: strings.TrimSpace(resp.Message.Content), Usage: modelUsage{InputTokens: resp.PromptEvalCount, OutputTokens: resp.EvalCount}, Provider: "ollama", Model: model, NodeID: cfg.ID}, nil
 }
 
-func postOllama(ctx context.Context, c *http.Client, url string, body any, out any) error {
+func postOllama(ctx context.Context, c *http.Client, url, apiKey string, body any, out any) error {
 	raw, _ := json.Marshal(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(raw))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if token := strings.TrimSpace(apiKey); token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 	resp, err := c.Do(req)
 	if err != nil {
 		return err

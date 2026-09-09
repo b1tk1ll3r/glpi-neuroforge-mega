@@ -1,10 +1,8 @@
-# Build & Release — GLPI NeuroForge Mega v1.6.2
+# Build and Release
 
-The repository has one canonical image/release pipeline. Nested service workflows are intentionally not used.
+## Repository image set
 
-## Project images
-
-`docker buildx bake` builds all six immutable project images:
+The repository publishes six immutable project images:
 
 - `glpi-neuroforge-mega-neuroforge`
 - `glpi-neuroforge-mega-neuroforge-worker`
@@ -13,42 +11,33 @@ The repository has one canonical image/release pipeline. Nested service workflow
 - `glpi-neuroforge-mega-knowledge`
 - `glpi-neuroforge-mega-control`
 
-Default registry/tag:
+The default registry is `git.send.nrw/sendnrw`.
 
-```text
-git.send.nrw/sendnrw/<image>:1.6.2
-```
+## Local build
 
-Override without editing the bake file:
+From repository root:
 
 ```bash
-IMAGE_TAG=1.6.2 REGISTRY=git.send.nrw/sendnrw docker buildx bake
+docker buildx bake
 ```
 
-## Gitea Actions
+Override registry/tag when required:
 
-`.gitea/workflows/ci.yml` runs test/vet/build for all four Go modules, static release checks and Docker builds.
-
-`.gitea/workflows/release.yml` runs only on immutable `v*` tags. The tag must exactly match the root `VERSION` file. It pushes all six project images with the version tag only; no production dependency on `latest` is introduced.
-
-Required registry secrets:
-
-```text
-DOCKER_USERNAME
-DOCKER_PASSWORD
+```bash
+REGISTRY=registry.example/org IMAGE_TAG=1.6.2 docker buildx bake
 ```
 
-Release example:
+## CI
+
+`.gitea/workflows/ci.yml` runs `go test ./...` and `go vet ./...` for NeuroForge, Agent, Knowledge and Control and then performs a Buildx Bake build of the full image set.
+
+## Release
+
+Set `VERSION` and all compose/deployment tags to the desired immutable version, then push a matching tag:
 
 ```bash
 git tag v1.6.2
 git push origin v1.6.2
 ```
 
-## Local source gate
-
-```bash
-./scripts/release-gate.sh
-```
-
-This executes static production checks, Compose environment isolation, secret scanning, graph reproducibility, test/vet/build for every module, and targeted race checks.
+`.gitea/workflows/release.yml` verifies that the git tag matches `VERSION` and pushes all six images with tag `1.6.2`. Project production compose files do not require `latest`.
