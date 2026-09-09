@@ -51,6 +51,18 @@ func TestDashboardTemplateParses(t *testing.T) {
 	}
 }
 
+func TestLearningListSerializesEmptyArray(t *testing.T) {
+	h, _ := newKnowledgeTestServer(t)
+	rr := httptest.NewRecorder()
+	h.ServeHTTP(rr, httptest.NewRequest(http.MethodGet, "/api/learning", nil))
+	if rr.Code != http.StatusOK {
+		t.Fatalf("learning list = %d: %s", rr.Code, rr.Body.String())
+	}
+	if got := strings.TrimSpace(rr.Body.String()); got != "[]" {
+		t.Fatalf("learning list body=%q, want []", got)
+	}
+}
+
 type fakeFeedback struct {
 	cats        []model.Category
 	outcomeRows []model.ValidatedOutcomeEvidence

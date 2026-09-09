@@ -2836,7 +2836,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 35,
+        "line": 37,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2848,7 +2848,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 314,
+        "line": 316,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2860,7 +2860,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 310,
+        "line": 312,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2872,7 +2872,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 373,
+        "line": 375,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2884,7 +2884,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 124,
+        "line": 126,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2896,7 +2896,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 354,
+        "line": 356,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2908,7 +2908,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 238,
+        "line": 240,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2920,7 +2920,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 227,
+        "line": 229,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2932,7 +2932,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 327,
+        "line": 329,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2944,7 +2944,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 949,
+        "line": 1008,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2956,7 +2956,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 207,
+        "line": 209,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2968,7 +2968,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 451,
+        "line": 437,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2980,7 +2980,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 501,
+        "line": 532,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -2992,7 +2992,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 979,
+        "line": 1038,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3004,7 +3004,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 187,
+        "line": 189,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3016,7 +3016,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 1013,
+        "line": 1072,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3028,7 +3028,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 120,
+        "line": 122,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3040,7 +3040,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 262,
+        "line": 264,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3052,7 +3052,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 266,
+        "line": 268,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3064,7 +3064,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 253,
+        "line": 255,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3076,7 +3076,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 257,
+        "line": 259,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3088,7 +3088,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 146,
+        "line": 148,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3100,7 +3100,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 925,
+        "line": 984,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3112,7 +3112,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 318,
+        "line": 320,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3124,7 +3124,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 36,
+        "line": 38,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3136,7 +3136,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 76,
+        "line": 78,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3148,7 +3148,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 270,
+        "line": 272,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3160,7 +3160,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": true,
-        "line": 31,
+        "line": 33,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3172,7 +3172,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 792,
+        "line": 851,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3184,7 +3184,19 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 910,
+        "line": 969,
+        "path": "services/agent/internal/glpi/client.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "kind": "function",
+      "label": "collectionHasMore",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/glpi",
+      "meta": {
+        "exported": false,
+        "line": 709,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3196,7 +3208,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 865,
+        "line": 924,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3208,7 +3220,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 693,
+        "line": 752,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3220,7 +3232,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 716,
+        "line": 775,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3232,7 +3244,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 677,
+        "line": 692,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3244,7 +3256,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 812,
+        "line": 871,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3256,7 +3268,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 762,
+        "line": 821,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3268,7 +3280,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 629,
+        "line": 644,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3280,7 +3292,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 868,
+        "line": 927,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3292,7 +3304,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 1054,
+        "line": 1113,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3304,7 +3316,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 884,
+        "line": 943,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3316,7 +3328,19 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 638,
+        "line": 653,
+        "path": "services/agent/internal/glpi/client.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath",
+      "kind": "function",
+      "label": "normalizeDocumentedAPIPath",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/glpi",
+      "meta": {
+        "exported": false,
+        "line": 733,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3328,7 +3352,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 175,
+        "line": 177,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3340,7 +3364,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 878,
+        "line": 937,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3352,7 +3376,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 1066,
+        "line": 1125,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3364,7 +3388,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 901,
+        "line": 960,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -3376,7 +3400,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/glpi",
       "meta": {
         "exported": false,
-        "line": 294,
+        "line": 296,
         "path": "services/agent/internal/glpi/client.go"
       }
     },
@@ -6748,7 +6772,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": true,
-        "line": 867,
+        "line": 871,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -6784,7 +6808,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": true,
-        "line": 870,
+        "line": 874,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -6796,7 +6820,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 835,
+        "line": 839,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7072,7 +7096,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 645,
+        "line": 649,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7084,7 +7108,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 665,
+        "line": 669,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7108,7 +7132,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 706,
+        "line": 710,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7120,7 +7144,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 679,
+        "line": 683,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7132,7 +7156,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 676,
+        "line": 680,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7156,7 +7180,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 884,
+        "line": 888,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7180,7 +7204,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 720,
+        "line": 724,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7228,7 +7252,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 740,
+        "line": 744,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7324,7 +7348,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 768,
+        "line": 772,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7336,7 +7360,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 819,
+        "line": 823,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7360,7 +7384,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 858,
+        "line": 862,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7372,7 +7396,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 829,
+        "line": 833,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7384,7 +7408,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 830,
+        "line": 834,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7396,7 +7420,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 849,
+        "line": 853,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7408,7 +7432,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 781,
+        "line": 785,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -30670,6 +30694,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:services/agent/internal/glpi/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore:defines",
+      "from": "file:services/agent/internal/glpi/client.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/agent/internal/glpi/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:decodeFollowup:defines",
       "from": "file:services/agent/internal/glpi/client.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/glpi:decodeFollowup",
@@ -30733,6 +30763,12 @@
       "id": "file:services/agent/internal/glpi/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:knowledgeCategoryIDs:defines",
       "from": "file:services/agent/internal/glpi/client.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/glpi:knowledgeCategoryIDs",
+      "kind": "defines"
+    },
+    {
+      "id": "file:services/agent/internal/glpi/client.go-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath:defines",
+      "from": "file:services/agent/internal/glpi/client.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath",
       "kind": "defines"
     },
     {
@@ -38780,6 +38816,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.DiscoverKnowledgeBasePath-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.DiscoverKnowledgeBasePath",
+      "to": "function:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.DiscoverKnowledgeBasePath-\u003epackage:fmt:calls_package",
       "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.DiscoverKnowledgeBasePath",
       "to": "package:fmt",
@@ -39044,6 +39086,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems",
+      "to": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:extractArray:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems",
       "to": "function:github.com/example/glpi-ai-agent/internal/glpi:extractArray",
@@ -39073,6 +39121,13 @@
       "to": "package:encoding/json",
       "kind": "calls_package",
       "label": "Unmarshal"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems-\u003epackage:fmt:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseItems-\u003epackage:strconv:calls_package",
@@ -39122,6 +39177,12 @@
       "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseLinkedItems-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:firstString:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseLinkedItems",
       "to": "function:github.com/example/glpi-ai-agent/internal/glpi:firstString",
+      "kind": "calls"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseLinkedItems-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:Client.ListKnowledgeBaseLinkedItems",
+      "to": "function:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath",
       "kind": "calls"
     },
     {
@@ -39606,6 +39667,33 @@
       "label": "EqualFold"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:int64Val:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "to": "function:github.com/example/glpi-ai-agent/internal/glpi:int64Val",
+      "kind": "calls"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore-\u003epackage:encoding/json:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "Unmarshal"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore-\u003epackage:strconv:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "to": "package:strconv",
+      "kind": "calls_package",
+      "label": "Atoi"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore-\u003epackage:strings:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:collectionHasMore",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/glpi:decodeFollowup-\u003efunction:github.com/example/glpi-ai-agent/internal/glpi:boolVal:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/glpi:decodeFollowup",
       "to": "function:github.com/example/glpi-ai-agent/internal/glpi:boolVal",
@@ -39812,6 +39900,13 @@
       "to": "package:sort",
       "kind": "calls_package",
       "label": "Slice"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath-\u003epackage:strings:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/glpi:normalizeDocumentedAPIPath",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/glpi:openAPIOperations-\u003epackage:strings:calls_package",
@@ -66907,10 +67002,10 @@
     }
   ],
   "meta": {
-    "edges": 7278,
+    "edges": 7289,
     "format_version": 1,
     "generator": "go-ast+compose",
     "modules": 4,
-    "nodes": 1846
+    "nodes": 1848
   }
 }

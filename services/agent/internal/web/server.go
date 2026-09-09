@@ -640,7 +640,11 @@ func (s *Server) knowledgeDelete(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 func (s *Server) learningList(w http.ResponseWriter, r *http.Request) {
-	respondJSON(w, s.feedback.LearningExamples())
+	rows := s.feedback.LearningExamples()
+	if rows == nil {
+		rows = []model.LearningExample{}
+	}
+	respondJSON(w, rows)
 }
 func (s *Server) learningAdd(w http.ResponseWriter, r *http.Request) {
 	if !s.cfg.LearningEnabled {

@@ -28,3 +28,17 @@ func TestAddReplaceAndDelete(t *testing.T) {
 		t.Fatal("old replaced id should not exist")
 	}
 }
+
+func TestEmptyListIsNonNil(t *testing.T) {
+	s, err := Open(t.TempDir(), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows := s.List()
+	if rows == nil {
+		t.Fatal("empty learning list must serialize as [] instead of null")
+	}
+	if len(rows) != 0 {
+		t.Fatalf("rows=%d, want 0", len(rows))
+	}
+}

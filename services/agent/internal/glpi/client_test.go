@@ -3,8 +3,11 @@ package glpi
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -88,6 +91,142 @@ func TestDiscoverAndListKnowledgeBase(t *testing.T) {
 	}
 	if len(items) != 1 || items[0].ID != 7 || len(items[0].CategoryIDs) != 1 || items[0].CategoryIDs[0] != 4 {
 		t.Fatalf("unexpected items: %+v", items)
+	}
+}
+
+func TestDiscoverKnowledgeBaseStripsPatchVersionPrefix(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api.php/token":
+			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "x", "expires_in": 3600})
+		case "/api.php/doc.json":
+			_ = json.NewEncoder(w).Encode(map[string]any{"paths": map[string]any{
+				"/v2.3.0/Knowledge/KnowbaseItem": map[string]any{"get": map[string]any{}},
+			}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	c := New(srv.URL, "v2.3", "cid", "sec", "u", "p", time.Second)
+	path, err := c.DiscoverKnowledgeBasePath(context.Background(), "auto")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if path != "/Knowledge/KnowbaseItem" {
+		t.Fatalf("path=%q, want /Knowledge/KnowbaseItem", path)
+	}
+}
+
+func TestListKnowledgeBasePaginatesLargeCollections(t *testing.T) {
+	const total = 235
+	var starts []int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api.php/token":
+			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "x", "expires_in": 3600})
+		case "/api.php/v2.3/Knowledge/KnowbaseItem":
+			start, _ := strconv.Atoi(r.URL.Query().Get("start"))
+			limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+			starts = append(starts, start)
+			if limit <= 0 || limit > 100 {
+				t.Fatalf("unexpected page limit %d", limit)
+			}
+			end := start + limit
+			if end > total {
+				end = total
+			}
+			rows := make([]map[string]any, 0, max(0, end-start))
+			for i := start; i < end; i++ {
+				rows = append(rows, map[string]any{
+					"id": i + 1, "name": fmt.Sprintf("Artikel %d", i+1), "answer": "Inhalt", "date_mod": "2026-09-09 10:00:00",
+				})
+			}
+			_ = json.NewEncoder(w).Encode(rows)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	c := New(srv.URL, "v2.3", "cid", "sec", "u", "p", time.Second)
+	items, err := c.ListKnowledgeBaseItems(context.Background(), "/Knowledge/KnowbaseItem", total, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != total {
+		t.Fatalf("items=%d, want %d", len(items), total)
+	}
+	wantStarts := []int{0, 100, 200}
+	if !reflect.DeepEqual(starts, wantStarts) {
+		t.Fatalf("starts=%v, want %v", starts, wantStarts)
+	}
+}
+
+func TestListKnowledgeBaseContinuesWhenServerCapsPageSize(t *testing.T) {
+	const total = 121
+	const serverCap = 37
+	var starts []int
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api.php/token":
+			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "x", "expires_in": 3600})
+		case "/api.php/v2.3/Knowledge/KnowbaseItem":
+			start, _ := strconv.Atoi(r.URL.Query().Get("start"))
+			requested, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+			starts = append(starts, start)
+			pageLimit := requested
+			if pageLimit > serverCap {
+				pageLimit = serverCap
+			}
+			end := start + pageLimit
+			if end > total {
+				end = total
+			}
+			rows := make([]map[string]any, 0, max(0, end-start))
+			for i := start; i < end; i++ {
+				rows = append(rows, map[string]any{"id": i + 1, "name": fmt.Sprintf("Artikel %d", i+1), "answer": "Inhalt"})
+			}
+			if len(rows) > 0 {
+				w.Header().Set("Content-Range", fmt.Sprintf("items %d-%d/%d", start, end-1, total))
+			}
+			_ = json.NewEncoder(w).Encode(rows)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	c := New(srv.URL, "v2.3", "cid", "sec", "u", "p", time.Second)
+	items, err := c.ListKnowledgeBaseItems(context.Background(), "/Knowledge/KnowbaseItem", total, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != total {
+		t.Fatalf("items=%d, want %d", len(items), total)
+	}
+	wantStarts := []int{0, 37, 74, 111}
+	if !reflect.DeepEqual(starts, wantStarts) {
+		t.Fatalf("starts=%v, want %v", starts, wantStarts)
+	}
+}
+
+func TestListKnowledgeBaseFailsWhenRequiredDetailCannotBeRead(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/api.php/token":
+			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": "x", "expires_in": 3600})
+		case "/api.php/v2.3/Knowledge/KnowbaseItem":
+			_ = json.NewEncoder(w).Encode([]map[string]any{{"id": 7, "name": "Konto gesperrt"}})
+		case "/api.php/v2.3/Knowledge/KnowbaseItem/7":
+			http.Error(w, "missing right", http.StatusForbidden)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+	c := New(srv.URL, "v2.3", "cid", "sec", "u", "p", time.Second)
+	_, err := c.ListKnowledgeBaseItems(context.Background(), "/Knowledge/KnowbaseItem", 50, "")
+	if err == nil || !strings.Contains(err.Error(), "knowledge item 7 detail") {
+		t.Fatalf("expected explicit detail-read error, got %v", err)
 	}
 }
 

@@ -98,11 +98,11 @@ func (s *Store) Delete(id string) error {
 
 func (s *Store) List() []model.LearningExample {
 	if s == nil {
-		return nil
+		return []model.LearningExample{}
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
-	out := append([]model.LearningExample(nil), s.examples...)
+	out := append([]model.LearningExample{}, s.examples...)
 	sort.SliceStable(out, func(i, j int) bool { return out[i].CreatedAt.After(out[j].CreatedAt) })
 	return out
 }

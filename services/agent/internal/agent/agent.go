@@ -1293,7 +1293,7 @@ func (s *Service) RecordCategoryFeedback(ctx context.Context, runID string, cate
 }
 func (s *Service) LearningExamples() []model.LearningExample {
 	if s.learning == nil {
-		return nil
+		return []model.LearningExample{}
 	}
 	return s.learning.List()
 }

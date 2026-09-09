@@ -28,6 +28,8 @@ type Client struct {
 	tokenExpiry                                                  time.Time
 }
 
+const maxGLPIResponseBytes = 32 << 20
+
 func New(baseURL, version, clientID, clientSecret, username, password string, timeout time.Duration) *Client {
 	return &Client{baseURL: strings.TrimRight(baseURL, "/"), version: version, clientID: clientID, clientSecret: clientSecret, username: username, password: password, http: &http.Client{Timeout: timeout}}
 }
@@ -104,7 +106,7 @@ func (c *Client) do(ctx context.Context, method, path string, query url.Values, 
 		if err != nil {
 			return nil, nil, err
 		}
-		b, _ := io.ReadAll(io.LimitReader(resp.Body, 4<<20))
+		b, _ := io.ReadAll(io.LimitReader(resp.Body, maxGLPIResponseBytes))
 		resp.Body.Close()
 		if resp.StatusCode == http.StatusUnauthorized && attempt == 0 {
 			continue
@@ -426,70 +428,99 @@ func (c *Client) DiscoverKnowledgeBasePath(ctx context.Context, configured strin
 		}
 		return candidates[i].score > candidates[j].score
 	})
-	path := candidates[0].path
-	// The OpenAPI document may include /api.php/vX.Y in documented paths while
-	// c.do already prepends the configured API base. Keep only the route suffix.
-	if i := strings.Index(path, "/api.php/"); i >= 0 {
-		rest := path[i+len("/api.php/"):]
-		if slash := strings.Index(rest, "/"); slash >= 0 {
-			path = rest[slash:]
-		}
-	}
-	versionPrefix := "/" + strings.Trim(c.version, "/")
-	if strings.HasPrefix(path, versionPrefix+"/") {
-		path = strings.TrimPrefix(path, versionPrefix)
-	}
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	return path, nil
+	return normalizeDocumentedAPIPath(candidates[0].path, c.version), nil
 }
 
 // ListKnowledgeBaseItems reads only items visible to the authenticated GLPI
 // service account. Visibility is therefore enforced by GLPI itself; an
 // optional filter can further restrict the collection on a per-instance basis.
 func (c *Client) ListKnowledgeBaseItems(ctx context.Context, path string, limit int, filter string) ([]model.GLPIKnowledgeItem, error) {
-	q := url.Values{"limit": {strconv.Itoa(limit)}, "sort": {"date_mod"}, "order": {"DESC"}}
-	if strings.TrimSpace(filter) != "" {
-		q.Set("filter", filter)
+	if limit <= 0 {
+		return []model.GLPIKnowledgeItem{}, nil
 	}
-	b, _, err := c.do(ctx, http.MethodGet, path, q, nil)
-	if err != nil {
-		return nil, err
-	}
-	arr, err := extractArray(b)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]model.GLPIKnowledgeItem, 0, len(arr))
-	for _, r := range arr {
-		id := int64Val(r["id"])
-		if id <= 0 {
-			continue
+	const pageSize = 100
+	out := make([]model.GLPIKnowledgeItem, 0, limit)
+	seen := make(map[int64]struct{}, limit)
+	start := 0
+	for len(out) < limit {
+		requestLimit := pageSize
+		if remaining := limit - len(out); remaining < requestLimit {
+			requestLimit = remaining
 		}
-		if firstString(r, "answer", "content", "text", "description") == "" {
-			if detail, _, e := c.do(ctx, http.MethodGet, strings.TrimRight(path, "/")+"/"+strconv.FormatInt(id, 10), nil, nil); e == nil {
+		q := url.Values{
+			"start": {strconv.Itoa(start)},
+			"limit": {strconv.Itoa(requestLimit)},
+			"sort":  {"date_mod"},
+			"order": {"DESC"},
+		}
+		if strings.TrimSpace(filter) != "" {
+			q.Set("filter", filter)
+		}
+		b, headers, err := c.do(ctx, http.MethodGet, path, q, nil)
+		if err != nil {
+			return nil, err
+		}
+		arr, err := extractArray(b)
+		if err != nil {
+			return nil, err
+		}
+		if len(arr) == 0 {
+			break
+		}
+
+		newIDs := 0
+		for _, r := range arr {
+			id := int64Val(r["id"])
+			if id <= 0 {
+				continue
+			}
+			if _, duplicate := seen[id]; duplicate {
+				continue
+			}
+			seen[id] = struct{}{}
+			newIDs++
+			if firstString(r, "answer", "content", "text", "description") == "" {
+				detail, _, detailErr := c.do(ctx, http.MethodGet, strings.TrimRight(path, "/")+"/"+strconv.FormatInt(id, 10), nil, nil)
+				if detailErr != nil {
+					return nil, fmt.Errorf("fetch GLPI knowledge item %d detail: %w", id, detailErr)
+				}
 				var full map[string]any
-				if json.Unmarshal(detail, &full) == nil {
-					for k, v := range full {
-						r[k] = v
-					}
+				if err := json.Unmarshal(detail, &full); err != nil {
+					return nil, fmt.Errorf("decode GLPI knowledge item %d detail: %w", id, err)
+				}
+				for k, v := range full {
+					r[k] = v
 				}
 			}
+			title := firstString(r, "name", "title", "subject")
+			content := firstString(r, "answer", "content", "text", "description")
+			if title == "" || content == "" {
+				continue
+			}
+			out = append(out, model.GLPIKnowledgeItem{
+				ID:          id,
+				Title:       title,
+				Content:     content,
+				CategoryIDs: knowledgeCategoryIDs(r),
+				Language:    firstString(r, "language", "locale"),
+				ModifiedAt:  firstString(r, "date_mod", "modified_at", "date_creation"),
+			})
+			if len(out) >= limit {
+				break
+			}
 		}
-		title := firstString(r, "name", "title", "subject")
-		content := firstString(r, "answer", "content", "text", "description")
-		if title == "" || content == "" {
-			continue
+		pageStart := start
+		start += len(arr)
+		moreKnown, hasMore := collectionHasMore(b, headers, pageStart, len(arr))
+		if len(arr) < requestLimit && (!moreKnown || !hasMore) {
+			break
 		}
-		out = append(out, model.GLPIKnowledgeItem{
-			ID:          id,
-			Title:       title,
-			Content:     content,
-			CategoryIDs: knowledgeCategoryIDs(r),
-			Language:    firstString(r, "language", "locale"),
-			ModifiedAt:  firstString(r, "date_mod", "modified_at", "date_creation"),
-		})
+		if newIDs == 0 {
+			return nil, fmt.Errorf("GLPI knowledge pagination made no progress at start=%d; server may be ignoring the start parameter", pageStart)
+		}
+	}
+	if len(seen) > 0 && len(out) == 0 {
+		return nil, fmt.Errorf("GLPI returned %d knowledge records but none contained a usable title and article body", len(seen))
 	}
 	return out, nil
 }
@@ -543,23 +574,7 @@ func (c *Client) ListKnowledgeBaseLinkedItems(ctx context.Context, articleIDs []
 		return candidates[i].score > candidates[j].score
 	})
 	chosen := candidates[0]
-	cleanPath := func(p string) string {
-		if i := strings.Index(p, "/api.php/"); i >= 0 {
-			rest := p[i+len("/api.php/"):]
-			if slash := strings.Index(rest, "/"); slash >= 0 {
-				p = rest[slash:]
-			}
-		}
-		versionPrefix := "/" + strings.Trim(c.version, "/")
-		if strings.HasPrefix(p, versionPrefix+"/") {
-			p = strings.TrimPrefix(p, versionPrefix)
-		}
-		if !strings.HasPrefix(p, "/") {
-			p = "/" + p
-		}
-		return p
-	}
-	chosen.path = cleanPath(chosen.path)
+	chosen.path = normalizeDocumentedAPIPath(chosen.path, c.version)
 	if limit <= 0 {
 		limit = 10000
 	}
@@ -689,6 +704,50 @@ func extractArray(b []byte) ([]map[string]any, error) {
 		}
 	}
 	return nil, fmt.Errorf("unexpected GLPI collection response: %.200s", string(b))
+}
+
+func collectionHasMore(body []byte, headers http.Header, start, count int) (known bool, more bool) {
+	if raw := strings.TrimSpace(headers.Get("Content-Range")); raw != "" {
+		if slash := strings.LastIndex(raw, "/"); slash >= 0 && slash+1 < len(raw) {
+			totalText := strings.TrimSpace(raw[slash+1:])
+			if totalText != "*" {
+				if total, err := strconv.Atoi(totalText); err == nil && total >= 0 {
+					return true, start+count < total
+				}
+			}
+		}
+	}
+	var obj map[string]any
+	if json.Unmarshal(body, &obj) == nil {
+		for _, key := range []string{"total", "totalcount", "total_count"} {
+			if total := int(int64Val(obj[key])); total > 0 {
+				return true, start+count < total
+			}
+		}
+	}
+	return false, false
+}
+
+var documentedVersionPrefix = regexp.MustCompile(`^/v[0-9]+(?:\.[0-9]+){0,2}/`)
+
+func normalizeDocumentedAPIPath(path, configuredVersion string) string {
+	path = strings.TrimSpace(path)
+	if i := strings.Index(path, "/api.php/"); i >= 0 {
+		rest := path[i+len("/api.php/"):]
+		if slash := strings.Index(rest, "/"); slash >= 0 {
+			path = rest[slash:]
+		}
+	}
+	versionPrefix := "/" + strings.Trim(configuredVersion, "/")
+	if strings.HasPrefix(path, versionPrefix+"/") {
+		path = strings.TrimPrefix(path, versionPrefix)
+	} else if documentedVersionPrefix.MatchString(path) {
+		path = documentedVersionPrefix.ReplaceAllString(path, "/")
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	return path
 }
 func decodeTicket(r map[string]any) model.Ticket {
 	t := model.Ticket{
