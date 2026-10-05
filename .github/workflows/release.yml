@@ -70,7 +70,7 @@ jobs:
           REGISTRY: ${{ steps.meta.outputs.registry }}
           IMAGE_TAG: ${{ steps.meta.outputs.version }}
           SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
-        run: docker buildx bake --push
+        run: docker buildx bake -f docker-bake.hcl --push
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

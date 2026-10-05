@@ -131,7 +131,7 @@ jobs:
           SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
         run: |
           if [ "$PUBLISH" = "true" ]; then
-            docker buildx bake --push
+            docker buildx bake -f docker-bake.hcl --push
           else
-            docker buildx bake --set '*.output=type=cacheonly'
+            docker buildx bake -f docker-bake.hcl --set '*.output=type=cacheonly'
           fi

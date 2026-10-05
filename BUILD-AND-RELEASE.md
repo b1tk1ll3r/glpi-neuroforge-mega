@@ -18,13 +18,13 @@ The default registry is `git.send.nrw/sendnrw`.
 From repository root:
 
 ```bash
-docker buildx bake
+docker buildx bake -f docker-bake.hcl
 ```
 
 Override registry/tag when required:
 
 ```bash
-REGISTRY=registry.example/org IMAGE_TAG=1.6.2 docker buildx bake
+REGISTRY=registry.example/org IMAGE_TAG=1.6.2 docker buildx bake -f docker-bake.hcl
 ```
 
 Additional tags and the OCI source label can be set with `EXTRA_TAGS` (comma-separated) and `SOURCE_URL`.
