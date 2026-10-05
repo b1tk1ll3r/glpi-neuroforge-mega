@@ -69,6 +69,8 @@ func compactLegacyTerminalRelinkCheckpoint(dir string) (int, error) {
 	if err := out.Close(); err != nil {
 		return 0, err
 	}
+	// Release the source handle first: Windows refuses to replace an open file.
+	_ = in.Close()
 	if compacted > 0 {
 		if err := os.Rename(tmp, path); err != nil {
 			return 0, err

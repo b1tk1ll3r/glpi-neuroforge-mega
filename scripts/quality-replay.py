@@ -10,7 +10,7 @@ p.add_argument('--password', default='')
 p.add_argument('--output', default='')
 a=p.parse_args()
 payload=pathlib.Path(a.cases).read_bytes()
-req=urllib.request.Request(a.url.rstrip('/')+'/api/quality/replay', data=payload, method='POST', headers={'Content-Type':'application/json'})
+req=urllib.request.Request(a.url.rstrip('/')+'/api/quality/replay', data=payload, method='POST', headers={'Content-Type':'application/json','X-Requested-With':'GLPI-AI-Agent'})
 if a.user or a.password:
     token=base64.b64encode(f'{a.user}:{a.password}'.encode()).decode()
     req.add_header('Authorization','Basic '+token)

@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -126,6 +127,11 @@ func NewWithProgress(dir string, report OpenProgressFunc) (*Store, error) {
 			return nil, fmt.Errorf("open memory segments: %w", err)
 		}
 		s.segments = seg
+		if !seg.HasRecords() && s.state.MemoryCatalog.SegmentBacked && s.state.MemoryCatalog.Count > 0 {
+			// Never boot (and later checkpoint) an empty store over a catalog that
+			// expects memories; that would make the loss permanent.
+			return nil, fmt.Errorf("memory catalog expects %d segment-backed memories but memory-segments is empty; restore it from memory-segments.old or a backup", s.state.MemoryCatalog.Count)
+		}
 		if seg.HasRecords() {
 			// v0.5: memory metadata is reconstructed while segment files are scanned;
 			// state.json no longer needs one metadata object per memory.
@@ -718,6 +724,10 @@ func writeAtomic(path string, perm os.FileMode, v any) (retErr error) {
 	}
 	// Persist the directory entry as well. This matters for secrets/state after
 	// host power loss and is cheap compared with the checkpoint itself.
+	// Windows cannot fsync directory handles; NTFS persists renames without it.
+	if runtime.GOOS == "windows" {
+		return nil
+	}
 	d, err := os.Open(filepath.Dir(path))
 	if err != nil {
 		return err
@@ -768,6 +778,10 @@ func (s *Store) CompactMemorySegments() (SegmentStats, error) {
 	if s.segments == nil {
 		return SegmentStats{}, errors.New("memory segment store is disabled")
 	}
+	if s.diskANNBuilding {
+		// The build streams the current segment files without holding s.mu.
+		return SegmentStats{}, errors.New("segment compaction deferred: disk ANN build in progress")
+	}
 	if err := s.segments.Rebuild(s.state.Memories, s.state.Revision); err != nil {
 		return SegmentStats{}, err
 	}
@@ -795,6 +809,9 @@ func (s *Store) UpdateConfig(c core.Config) error {
 	segmentChanged := old.Storage.Segments.Enabled != c.Storage.Segments.Enabled ||
 		old.Storage.Segments.MaxSegmentBytes != c.Storage.Segments.MaxSegmentBytes ||
 		old.Storage.Segments.MmapSealed != c.Storage.Segments.MmapSealed
+	if segmentChanged && s.diskANNBuilding {
+		return errors.New("segment settings cannot change while a disk ANN build is running")
+	}
 	if segmentChanged {
 		if s.segments != nil {
 			s.segments.Close()
@@ -1048,7 +1065,12 @@ func (s *Store) fullMemoryForReadLocked(id string) (core.Memory, bool) {
 		}
 	}
 	m, found, deleted, err := s.segments.Get(id)
-	if err != nil || !found || deleted {
+	if err != nil {
+		// Do not hand out body-less metadata as the full memory: a mutation
+		// built on it would commit an upsert with empty text and vector.
+		return core.Memory{}, false
+	}
+	if !found || deleted {
 		return cloneMemory(*meta), true
 	}
 	// Segment record ID / catalog key is authoritative for legacy records.

@@ -212,7 +212,9 @@ func pollLoop(root context.Context, controlClient, inferenceClient *http.Client,
 		}
 		res, jobErr := run(jobCtx, inferenceClient, cfg, job)
 		cancel()
-		if root.Err() != nil && jobErr == "" {
+		// Only report shutdown as failure if the job produced no result; a job
+		// that finished just before SIGTERM must still be completed successfully.
+		if root.Err() != nil && jobErr == "" && len(res) == 0 {
 			jobErr = root.Err().Error()
 		}
 		if err := complete(controlClient, cfg, job.ID, job.LeaseToken, res, jobErr); err != nil {

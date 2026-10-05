@@ -761,6 +761,8 @@ func upgradeVectorJournalV1(path string, opts vectorJournalOptions) error {
 	if err := dst.Close(); err != nil {
 		return err
 	}
+	// Release the source handle first: Windows refuses to replace an open file.
+	_ = src.Close()
 	if err := os.Rename(tmp, path); err != nil {
 		return err
 	}

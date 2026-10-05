@@ -34,3 +34,21 @@ func TestSameTicketDifferentTriggers(t *testing.T) {
 		t.Fatal("duplicate trigger should be rejected")
 	}
 }
+
+func TestFullDistinguishesCapacityFromDuplicate(t *testing.T) {
+	q := New(1)
+	if !q.EnqueueWork(WorkItem{TicketID: 1, Trigger: "webhook"}) {
+		t.Fatal("first enqueue must succeed")
+	}
+	if q.EnqueueWork(WorkItem{TicketID: 1, Trigger: "webhook"}) {
+		t.Fatal("duplicate must be rejected")
+	}
+	if !q.Full() {
+		t.Fatal("queue with limit 1 and one item must be full")
+	}
+	q2 := New(10)
+	q2.EnqueueWork(WorkItem{TicketID: 1, Trigger: "webhook"})
+	if q2.EnqueueWork(WorkItem{TicketID: 1, Trigger: "webhook"}) || q2.Full() {
+		t.Fatal("duplicate rejection must not report a full queue")
+	}
+}

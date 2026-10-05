@@ -3,7 +3,7 @@
 name: glpi-neuroforge-mega
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ${OLLAMA_IMAGE:-ollama/ollama@sha256:292ee7945dfc3d5840a181f3ab86fedb1e66703e02c8af98b50f4da56b7e278c}
     restart: unless-stopped
     volumes:
     - ollama-data:/root/.ollama
@@ -12,7 +12,7 @@ services:
     security_opt:
     - no-new-privileges:true
   searxng:
-    image: ${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}
+    image: ${SEARXNG_IMAGE:-docker.io/searxng/searxng@sha256:76b0bf285aca014c7191fc4d9234c4bfb358624ac33d8883833d496c059ec072}
     profiles:
     - research
     restart: unless-stopped
@@ -440,6 +440,28 @@ services:
       retries: 8
       start_period: 10s
     stop_grace_period: 20s
+  # One-shot: hands the Knowledge bind mounts to the non-root runtime user
+  # (UID/GID 65532). Read-only mounts are left untouched.
+  knowledge-data-init:
+    image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}
+    restart: 'no'
+    user: 0:0
+    entrypoint:
+    - /usr/local/bin/kb-data-init
+    volumes:
+    - ${KB_DATA_PATH:-./knowledge}:/data/knowledge:${KB_DATA_MOUNT_MODE:-rw}
+    - ${KB_STAGING_PATH:-./staging}:/data/staging:rw
+    - ${KB_BACKUP_PATH:-./backups}:/data/backups:rw
+    network_mode: none
+    read_only: true
+    security_opt:
+    - no-new-privileges:true
+    cap_drop:
+    - ALL
+    cap_add:
+    - CHOWN
+    - FOWNER
+    - DAC_READ_SEARCH
   knowledge:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}
     restart: unless-stopped
@@ -472,6 +494,8 @@ services:
     - ${KB_STAGING_PATH:-./staging}:/data/staging:rw
     - ${KB_BACKUP_PATH:-./backups}:/data/backups:rw
     depends_on:
+      knowledge-data-init:
+        condition: service_completed_successfully
       ollama:
         condition: service_started
     read_only: true
@@ -481,6 +505,18 @@ services:
     - no-new-privileges:true
     cap_drop:
     - ALL
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - -q
+      - -O
+      - '-'
+      - http://127.0.0.1:8080/api/health
+      interval: 15s
+      timeout: 3s
+      retries: 8
+      start_period: 10s
     stop_grace_period: 35s
   control:
     image: git.send.nrw/sendnrw/glpi-neuroforge-mega-control:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}
@@ -524,6 +560,18 @@ services:
     - ALL
     extra_hosts:
     - host.docker.internal:host-gateway
+    healthcheck:
+      test:
+      - CMD
+      - wget
+      - -q
+      - -O
+      - '-'
+      - http://127.0.0.1:8070/healthz
+      interval: 15s
+      timeout: 3s
+      retries: 8
+      start_period: 10s
     stop_grace_period: 25s
 volumes:
   neuroforge-data: null

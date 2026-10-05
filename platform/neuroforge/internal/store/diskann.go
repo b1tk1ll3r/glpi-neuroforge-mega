@@ -145,8 +145,11 @@ func (s *Store) RebuildDiskANN() (DiskANNBuildResult, error) {
 	s.diskANNBuilding = true
 	revision := s.state.Revision
 	segmentRecords := 0
-	if s.segments != nil {
-		segmentRecords = s.segments.Stats().Records
+	// Captured under the lock: the build runs unlocked, and UpdateConfig may
+	// replace s.segments meanwhile.
+	seg := s.segments
+	if seg != nil {
+		segmentRecords = seg.Stats().Records
 	}
 	counts := map[int]int{}
 	totalActive := 0
@@ -278,7 +281,7 @@ func (s *Store) RebuildDiskANN() (DiskANNBuildResult, error) {
 						return yield(id, v)
 					})
 				})
-			} else if s.segments != nil {
+			} else if seg != nil {
 				// v0.5 -> v0.6 migration fallback. Train and encode by sequentially
 				// scanning authoritative segments. This avoids materializing a slice of
 				// every memory ID and seeds the compact journal for later rebuilds.
@@ -298,7 +301,7 @@ func (s *Store) RebuildDiskANN() (DiskANNBuildResult, error) {
 				step := float64(maxIntStore(1, count)) / float64(maxIntStore(1, wantSamples))
 				nextSample := 0.0
 				seen := 0
-				err = s.segments.IterateLiveVectorsSequential(dim, func(_ string, v []float32) error {
+				err = seg.IterateLiveVectorsSequential(dim, func(_ string, v []float32) error {
 					if len(sampleIDs) < wantSamples && float64(seen) >= nextSample {
 						key := fmt.Sprintf("sample-%d", len(sampleIDs))
 						sampleIDs = append(sampleIDs, key)
@@ -328,7 +331,7 @@ func (s *Store) RebuildDiskANN() (DiskANNBuildResult, error) {
 						buf = buf[:0]
 						return err
 					}
-					err := s.segments.IterateLiveVectorsSequential(dim, func(id string, v []float32) error {
+					err := seg.IterateLiveVectorsSequential(dim, func(id string, v []float32) error {
 						if s.vectorJournal != nil {
 							// Keep only the fields the vector journal writes. In particular, do
 							// not retain large memory texts while a 4k-vector batch is buffered.

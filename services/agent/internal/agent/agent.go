@@ -173,18 +173,22 @@ func (s *Service) Process(ctx context.Context, id int64) error {
 	return s.ProcessWork(ctx, queue.WorkItem{TicketID: id, Trigger: "manual", Priority: queue.PriorityManual})
 }
 
+// lockTicket serializes work per ticket and returns the unlock function.
+// Entries are intentionally never deleted: deleting after Unlock lets a waiter
+// and a newcomer end up holding different mutexes for the same ticket.
+func (s *Service) lockTicket(id int64) func() {
+	muAny, _ := s.locks.LoadOrStore(id, &sync.Mutex{})
+	mu := muAny.(*sync.Mutex)
+	mu.Lock()
+	return mu.Unlock
+}
+
 func (s *Service) ProcessWork(ctx context.Context, item queue.WorkItem) error {
 	if strings.EqualFold(strings.TrimSpace(item.Trigger), "scheduled_escalation") {
 		return s.processEscalation(ctx, item)
 	}
 	id := item.TicketID
-	muAny, _ := s.locks.LoadOrStore(id, &sync.Mutex{})
-	mu := muAny.(*sync.Mutex)
-	mu.Lock()
-	defer func() {
-		mu.Unlock()
-		s.locks.Delete(id)
-	}()
+	defer s.lockTicket(id)()
 	start := time.Now()
 	trigger := strings.TrimSpace(item.Trigger)
 	if trigger == "" {

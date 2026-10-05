@@ -1,0 +1,44 @@
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+    groups:
+      github-actions:
+        patterns: ['*']
+
+  - package-ecosystem: docker
+    directories:
+      - /platform/neuroforge
+      - /services/agent
+      - /services/knowledge
+      - /services/control
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: build
+    groups:
+      base-images:
+        patterns: ['*']
+
+  # The modules are currently stdlib-only; this picks up dependencies once added.
+  - package-ecosystem: gomod
+    directories:
+      - /platform/neuroforge
+      - /services/agent
+      - /services/knowledge
+      - /services/control
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: deps
+    groups:
+      go-modules:
+        patterns: ['*']

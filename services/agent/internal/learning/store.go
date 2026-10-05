@@ -142,11 +142,34 @@ func (s *Store) saveLocked() error {
 	if err != nil {
 		return err
 	}
-	tmp := s.path + ".tmp"
-	if err := os.WriteFile(tmp, b, 0o640); err != nil {
+	return writeFileAtomic(s.path, b, 0o640)
+}
+
+// writeFileAtomic writes via a synced temp file and rename so a crash cannot
+// leave a truncated or empty file behind.
+func writeFileAtomic(path string, b []byte, perm os.FileMode) error {
+	tmp := path + ".tmp"
+	f, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, perm)
+	if err != nil {
 		return err
 	}
-	return os.Rename(tmp, s.path)
+	cleanup := func() {
+		_ = f.Close()
+		_ = os.Remove(tmp)
+	}
+	if _, err := f.Write(b); err != nil {
+		cleanup()
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		cleanup()
+		return err
+	}
+	if err := f.Close(); err != nil {
+		_ = os.Remove(tmp)
+		return err
+	}
+	return os.Rename(tmp, path)
 }
 func newID() string { b := make([]byte, 8); _, _ = rand.Read(b); return hex.EncodeToString(b) }
 func compact(s string, n int) string {

@@ -127,7 +127,7 @@ func (s *Server) Handler() http.Handler {
 	mux.Handle("POST /api/learning", s.auth(s.mutation(http.HandlerFunc(s.learningAdd))))
 	mux.Handle("DELETE /api/learning/{id}", s.auth(s.mutation(http.HandlerFunc(s.learningDelete))))
 	mux.Handle("GET /api/outcomes", s.auth(http.HandlerFunc(s.outcomeList)))
-	mux.Handle("POST /api/quality/replay", s.auth(http.HandlerFunc(s.qualityReplay)))
+	mux.Handle("POST /api/quality/replay", s.auth(s.mutation(http.HandlerFunc(s.qualityReplay))))
 	mux.Handle("POST /api/outcomes", s.auth(s.mutation(http.HandlerFunc(s.outcomeAdd))))
 	mux.Handle("POST /api/tickets/{id}/reprocess", s.auth(s.mutation(http.HandlerFunc(s.reprocessTicket))))
 	mux.HandleFunc("POST /webhook/glpi", s.webhook)
@@ -237,6 +237,7 @@ func (s *Server) categoryMappingsGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) categoryMappingsPut(w http.ResponseWriter, r *http.Request) {
+	extendWriteDeadline(w, 11*time.Minute) // covers the 10 minute re-evaluation below
 	if !s.cfg.KnowledgeWebEditEnabled {
 		http.Error(w, "knowledge editing disabled", http.StatusForbidden)
 		return
@@ -501,6 +502,7 @@ func (s *Server) knowledgeList(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, out)
 }
 func (s *Server) knowledgeExportObsidian(w http.ResponseWriter, r *http.Request) {
+	extendWriteDeadline(w, 10*time.Minute)
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", `attachment; filename="glpi-neuroforge-knowledge-obsidian.zip"`)
 	w.Header().Set("Cache-Control", "no-store")
@@ -763,7 +765,13 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 	}
 	s.metrics.WebhookEvents.Add(1)
 	if !s.q.EnqueueWork(queue.WorkItem{TicketID: id, Trigger: "webhook", Priority: queue.PriorityWebhook}) {
-		w.WriteHeader(http.StatusAccepted)
+		if s.q.Full() {
+			// Let GLPI retry instead of silently dropping the event.
+			w.Header().Set("Retry-After", "30")
+			http.Error(w, "queue full", http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusAccepted) // already pending
 		return
 	}
 	s.metrics.QueueDepth.Store(int64(s.q.Len()))
@@ -868,6 +876,13 @@ func requestLog(next http.Handler) http.Handler {
 		}
 	})
 }
+
+// extendWriteDeadline lifts the server-wide WriteTimeout for handlers that
+// legitimately run longer. Writers without deadline support (tests) are ignored.
+func extendWriteDeadline(w http.ResponseWriter, d time.Duration) {
+	_ = http.NewResponseController(w).SetWriteDeadline(time.Now().Add(d))
+}
+
 func Listen(addr string, h http.Handler) *http.Server {
 	return &http.Server{Addr: addr, Handler: h, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 1 << 20}
 }
@@ -886,6 +901,7 @@ type qualityReplayRequest struct {
 }
 
 func (s *Server) qualityReplay(w http.ResponseWriter, r *http.Request) {
+	extendWriteDeadline(w, 5*time.Minute) // matches the scripts/quality-replay.py client timeout
 	var req qualityReplayRequest
 	if err := json.NewDecoder(io.LimitReader(r.Body, 2<<20)).Decode(&req); err != nil {
 		http.Error(w, "invalid replay payload: "+err.Error(), http.StatusBadRequest)

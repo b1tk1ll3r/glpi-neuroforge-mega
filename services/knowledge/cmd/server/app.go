@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -183,6 +184,8 @@ func (a *app) handleObsidianExport(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Disposition", `attachment; filename="glpi-knowledge-obsidian.zip"`)
 	w.Header().Set("Cache-Control", "no-store")
 	if err := obsidian.WriteZIP(w, docs, time.Now().UTC()); err != nil {
+		// Headers (and possibly part of the body) are already sent; log only.
+		log.Printf("obsidian export failed: %v", err)
 		return
 	}
 }

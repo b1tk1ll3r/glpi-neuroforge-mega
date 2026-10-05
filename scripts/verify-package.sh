@@ -6,8 +6,9 @@ cd "$ROOT"
 for f in \
   services/agent/Dockerfile \
   services/knowledge/Dockerfile \
-  .gitea/workflows/ci.yml \
-  .gitea/workflows/release.yml \
+  .github/workflows/ci.yml \
+  .github/workflows/release.yml \
+  .github/dependabot.yml \
   docker-bake.hcl; do
   test -f "$f" || { echo "missing: $f" >&2; exit 1; }
 done

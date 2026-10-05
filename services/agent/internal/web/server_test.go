@@ -393,6 +393,7 @@ func TestQualityReplayReportsKnowledgeAndExperienceMetrics(t *testing.T) {
 	body := `{"cases":[{"id":"c1","query":"vpn gateway anmeldung","expected_knowledge_id":"KB-VPN","expected_solution_terms":["vpn","neu starten"],"k":10}]}`
 	req := httptest.NewRequest(http.MethodPost, "/api/quality/replay", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Requested-With", "GLPI-AI-Agent")
 	rr := httptest.NewRecorder()
 	srv.Handler().ServeHTTP(rr, req)
 	if rr.Code != http.StatusOK {

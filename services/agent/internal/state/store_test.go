@@ -1,9 +1,14 @@
 package state
 
 import (
-	"github.com/example/glpi-ai-agent/internal/model"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/example/glpi-ai-agent/internal/model"
 )
 
 func TestStoreRoundTrip(t *testing.T) {
@@ -165,5 +170,37 @@ func TestEscalationKeyFromResultKeepsActionAndTarget(t *testing.T) {
 	want := "ticket=4;level=3;action=link_major_incident;target=incident:99"
 	if got != want {
 		t.Fatalf("key=%q want %q", got, want)
+	}
+}
+
+func TestLoadToleratesOversizedAndCorruptLines(t *testing.T) {
+	dir := t.TempDir()
+	var lines []string
+	for _, r := range []model.RunRecord{
+		{RunID: "a", TicketID: 1, SourceVersion: "v1", Outcome: "processed", FinishedAt: time.Unix(1, 0)},
+		{RunID: "b", TicketID: 2, SourceVersion: "v1", Outcome: "processed", FinishedAt: time.Unix(2, 0), Error: strings.Repeat("x", 3*1024*1024)},
+	} {
+		b, err := json.Marshal(r)
+		if err != nil {
+			t.Fatal(err)
+		}
+		lines = append(lines, string(b))
+	}
+	lines = append(lines, "{not json", `{"run_id":"c","ticket_id":3,"source_version":"v1","outcome":"processed"}`)
+	if err := os.WriteFile(filepath.Join(dir, "runs.jsonl"), []byte(strings.Join(lines, "\n")), 0o640); err != nil {
+		t.Fatal(err)
+	}
+	s, err := Open(dir, 10)
+	if err != nil {
+		t.Fatalf("open with oversized line: %v", err)
+	}
+	if got := len(s.Recent(10)); got != 3 {
+		t.Fatalf("runs=%d want 3", got)
+	}
+	if _, ok := s.FindRun("b"); !ok {
+		t.Fatal("oversized record not loaded")
+	}
+	if !s.Seen(3, "v1") {
+		t.Fatal("unterminated last record not loaded")
 	}
 }

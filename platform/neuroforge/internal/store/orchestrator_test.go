@@ -119,7 +119,8 @@ func TestOrchestratorRetryDependencyAndWorkerStaleness(t *testing.T) {
 
 	s.mu.Lock()
 	ws := s.workers[w.ID]
-	ws.LastHeartbeat = time.Now().Add(-2 * time.Second)
+	// Strictly older than StaleAfterSeconds; exactly 2s can tie on coarse clocks.
+	ws.LastHeartbeat = time.Now().Add(-3 * time.Second)
 	s.workers[w.ID] = ws
 	s.mu.Unlock()
 	workers := s.WorkersSnapshot()

@@ -20,6 +20,22 @@ func (s *Store) AddMemoriesBatch(items []core.Memory) error {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// Reject conflicts before mutating anything; failing mid-loop would leave
+	// earlier items in memory without WAL/index entries.
+	seen := make(map[string]struct{}, len(items))
+	for i := range items {
+		id := items[i].ID
+		if id == "" {
+			continue
+		}
+		if _, dup := seen[id]; dup {
+			return fmt.Errorf("memory %s appears twice in batch", id)
+		}
+		if _, exists := s.state.Memories[id]; exists {
+			return fmt.Errorf("memory %s already exists", id)
+		}
+		seen[id] = struct{}{}
+	}
 	now := time.Now().UTC()
 	affected := make([]core.Memory, 0, len(items))
 	created := make([]core.Memory, 0, len(items))

@@ -497,14 +497,19 @@ func (p *Pool) post(ctx context.Context, path string, payload any, out any) erro
 		}
 		duration := time.Since(started)
 		n.release()
-		retryable := isRetryable(reqErr, status)
+		// When the caller's own context ended, the failure says nothing about the
+		// node: do not count it, do not cool the node down and do not fail over.
+		callerDone := reqErr != nil && ctx.Err() != nil
+		retryable := !callerDone && isRetryable(reqErr, status)
 		// A 2xx response that cannot be decoded is safe to fail over because no
 		// application decision was accepted from this node.
-		if reqErr != nil && status/100 == 2 {
+		if reqErr != nil && status/100 == 2 && !callerDone {
 			retryable = true
 		}
 		ok := reqErr == nil
-		n.recordRequest(duration, ok, retryable, reqErr)
+		if !callerDone {
+			n.recordRequest(duration, ok, retryable, reqErr)
+		}
 		if !ok && retryable && p.cfg.FailureCooldown > 0 {
 			n.mu.Lock()
 			n.cooldownUntil = time.Now().Add(p.cfg.FailureCooldown)

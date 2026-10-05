@@ -2,9 +2,12 @@ package state
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -25,6 +28,7 @@ type Store struct {
 	runIndex          map[string]int
 	analysisIndex     map[string]model.AnalysisRun
 	maxRuns           int
+	compactedSize     int64 // runs.jsonl size after the last compaction
 }
 
 type durableIndex struct {
@@ -76,6 +80,10 @@ func (s *Store) ProcessedVersionCount() int {
 func (s *Store) Append(r model.RunRecord) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	// The GLPI side effects of this run have already happened. Remember them
+	// in memory even if persisting fails, so the same ticket version and
+	// escalation steps are not executed again before the next restart.
+	s.absorbDurableStateLocked(r)
 	f, err := os.OpenFile(s.path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o640)
 	if err != nil {
 		return err
@@ -91,7 +99,6 @@ func (s *Store) Append(r model.RunRecord) error {
 	if err != nil {
 		return err
 	}
-	s.absorbDurableStateLocked(r)
 	s.runs = append(s.runs, r)
 	if len(s.runs) > s.maxRuns {
 		s.runs = s.runs[len(s.runs)-s.maxRuns:]
@@ -100,9 +107,19 @@ func (s *Store) Append(r model.RunRecord) error {
 	if err := s.persistDurableIndexLocked(); err != nil {
 		return fmt.Errorf("persist durable state index: %w", err)
 	}
-	if info, statErr := os.Stat(s.path); statErr == nil && info.Size() > 64<<20 {
+	// Compact once the file has grown well beyond its last compacted size;
+	// retained runs alone can exceed 64 MiB, and rewriting on every append
+	// would block all readers.
+	threshold := int64(64 << 20)
+	if t := 2 * s.compactedSize; t > threshold {
+		threshold = t
+	}
+	if info, statErr := os.Stat(s.path); statErr == nil && info.Size() > threshold {
 		if compactErr := s.compactLocked(); compactErr != nil {
 			return fmt.Errorf("compact state: %w", compactErr)
+		}
+		if info, statErr := os.Stat(s.path); statErr == nil {
+			s.compactedSize = info.Size()
 		}
 	}
 	return nil
@@ -160,22 +177,38 @@ func (s *Store) load() error {
 		return err
 	}
 	defer f.Close()
-	sc := bufio.NewScanner(f)
-	buf := make([]byte, 64*1024)
-	sc.Buffer(buf, 2*1024*1024)
-	for sc.Scan() {
-		var r model.RunRecord
-		if json.Unmarshal(sc.Bytes(), &r) == nil {
-			s.absorbDurableStateLocked(r)
-			s.runs = append(s.runs, r)
+	// bufio.Reader instead of Scanner: no per-line size cap, so one oversized
+	// record cannot prevent startup.
+	rd := bufio.NewReaderSize(f, 64*1024)
+	skipped := 0
+	var readErr error
+	for {
+		line, err := rd.ReadBytes('\n')
+		if line = bytes.TrimSpace(line); len(line) > 0 {
+			var r model.RunRecord
+			if json.Unmarshal(line, &r) == nil {
+				s.absorbDurableStateLocked(r)
+				s.runs = append(s.runs, r)
+			} else {
+				skipped++
+			}
 		}
+		if err != nil {
+			if !errors.Is(err, io.EOF) {
+				readErr = err
+			}
+			break
+		}
+	}
+	if skipped > 0 {
+		slog.Warn("skipped unreadable run records in state file", "path", s.path, "count", skipped)
 	}
 	if len(s.runs) > s.maxRuns {
 		s.runs = s.runs[len(s.runs)-s.maxRuns:]
 	}
 	sort.SliceStable(s.runs, func(i, j int) bool { return s.runs[i].FinishedAt.Before(s.runs[j].FinishedAt) })
 	s.rebuildIndexesLocked()
-	return sc.Err()
+	return readErr
 }
 
 func (s *Store) rebuildIndexesLocked() {

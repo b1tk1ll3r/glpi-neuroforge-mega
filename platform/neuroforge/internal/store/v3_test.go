@@ -122,3 +122,52 @@ func TestRetentionWorkingTTLAndCompression(t *testing.T) {
 		t.Fatalf("semantic not compressed: %#v", got)
 	}
 }
+
+func TestWALReplayDropsTornTailAndKeepsAppending(t *testing.T) {
+	dir := t.TempDir()
+	s, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := s.Config()
+	cfg.Storage.CheckpointEvery = 1000
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	m := &core.Memory{Kind: "knowledge", MemoryType: core.MemorySemantic, Text: "before crash", Vector: []float32{1, 0, 0}, Salience: 1}
+	if err := s.AddMemory(m); err != nil {
+		t.Fatal(err)
+	}
+	_ = s.Close()
+	walPath := filepath.Join(dir, "wal", "wal-active.jsonl")
+	f, err := os.OpenFile(walPath, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.WriteString(`{"revision":999,"type":"memory.ups`); err != nil {
+		t.Fatal(err)
+	}
+	_ = f.Close()
+
+	s2, err := New(dir)
+	if err != nil {
+		t.Fatalf("torn WAL tail must not block startup: %v", err)
+	}
+	if got, ok := s2.GetMemory(m.ID); !ok || got.Text != m.Text {
+		t.Fatalf("memory lost: %#v", got)
+	}
+	m2 := &core.Memory{Kind: "knowledge", MemoryType: core.MemorySemantic, Text: "after crash", Vector: []float32{0, 1, 0}, Salience: 1}
+	if err := s2.AddMemory(m2); err != nil {
+		t.Fatal(err)
+	}
+	_ = s2.Close()
+
+	s3, err := New(dir)
+	if err != nil {
+		t.Fatalf("reopen after append: %v", err)
+	}
+	defer s3.Close()
+	if got, ok := s3.GetMemory(m2.ID); !ok || got.Text != m2.Text {
+		t.Fatalf("memory appended after torn tail lost: %#v", got)
+	}
+}

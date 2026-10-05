@@ -458,7 +458,14 @@ func (r *Router) Health(ctx context.Context) []map[string]any {
 			continue
 		}
 		healthCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		req, _ := http.NewRequestWithContext(healthCtx, "GET", cleanBase(o.BaseURL)+"/api/tags", nil)
+		req, err := http.NewRequestWithContext(healthCtx, "GET", cleanBase(o.BaseURL)+"/api/tags", nil)
+		if err != nil {
+			cancel()
+			entry["ok"] = false
+			entry["error"] = err.Error()
+			out = append(out, entry)
+			continue
+		}
 		if token := strings.TrimSpace(r.store.Secrets().OllamaAPIKey); token != "" {
 			req.Header.Set("Authorization", "Bearer "+token)
 		}

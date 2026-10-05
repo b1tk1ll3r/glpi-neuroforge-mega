@@ -3,6 +3,7 @@ package ollama
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -424,5 +425,48 @@ func TestPoolSendsBearerToHealthAndInference(t *testing.T) {
 	}
 	if embedAuth != "Bearer "+token {
 		t.Fatalf("embed authorization=%q", embedAuth)
+	}
+}
+
+func TestPoolCallerCancelDoesNotPenalizeNodeOrFailOver(t *testing.T) {
+	started := make(chan struct{}, 1)
+	slow := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/tags" {
+			tagsResponse(w, "chat-digest", "embed-digest")
+			return
+		}
+		// Drain the body so the server notices the client disconnect.
+		_, _ = io.Copy(io.Discard, r.Body)
+		started <- struct{}{}
+		<-r.Context().Done()
+	}))
+	defer slow.Close()
+	var otherCalls atomic.Int64
+	other := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/tags" {
+			tagsResponse(w, "chat-digest", "embed-digest")
+			return
+		}
+		otherCalls.Add(1)
+		categoryResponse(w, 1)
+	}))
+	defer other.Close()
+
+	c := newTestPool(t, []NodeConfig{{Name: "a-slow", URL: slow.URL, Weight: 100}, {Name: "b-other", URL: other.URL, Weight: 1}}, "weighted")
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-started
+		cancel()
+	}()
+	if _, err := c.AnalyseCategory(ctx, model.Ticket{ID: 1}, []model.Category{{ID: 1}}, nil, model.ContextSnapshot{}); err == nil {
+		t.Fatal("expected error after caller cancel")
+	}
+	if otherCalls.Load() != 0 {
+		t.Fatalf("failed over after caller cancel: other calls=%d", otherCalls.Load())
+	}
+	for _, st := range c.NodeStatuses() {
+		if st.ConsecutiveFailures != 0 || !st.CooldownUntil.IsZero() {
+			t.Fatalf("node penalized after caller cancel: %+v", st)
+		}
 	}
 }

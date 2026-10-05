@@ -146,11 +146,7 @@ func (s *OutcomeStore) saveLocked() error {
 	if err != nil {
 		return err
 	}
-	tmp := s.path + ".tmp"
-	if err := os.WriteFile(tmp, b, 0o640); err != nil {
-		return err
-	}
-	return os.Rename(tmp, s.path)
+	return writeFileAtomic(s.path, b, 0o640)
 }
 func outcomeID() string { b := make([]byte, 12); _, _ = rand.Read(b); return hex.EncodeToString(b) }
 

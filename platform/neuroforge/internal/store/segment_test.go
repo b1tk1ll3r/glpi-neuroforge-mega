@@ -182,3 +182,138 @@ func TestLegacySegmentRecordRestoresCanonicalMemoryIDAndKnowledgeGraph(t *testin
 		t.Fatalf("legacy memory missing from vector retrieval: %#v", hits)
 	}
 }
+
+func TestCompactMemorySegmentsKeepsBodiesOfMetadataOnlyMemories(t *testing.T) {
+	dir := t.TempDir()
+	s, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := &core.Memory{ID: "mem_cold", Kind: "knowledge", MemoryType: core.MemorySemantic, Text: "cold body", Vector: []float32{0, 1, 0}, Salience: 1}
+	if err := s.AddMemory(m); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.ForceCheckpoint(); err != nil {
+		t.Fatal(err)
+	}
+	_ = s.Close()
+
+	// After a restart the in-memory catalog only holds metadata.
+	s2, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s2.CompactMemorySegments(); err != nil {
+		t.Fatal(err)
+	}
+	if err := s2.ForceCheckpoint(); err != nil {
+		t.Fatal(err)
+	}
+	_ = s2.Close()
+
+	s3, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s3.Close()
+	got, ok := s3.GetMemory("mem_cold")
+	if !ok {
+		t.Fatal("memory missing after compaction")
+	}
+	if got.Text != "cold body" || len(got.Vector) != 3 {
+		t.Fatalf("compaction dropped memory body: %#v", got)
+	}
+}
+
+func TestSegmentTornTailIsTruncatedBeforeNextAppend(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "segments")
+	ss, err := openSegmentStore(dir, 1<<20, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ss.AppendUpsert(1, []core.Memory{{ID: "a", Text: "first"}}); err != nil {
+		t.Fatal(err)
+	}
+	path := ss.activePath
+	ss.Close()
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.Write([]byte{0, 0, 0, 50, '{', '"'}); err != nil { // header + partial payload
+		t.Fatal(err)
+	}
+	_ = f.Close()
+
+	ss2, err := openSegmentStore(dir, 1<<20, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ss2.AppendUpsert(2, []core.Memory{{ID: "b", Text: "second"}}); err != nil {
+		t.Fatal(err)
+	}
+	ss2.Close()
+
+	ss3, err := openSegmentStore(dir, 1<<20, false)
+	if err != nil {
+		t.Fatalf("append after torn tail corrupted the segment: %v", err)
+	}
+	defer ss3.Close()
+	for id, want := range map[string]string{"a": "first", "b": "second"} {
+		got, found, _, err := ss3.Get(id)
+		if err != nil || !found || got.Text != want {
+			t.Fatalf("Get(%s) = %#v found=%v err=%v", id, got, found, err)
+		}
+	}
+}
+
+func TestSegmentOpenRestoresInterruptedRebuild(t *testing.T) {
+	dir := filepath.Join(t.TempDir(), "segments")
+	ss, err := openSegmentStore(dir, 1<<20, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := ss.AppendUpsert(1, []core.Memory{{ID: "a", Text: "kept"}}); err != nil {
+		t.Fatal(err)
+	}
+	ss.Close()
+	// Simulate a crash between the two renames in Rebuild.
+	if err := os.Rename(dir, dir+".old"); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(dir+".rebuild", 0700); err != nil {
+		t.Fatal(err)
+	}
+
+	ss2, err := openSegmentStore(dir, 1<<20, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ss2.Close()
+	got, found, _, err := ss2.Get("a")
+	if err != nil || !found || got.Text != "kept" {
+		t.Fatalf("segments not restored from .old: %#v found=%v err=%v", got, found, err)
+	}
+}
+
+func TestStoreRefusesEmptySegmentsWhenCatalogExpectsMemories(t *testing.T) {
+	dir := t.TempDir()
+	s, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.AddMemory(&core.Memory{ID: "mem_x", Kind: "knowledge", MemoryType: core.MemorySemantic, Text: "x", Vector: []float32{1, 0, 0}, Salience: 1}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.ForceCheckpoint(); err != nil {
+		t.Fatal(err)
+	}
+	_ = s.Close()
+	if err := os.RemoveAll(filepath.Join(dir, "memory-segments")); err != nil {
+		t.Fatal(err)
+	}
+	if s2, err := New(dir); err == nil {
+		_ = s2.Close()
+		t.Fatal("store opened empty although the catalog expects memories")
+	}
+}

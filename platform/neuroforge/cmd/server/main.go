@@ -552,8 +552,10 @@ func run() (retErr error) {
 	defer stop()
 	maintenanceCtx, stopMaintenance := context.WithCancel(rootCtx)
 	defer stopMaintenance()
-	go b.RunV6Maintenance(maintenanceCtx)
-	go b.RunOrchestrator(maintenanceCtx)
+	var maintenanceWG sync.WaitGroup
+	maintenanceWG.Add(2)
+	go func() { defer maintenanceWG.Done(); b.RunV6Maintenance(maintenanceCtx) }()
+	go func() { defer maintenanceWG.Done(); b.RunOrchestrator(maintenanceCtx) }()
 	api := httpapi.New(s, b, r, c)
 	if v, ok := envBool("NEUROFORGE_READINESS_OLLAMA_LIVE"); ok {
 		api.SetReadinessOllamaLive(v)
@@ -618,6 +620,15 @@ func run() (retErr error) {
 		if serveErr == nil {
 			serveErr = err
 		}
+	}
+	// Let a running compaction/repair/job apply finish before the final
+	// checkpoint, bounded by the same shutdown timeout.
+	maintenanceDone := make(chan struct{})
+	go func() { maintenanceWG.Wait(); close(maintenanceDone) }()
+	select {
+	case <-maintenanceDone:
+	case <-ctx.Done():
+		log.Printf("maintenance did not stop within %ds; writing final checkpoint anyway", shutdownTimeout)
 	}
 	if err := s.ForceCheckpoint(); err != nil {
 		log.Printf("final checkpoint: %v", err)

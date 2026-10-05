@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -734,6 +735,10 @@ func (s *Store) RollbackImported(summary Summary) error {
 }
 
 func syncDir(dir string) error {
+	// Windows cannot fsync directory handles; NTFS persists renames without it.
+	if runtime.GOOS == "windows" {
+		return nil
+	}
 	f, err := os.Open(dir)
 	if err != nil {
 		return err
@@ -905,22 +910,9 @@ func replaceAllFold(s, old, repl string) string {
 	if old == "" {
 		return s
 	}
-	lowerS := strings.ToLower(s)
-	lowerOld := strings.ToLower(old)
-	var b strings.Builder
-	pos := 0
-	for {
-		idx := strings.Index(lowerS[pos:], lowerOld)
-		if idx < 0 {
-			b.WriteString(s[pos:])
-			break
-		}
-		idx += pos
-		b.WriteString(s[pos:idx])
-		b.WriteString(repl)
-		pos = idx + len(old)
-	}
-	return b.String()
+	// Match on the original string: offsets from strings.ToLower(s) do not map back
+	// onto s when case mapping changes byte length (e.g. U+0130, Kelvin sign).
+	return regexp.MustCompile("(?i)"+regexp.QuoteMeta(old)).ReplaceAllLiteralString(s, repl)
 }
 
 func mutateStringList(existing, add, remove []string) []string {

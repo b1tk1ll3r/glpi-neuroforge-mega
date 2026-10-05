@@ -168,3 +168,69 @@ func TestV5CheckpointOmitsMemoryMapAndRebuildsCatalogFromSegments(t *testing.T) 
 		t.Fatalf("segment-backed body not available after restart: %#v", m)
 	}
 }
+
+func TestClusterEntryIDsCannotEscapeClusterDirectories(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	for _, id := range []string{"../../state", "..", "a/b", `a\b`, "x.json"} {
+		if err := s.AbortPreparedClusterEntry(id); err == nil {
+			t.Fatalf("abort accepted id %q", id)
+		}
+		if err := s.RecordClusterDecision(core.ClusterEntry{ID: id}, "abort"); err == nil {
+			t.Fatalf("decision accepted id %q", id)
+		}
+		if _, ok := s.ClusterDecision(id); ok {
+			t.Fatalf("decision lookup accepted id %q", id)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(s.dir, "state.json")); err != nil {
+		t.Fatalf("state.json must survive: %v", err)
+	}
+}
+
+func TestPageCacheIsInvalidatedWhenColdMemoryIsUpdated(t *testing.T) {
+	dir := t.TempDir()
+	s, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := s.Config()
+	cfg.Storage.PageCache.Enabled = true
+	cfg.Storage.PageCache.MaxBytes = 1 << 20
+	if err := s.UpdateConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	m := &core.Memory{ID: "mem_cache", Kind: "knowledge", MemoryType: core.MemorySemantic, Text: "body", Vector: []float32{1, 0, 0}, Salience: 1}
+	if err := s.AddMemory(m); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.ForceCheckpoint(); err != nil {
+		t.Fatal(err)
+	}
+	_ = s.Close()
+
+	s2, err := New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s2.Close()
+	if _, ok := s2.GetMemory(m.ID); !ok { // cold read fills the page cache
+		t.Fatal("memory missing")
+	}
+	if err := s2.SetMemoryStatus(m.ID, core.MemoryArchived); err != nil {
+		t.Fatal(err)
+	}
+	s2.mu.Lock()
+	evicted := s2.evictHotBodyLocked(m.ID)
+	s2.mu.Unlock()
+	if !evicted {
+		t.Fatal("expected body eviction")
+	}
+	got, ok := s2.GetMemory(m.ID)
+	if !ok || got.Status != core.MemoryArchived || got.Text != "body" {
+		t.Fatalf("stale page cache entry returned: %#v", got)
+	}
+}

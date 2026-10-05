@@ -1,0 +1,84 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      build-images: false
+    permissions:
+      contents: read
+      packages: write
+
+  release-images:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Resolve immutable release version and registry
+        id: meta
+        shell: bash
+        env:
+          REGISTRY_VAR: ${{ vars.REGISTRY }}
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME#v}"
+          test -n "$VERSION"
+          test "$(tr -d '[:space:]' < VERSION)" = "$VERSION" || {
+            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION file ($(cat VERSION))"
+            exit 1
+          }
+          registry="${REGISTRY_VAR:-ghcr.io/${GITHUB_REPOSITORY_OWNER}}"
+          registry="$(printf '%s' "$registry" | tr '[:upper:]' '[:lower:]')"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "registry=$registry" >> "$GITHUB_OUTPUT"
+          echo "host=${registry%%/*}" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        if: steps.meta.outputs.host == 'ghcr.io'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to external registry
+        if: steps.meta.outputs.host != 'ghcr.io'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.meta.outputs.host }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build and push all release images
+        env:
+          REGISTRY: ${{ steps.meta.outputs.registry }}
+          IMAGE_TAG: ${{ steps.meta.outputs.version }}
+          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: docker buildx bake --push
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          notes="RELEASE-NOTES-v${VERSION}.md"
+          if [ -f "$notes" ]; then
+            gh release create "$GITHUB_REF_NAME" --title "v${VERSION}" --notes-file "$notes" --verify-tag
+          else
+            gh release create "$GITHUB_REF_NAME" --title "v${VERSION}" --generate-notes --verify-tag
+          fi

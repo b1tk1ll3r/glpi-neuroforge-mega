@@ -25,6 +25,10 @@ services:
     build:
       context: ./services/agent
     pull_policy: never
+  knowledge-data-init:
+    build:
+      context: ./services/knowledge
+    pull_policy: never
   knowledge:
     build:
       context: ./services/knowledge

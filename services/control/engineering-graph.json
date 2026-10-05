@@ -1053,6 +1053,18 @@
       }
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL",
+      "kind": "function",
+      "label": "healthcheckURL",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/cmd/agent",
+      "meta": {
+        "exported": false,
+        "line": 215,
+        "path": "services/agent/cmd/agent/main.go"
+      }
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/cmd/agent:main",
       "kind": "function",
       "label": "main",
@@ -1060,7 +1072,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 29,
+        "line": 30,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -1072,7 +1084,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 261,
+        "line": 277,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -1084,7 +1096,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 212,
+        "line": 228,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -1096,7 +1108,7 @@
       "community": "github.com/example/glpi-ai-agent/cmd/agent",
       "meta": {
         "exported": false,
-        "line": 228,
+        "line": 244,
         "path": "services/agent/cmd/agent/main.go"
       }
     },
@@ -1204,7 +1216,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1264,
+        "line": 1268,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1216,7 +1228,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1300,
+        "line": 1304,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1228,7 +1240,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 892,
+        "line": 896,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1240,7 +1252,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 880,
+        "line": 884,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1252,7 +1264,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1306,
+        "line": 1310,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1264,7 +1276,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1294,
+        "line": 1298,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1288,7 +1300,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 176,
+        "line": 186,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1312,7 +1324,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1268,
+        "line": 1272,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1324,7 +1336,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1313,
+        "line": 1317,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1336,7 +1348,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1416,
+        "line": 1420,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1384,7 +1396,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": true,
-        "line": 1434,
+        "line": 1438,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1432,7 +1444,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1233,
+        "line": 1237,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1444,7 +1456,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 187,
+        "line": 180,
         "path": "services/agent/internal/agent/escalation.go"
       }
     },
@@ -1456,7 +1468,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 16,
+        "line": 15,
         "path": "services/agent/internal/agent/escalation.go"
       }
     },
@@ -1504,7 +1516,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1214,
+        "line": 1218,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1517,6 +1529,18 @@
       "meta": {
         "exported": false,
         "line": 136,
+        "path": "services/agent/internal/agent/agent.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket",
+      "kind": "function",
+      "label": "Service.lockTicket",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/agent",
+      "meta": {
+        "exported": false,
+        "line": 179,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1552,7 +1576,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 58,
+        "line": 57,
         "path": "services/agent/internal/agent/escalation.go"
       }
     },
@@ -1564,7 +1588,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 30,
+        "line": 29,
         "path": "services/agent/internal/agent/escalation.go"
       }
     },
@@ -1588,7 +1612,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1502,
+        "line": 1506,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1648,7 +1672,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1441,
+        "line": 1445,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1684,7 +1708,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1159,
+        "line": 1163,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1696,7 +1720,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1206,
+        "line": 1210,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1708,7 +1732,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1051,
+        "line": 1055,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1768,7 +1792,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1035,
+        "line": 1039,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1792,7 +1816,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1531,
+        "line": 1535,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1804,7 +1828,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1490,
+        "line": 1494,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1840,7 +1864,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1453,
+        "line": 1457,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1852,7 +1876,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1026,
+        "line": 1030,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -1912,7 +1936,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1112,
+        "line": 1116,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2044,7 +2068,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1142,
+        "line": 1146,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2080,7 +2104,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1104,
+        "line": 1108,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2140,7 +2164,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1529,
+        "line": 1533,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2164,7 +2188,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1589,
+        "line": 1593,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2224,7 +2248,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1131,
+        "line": 1135,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2260,7 +2284,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1520,
+        "line": 1524,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2272,7 +2296,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1075,
+        "line": 1079,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2296,7 +2320,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1461,
+        "line": 1465,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2308,7 +2332,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1622,
+        "line": 1626,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2320,7 +2344,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1016,
+        "line": 1020,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2344,7 +2368,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1511,
+        "line": 1515,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -2416,7 +2440,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/agent",
       "meta": {
         "exported": false,
-        "line": 1602,
+        "line": 1606,
         "path": "services/agent/internal/agent/agent.go"
       }
     },
@@ -4900,7 +4924,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/learning",
       "meta": {
         "exported": true,
-        "line": 192,
+        "line": 188,
         "path": "services/agent/internal/learning/outcomes.go"
       }
     },
@@ -4912,7 +4936,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/learning",
       "meta": {
         "exported": true,
-        "line": 228,
+        "line": 224,
         "path": "services/agent/internal/learning/outcomes.go"
       }
     },
@@ -4924,7 +4948,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/learning",
       "meta": {
         "exported": true,
-        "line": 181,
+        "line": 177,
         "path": "services/agent/internal/learning/outcomes.go"
       }
     },
@@ -5080,7 +5104,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/learning",
       "meta": {
         "exported": false,
-        "line": 152,
+        "line": 175,
         "path": "services/agent/internal/learning/store.go"
       }
     },
@@ -5092,7 +5116,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/learning",
       "meta": {
         "exported": false,
-        "line": 151,
+        "line": 174,
         "path": "services/agent/internal/learning/store.go"
       }
     },
@@ -5104,8 +5128,20 @@
       "community": "github.com/example/glpi-ai-agent/internal/learning",
       "meta": {
         "exported": false,
-        "line": 155,
+        "line": 151,
         "path": "services/agent/internal/learning/outcomes.go"
+      }
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic",
+      "kind": "function",
+      "label": "writeFileAtomic",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/learning",
+      "meta": {
+        "exported": false,
+        "line": 150,
+        "path": "services/agent/internal/learning/store.go"
       }
     },
     {
@@ -5848,7 +5884,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 678,
+        "line": 683,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5872,7 +5908,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 552,
+        "line": 557,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5884,7 +5920,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 607,
+        "line": 612,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5920,7 +5956,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 588,
+        "line": 593,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5932,7 +5968,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 691,
+        "line": 696,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5944,7 +5980,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 785,
+        "line": 790,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5956,7 +5992,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": true,
-        "line": 742,
+        "line": 747,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -5992,7 +6028,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 720,
+        "line": 725,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6016,7 +6052,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 704,
+        "line": 709,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6028,7 +6064,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 774,
+        "line": 779,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6040,7 +6076,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 726,
+        "line": 731,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6100,7 +6136,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 714,
+        "line": 719,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6124,7 +6160,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 543,
+        "line": 548,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6184,7 +6220,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 756,
+        "line": 761,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6196,7 +6232,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 751,
+        "line": 756,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6208,7 +6244,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 581,
+        "line": 586,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6256,7 +6292,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/ollama",
       "meta": {
         "exported": false,
-        "line": 747,
+        "line": 752,
         "path": "services/agent/internal/ollama/pool.go"
       }
     },
@@ -6400,7 +6436,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/queue",
       "meta": {
         "exported": true,
-        "line": 138,
+        "line": 145,
         "path": "services/agent/internal/queue/queue.go"
       }
     },
@@ -6412,7 +6448,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/queue",
       "meta": {
         "exported": true,
-        "line": 149,
+        "line": 156,
         "path": "services/agent/internal/queue/queue.go"
       }
     },
@@ -6441,6 +6477,18 @@
       }
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/queue:Queue.Full",
+      "kind": "function",
+      "label": "Queue.Full",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/queue",
+      "meta": {
+        "exported": true,
+        "line": 106,
+        "path": "services/agent/internal/queue/queue.go"
+      }
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/queue:Queue.Len",
       "kind": "function",
       "label": "Queue.Len",
@@ -6448,7 +6496,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/queue",
       "meta": {
         "exported": true,
-        "line": 155,
+        "line": 162,
         "path": "services/agent/internal/queue/queue.go"
       }
     },
@@ -6460,7 +6508,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/queue",
       "meta": {
         "exported": true,
-        "line": 112,
+        "line": 119,
         "path": "services/agent/internal/queue/queue.go"
       }
     },
@@ -6472,7 +6520,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/queue",
       "meta": {
         "exported": true,
-        "line": 117,
+        "line": 124,
         "path": "services/agent/internal/queue/queue.go"
       }
     },
@@ -6484,7 +6532,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/queue",
       "meta": {
         "exported": false,
-        "line": 105,
+        "line": 112,
         "path": "services/agent/internal/queue/queue.go"
       }
     },
@@ -6568,7 +6616,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 35,
+        "line": 39,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6580,7 +6628,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 76,
+        "line": 80,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6592,7 +6640,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 140,
+        "line": 157,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6604,7 +6652,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 123,
+        "line": 140,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6616,7 +6664,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 147,
+        "line": 164,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6628,7 +6676,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 192,
+        "line": 225,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6640,7 +6688,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 70,
+        "line": 74,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6652,7 +6700,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 110,
+        "line": 127,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6664,7 +6712,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": true,
-        "line": 65,
+        "line": 69,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6676,7 +6724,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 212,
+        "line": 245,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6688,7 +6736,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 329,
+        "line": 362,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6700,7 +6748,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 154,
+        "line": 171,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6712,7 +6760,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 263,
+        "line": 296,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6724,7 +6772,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 290,
+        "line": 323,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6736,7 +6784,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 181,
+        "line": 214,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6748,7 +6796,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 239,
+        "line": 272,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6760,7 +6808,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/state",
       "meta": {
         "exported": false,
-        "line": 133,
+        "line": 150,
         "path": "services/agent/internal/state/store.go"
       }
     },
@@ -6880,7 +6928,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": true,
-        "line": 871,
+        "line": 886,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -6916,7 +6964,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": true,
-        "line": 874,
+        "line": 889,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -6928,7 +6976,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 839,
+        "line": 847,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -6940,7 +6988,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 473,
+        "line": 474,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7048,7 +7096,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 522,
+        "line": 524,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7060,7 +7108,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 324,
+        "line": 325,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7072,7 +7120,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 337,
+        "line": 338,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7084,7 +7132,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 363,
+        "line": 364,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7096,7 +7144,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 311,
+        "line": 312,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7132,7 +7180,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 564,
+        "line": 566,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7144,7 +7192,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 626,
+        "line": 628,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7156,7 +7204,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 503,
+        "line": 504,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7168,7 +7216,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 512,
+        "line": 514,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7180,7 +7228,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 490,
+        "line": 491,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7192,7 +7240,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 590,
+        "line": 592,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7204,7 +7252,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 649,
+        "line": 651,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7216,7 +7264,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 669,
+        "line": 671,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7228,7 +7276,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 642,
+        "line": 644,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7240,7 +7288,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 710,
+        "line": 712,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7252,7 +7300,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 683,
+        "line": 685,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7264,7 +7312,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 680,
+        "line": 682,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7288,7 +7336,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 888,
+        "line": 903,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7312,7 +7360,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 724,
+        "line": 726,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7324,7 +7372,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 463,
+        "line": 464,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7336,7 +7384,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 392,
+        "line": 393,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7348,7 +7396,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 544,
+        "line": 546,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7360,7 +7408,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 744,
+        "line": 746,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7449,6 +7497,18 @@
       }
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
+      "kind": "function",
+      "label": "extendWriteDeadline",
+      "group": "engineering",
+      "community": "github.com/example/glpi-ai-agent/internal/web",
+      "meta": {
+        "exported": false,
+        "line": 882,
+        "path": "services/agent/internal/web/server.go"
+      }
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/web:extractTicketID",
       "kind": "function",
       "label": "extractTicketID",
@@ -7456,7 +7516,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 772,
+        "line": 780,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7468,7 +7528,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 823,
+        "line": 831,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7492,7 +7552,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 862,
+        "line": 870,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7504,7 +7564,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 833,
+        "line": 841,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7516,7 +7576,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 834,
+        "line": 842,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7528,7 +7588,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 853,
+        "line": 861,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7540,7 +7600,7 @@
       "community": "github.com/example/glpi-ai-agent/internal/web",
       "meta": {
         "exported": false,
-        "line": 785,
+        "line": 793,
         "path": "services/agent/internal/web/server.go"
       }
     },
@@ -7564,7 +7624,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 227,
+        "line": 230,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7576,7 +7636,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 568,
+        "line": 571,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7588,7 +7648,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 155,
+        "line": 156,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7600,7 +7660,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 190,
+        "line": 193,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7612,7 +7672,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 210,
+        "line": 213,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7624,7 +7684,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 135,
+        "line": 136,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7636,7 +7696,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 309,
+        "line": 312,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7648,7 +7708,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 293,
+        "line": 296,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7660,7 +7720,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 159,
+        "line": 160,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7672,7 +7732,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 176,
+        "line": 177,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7684,7 +7744,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 539,
+        "line": 542,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7696,7 +7756,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 535,
+        "line": 538,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7708,7 +7768,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 593,
+        "line": 596,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7720,7 +7780,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 164,
+        "line": 165,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7732,7 +7792,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 460,
+        "line": 463,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7744,7 +7804,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 426,
+        "line": 429,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7756,7 +7816,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 379,
+        "line": 382,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7768,7 +7828,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 351,
+        "line": 354,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7780,7 +7840,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 443,
+        "line": 446,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7792,7 +7852,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 401,
+        "line": 404,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7804,7 +7864,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 515,
+        "line": 518,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7816,7 +7876,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 63,
+        "line": 64,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7828,7 +7888,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 52,
+        "line": 53,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7840,7 +7900,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 57,
+        "line": 58,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7864,7 +7924,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 101,
+        "line": 102,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7888,7 +7948,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 604,
+        "line": 607,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7924,7 +7984,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 279,
+        "line": 282,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7960,7 +8020,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 44,
+        "line": 45,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -7996,7 +8056,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 195,
+        "line": 198,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -8020,7 +8080,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 124,
+        "line": 125,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -8068,7 +8128,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 626,
+        "line": 629,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -8080,7 +8140,7 @@
       "community": "kb-editor/cmd/server",
       "meta": {
         "exported": false,
-        "line": 620,
+        "line": 623,
         "path": "services/knowledge/cmd/server/app.go"
       }
     },
@@ -8176,7 +8236,7 @@
       "community": "kb-editor/internal/brainactivity",
       "meta": {
         "exported": true,
-        "line": 44,
+        "line": 45,
         "path": "services/knowledge/internal/brainactivity/client.go"
       }
     },
@@ -8188,7 +8248,7 @@
       "community": "kb-editor/internal/brainactivity",
       "meta": {
         "exported": false,
-        "line": 64,
+        "line": 65,
         "path": "services/knowledge/internal/brainactivity/client.go"
       }
     },
@@ -8200,7 +8260,7 @@
       "community": "kb-editor/internal/brainactivity",
       "meta": {
         "exported": false,
-        "line": 37,
+        "line": 38,
         "path": "services/knowledge/internal/brainactivity/client.go"
       }
     },
@@ -8476,7 +8536,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 85,
+        "line": 86,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8488,7 +8548,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 357,
+        "line": 372,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8500,7 +8560,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 101,
+        "line": 102,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8512,7 +8572,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 351,
+        "line": 366,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8524,7 +8584,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 99,
+        "line": 100,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8536,7 +8596,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 231,
+        "line": 241,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8548,7 +8608,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 265,
+        "line": 275,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8560,7 +8620,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 115,
+        "line": 116,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8572,7 +8632,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 127,
+        "line": 128,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8584,7 +8644,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 121,
+        "line": 122,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8596,7 +8656,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": true,
-        "line": 325,
+        "line": 335,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8608,7 +8668,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 361,
+        "line": 376,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8620,7 +8680,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 210,
+        "line": 220,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8632,19 +8692,31 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 421,
+        "line": 435,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.writeNew",
+      "id": "function:kb-editor/internal/staging:Store.updateLocked",
       "kind": "function",
-      "label": "Store.writeNew",
+      "label": "Store.updateLocked",
       "group": "engineering",
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 401,
+        "line": 345,
+        "path": "services/knowledge/internal/staging/staging.go"
+      }
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "kind": "function",
+      "label": "Store.writeNewLocked",
+      "group": "engineering",
+      "community": "kb-editor/internal/staging",
+      "meta": {
+        "exported": false,
+        "line": 417,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8656,7 +8728,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 429,
+        "line": 443,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8668,7 +8740,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 605,
+        "line": 623,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8680,7 +8752,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 614,
+        "line": 632,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8692,7 +8764,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 629,
+        "line": 647,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8704,7 +8776,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 554,
+        "line": 572,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8716,7 +8788,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 498,
+        "line": 516,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8728,7 +8800,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 538,
+        "line": 556,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8740,7 +8812,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 528,
+        "line": 546,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8752,7 +8824,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 466,
+        "line": 484,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8764,7 +8836,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 457,
+        "line": 471,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8776,7 +8848,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 567,
+        "line": 585,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8788,7 +8860,7 @@
       "community": "kb-editor/internal/staging",
       "meta": {
         "exported": false,
-        "line": 584,
+        "line": 602,
         "path": "services/knowledge/internal/staging/staging.go"
       }
     },
@@ -8800,7 +8872,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 134,
+        "line": 135,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8812,7 +8884,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 771,
+        "line": 776,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8824,7 +8896,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 162,
+        "line": 163,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8836,7 +8908,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 164,
+        "line": 165,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8848,7 +8920,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 161,
+        "line": 162,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8860,7 +8932,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 1230,
+        "line": 1222,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8872,7 +8944,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 395,
+        "line": 396,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8884,7 +8956,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 259,
+        "line": 260,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8896,7 +8968,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 624,
+        "line": 625,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8908,7 +8980,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 272,
+        "line": 273,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8920,7 +8992,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 551,
+        "line": 552,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8932,7 +9004,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 170,
+        "line": 171,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8944,7 +9016,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 707,
+        "line": 708,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8956,7 +9028,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 590,
+        "line": 591,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8968,7 +9040,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": true,
-        "line": 320,
+        "line": 321,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8980,7 +9052,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1010,
+        "line": 1002,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -8992,7 +9064,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1001,
+        "line": 993,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9004,7 +9076,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 218,
+        "line": 219,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9016,7 +9088,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1041,
+        "line": 1033,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9028,7 +9100,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 957,
+        "line": 949,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9040,7 +9112,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 841,
+        "line": 846,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9052,7 +9124,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1081,
+        "line": 1073,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9064,7 +9136,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 539,
+        "line": 540,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9076,7 +9148,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1091,
+        "line": 1083,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9088,7 +9160,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1184,
+        "line": 1176,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9100,7 +9172,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 255,
+        "line": 256,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9112,7 +9184,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1143,
+        "line": 1135,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9124,7 +9196,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 563,
+        "line": 564,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9136,7 +9208,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 926,
+        "line": 918,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9148,7 +9220,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1110,
+        "line": 1102,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9160,7 +9232,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 458,
+        "line": 459,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9172,7 +9244,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 904,
+        "line": 909,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9184,7 +9256,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 745,
+        "line": 750,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9196,7 +9268,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1203,
+        "line": 1195,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9208,7 +9280,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 499,
+        "line": 500,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9220,7 +9292,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1100,
+        "line": 1092,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9232,7 +9304,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1052,
+        "line": 1044,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9244,7 +9316,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 736,
+        "line": 737,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9256,7 +9328,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1126,
+        "line": 1118,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9268,7 +9340,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 441,
+        "line": 442,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9280,7 +9352,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 543,
+        "line": 544,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9292,7 +9364,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1209,
+        "line": 1201,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9304,7 +9376,7 @@
       "community": "kb-editor/internal/store",
       "meta": {
         "exported": false,
-        "line": 1190,
+        "line": 1182,
         "path": "services/knowledge/internal/store/store.go"
       }
     },
@@ -9976,7 +10048,7 @@
       "community": "neuroforge/cmd/server",
       "meta": {
         "exported": false,
-        "line": 632,
+        "line": 643,
         "path": "platform/neuroforge/cmd/server/main.go"
       }
     },
@@ -10060,7 +10132,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 257,
+        "line": 259,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10072,7 +10144,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 421,
+        "line": 423,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10084,7 +10156,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 459,
+        "line": 461,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10096,7 +10168,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 512,
+        "line": 514,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10108,7 +10180,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 500,
+        "line": 502,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10120,7 +10192,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 491,
+        "line": 493,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10132,7 +10204,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 473,
+        "line": 475,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10144,7 +10216,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 241,
+        "line": 243,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10156,7 +10228,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 451,
+        "line": 453,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10204,7 +10276,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 483,
+        "line": 485,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10228,7 +10300,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 356,
+        "line": 358,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10240,7 +10312,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 334,
+        "line": 336,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10264,7 +10336,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 426,
+        "line": 428,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10276,7 +10348,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 396,
+        "line": 398,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10288,7 +10360,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 237,
+        "line": 239,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10300,7 +10372,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 281,
+        "line": 283,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -10324,7 +10396,7 @@
       "community": "neuroforge/cmd/worker",
       "meta": {
         "exported": false,
-        "line": 229,
+        "line": 231,
         "path": "platform/neuroforge/cmd/worker/main.go"
       }
     },
@@ -14764,7 +14836,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 56,
+        "line": 57,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14776,7 +14848,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 747,
+        "line": 757,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14788,7 +14860,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 60,
+        "line": 61,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -14800,7 +14872,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 294,
+        "line": 343,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14812,7 +14884,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 285,
+        "line": 334,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14824,7 +14896,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 81,
+        "line": 119,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14836,7 +14908,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 533,
+        "line": 582,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14848,7 +14920,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 342,
+        "line": 391,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14860,7 +14932,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 644,
+        "line": 712,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14872,7 +14944,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 545,
+        "line": 594,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14884,7 +14956,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 514,
+        "line": 563,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14896,7 +14968,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 446,
+        "line": 495,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14908,7 +14980,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 481,
+        "line": 530,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14920,7 +14992,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 551,
+        "line": 600,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14932,7 +15004,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 609,
+        "line": 677,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14944,7 +15016,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 635,
+        "line": 703,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14956,7 +15028,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 206,
+        "line": 253,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14968,7 +15040,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 210,
+        "line": 257,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14980,7 +15052,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 375,
+        "line": 424,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -14992,7 +15064,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 302,
+        "line": 351,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -15004,7 +15076,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 317,
+        "line": 366,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -15016,7 +15088,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 101,
+        "line": 139,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -15028,7 +15100,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 142,
+        "line": 180,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -15040,7 +15112,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 115,
+        "line": 125,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15100,7 +15172,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 960,
+        "line": 977,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15124,7 +15196,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1409,
+        "line": 1431,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15184,7 +15256,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 749,
+        "line": 759,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15196,7 +15268,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 161,
+        "line": 177,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15220,7 +15292,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 61,
+        "line": 62,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15232,7 +15304,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 264,
+        "line": 286,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15244,7 +15316,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 169,
+        "line": 188,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15280,7 +15352,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 765,
+        "line": 775,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15316,7 +15388,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 786,
+        "line": 800,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15340,7 +15412,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1254,
+        "line": 1276,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15352,7 +15424,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1206,
+        "line": 1228,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15376,7 +15448,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 99,
+        "line": 115,
         "path": "platform/neuroforge/internal/store/batch.go"
       }
     },
@@ -15388,7 +15460,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1454,
+        "line": 1476,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15400,7 +15472,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 448,
+        "line": 451,
         "path": "platform/neuroforge/internal/store/diskann.go"
       }
     },
@@ -15412,7 +15484,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 427,
+        "line": 430,
         "path": "platform/neuroforge/internal/store/diskann.go"
       }
     },
@@ -15460,7 +15532,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1475,
+        "line": 1497,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15496,7 +15568,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 411,
+        "line": 447,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -15520,7 +15592,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1026,
+        "line": 1043,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15760,7 +15832,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1349,
+        "line": 1371,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15772,7 +15844,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1307,
+        "line": 1329,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15796,7 +15868,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1326,
+        "line": 1348,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15820,7 +15892,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 67,
+        "line": 68,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15868,7 +15940,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 126,
+        "line": 139,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15904,7 +15976,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 80,
+        "line": 87,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -15964,7 +16036,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1441,
+        "line": 1463,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -15976,7 +16048,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 150,
+        "line": 163,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -16000,7 +16072,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1195,
+        "line": 1217,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16096,7 +16168,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1083,
+        "line": 1105,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16108,7 +16180,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1806,
+        "line": 1828,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16120,7 +16192,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1815,
+        "line": 1837,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16132,7 +16204,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 843,
+        "line": 860,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16144,7 +16216,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 777,
+        "line": 791,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16168,7 +16240,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1282,
+        "line": 1304,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16180,7 +16252,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1293,
+        "line": 1315,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16228,7 +16300,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1362,
+        "line": 1384,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16264,7 +16336,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1339,
+        "line": 1361,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16300,7 +16372,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1230,
+        "line": 1252,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16324,7 +16396,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 787,
+        "line": 801,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16336,7 +16408,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1355,
+        "line": 1377,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16348,7 +16420,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 850,
+        "line": 867,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16360,7 +16432,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 221,
+        "line": 243,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -16408,7 +16480,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1425,
+        "line": 1447,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16420,7 +16492,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 1493,
+        "line": 1515,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16432,7 +16504,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 798,
+        "line": 800,
         "path": "platform/neuroforge/internal/store/vector_journal.go"
       }
     },
@@ -16444,7 +16516,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 417,
+        "line": 453,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16492,7 +16564,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 158,
+        "line": 187,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16504,7 +16576,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 54,
+        "line": 59,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16516,7 +16588,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 180,
+        "line": 216,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16528,7 +16600,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 331,
+        "line": 367,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16552,7 +16624,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 24,
+        "line": 25,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -16564,7 +16636,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 30,
+        "line": 32,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16600,7 +16672,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 26,
+        "line": 27,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -16648,7 +16720,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1037,
+        "line": 1054,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16744,7 +16816,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 397,
+        "line": 433,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16756,7 +16828,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 655,
+        "line": 661,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16804,7 +16876,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 868,
+        "line": 885,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16840,7 +16912,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 25,
+        "line": 26,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -16852,7 +16924,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 732,
+        "line": 742,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16864,7 +16936,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 735,
+        "line": 745,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16876,7 +16948,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 368,
+        "line": 404,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16888,7 +16960,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 873,
+        "line": 890,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16900,7 +16972,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 910,
+        "line": 927,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -16948,7 +17020,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 91,
+        "line": 96,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16960,7 +17032,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 127,
+        "line": 132,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -16984,7 +17056,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1089,
+        "line": 1111,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17068,7 +17140,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1499,
+        "line": 1521,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17116,7 +17188,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 390,
+        "line": 426,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -17188,7 +17260,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": true,
-        "line": 776,
+        "line": 778,
         "path": "platform/neuroforge/internal/store/vector_journal.go"
       }
     },
@@ -17320,7 +17392,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 254,
+        "line": 260,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17404,7 +17476,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1062,
+        "line": 1084,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17440,7 +17512,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 860,
+        "line": 877,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17476,7 +17548,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 209,
+        "line": 211,
         "path": "platform/neuroforge/internal/store/startup_compact.go"
       }
     },
@@ -17524,7 +17596,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1188,
+        "line": 1210,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17644,7 +17716,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 642,
+        "line": 648,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17728,7 +17800,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 420,
+        "line": 423,
         "path": "platform/neuroforge/internal/store/diskann.go"
       }
     },
@@ -17776,7 +17848,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 407,
+        "line": 443,
         "path": "platform/neuroforge/internal/store/wal.go"
       }
     },
@@ -17800,7 +17872,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 603,
+        "line": 609,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -17812,7 +17884,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 414,
+        "line": 417,
         "path": "platform/neuroforge/internal/store/diskann.go"
       }
     },
@@ -17872,7 +17944,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 63,
+        "line": 64,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -17920,7 +17992,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 92,
+        "line": 130,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -17932,7 +18004,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 1199,
+        "line": 1221,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -18016,8 +18088,20 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 739,
+        "line": 749,
         "path": "platform/neuroforge/internal/store/store.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "kind": "function",
+      "label": "recoverInterruptedRebuild",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 87,
+        "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
     {
@@ -18052,7 +18136,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 86,
+        "line": 88,
         "path": "platform/neuroforge/internal/store/startup_compact.go"
       }
     },
@@ -18064,7 +18148,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 148,
+        "line": 150,
         "path": "platform/neuroforge/internal/store/startup_compact.go"
       }
     },
@@ -18076,7 +18160,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 248,
+        "line": 270,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -18088,7 +18172,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 90,
+        "line": 128,
         "path": "platform/neuroforge/internal/store/segment.go"
       }
     },
@@ -18117,6 +18201,18 @@
       }
     },
     {
+      "id": "function:neuroforge/internal/store:syncDirBestEffort",
+      "kind": "function",
+      "label": "syncDirBestEffort",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 104,
+        "path": "platform/neuroforge/internal/store/segment.go"
+      }
+    },
+    {
       "id": "function:neuroforge/internal/store:unmapSegmentFile",
       "kind": "function",
       "label": "unmapSegmentFile",
@@ -18138,6 +18234,18 @@
         "exported": false,
         "line": 663,
         "path": "platform/neuroforge/internal/store/vector_journal.go"
+      }
+    },
+    {
+      "id": "function:neuroforge/internal/store:validClusterEntryID",
+      "kind": "function",
+      "label": "validClusterEntryID",
+      "group": "engineering",
+      "community": "neuroforge/internal/store",
+      "meta": {
+        "exported": false,
+        "line": 85,
+        "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
     {
@@ -18184,7 +18292,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 680,
+        "line": 686,
         "path": "platform/neuroforge/internal/store/store.go"
       }
     },
@@ -18208,7 +18316,7 @@
       "community": "neuroforge/internal/store",
       "meta": {
         "exported": false,
-        "line": 28,
+        "line": 29,
         "path": "platform/neuroforge/internal/store/cluster.go"
       }
     },
@@ -21283,6 +21391,17 @@
       }
     },
     {
+      "id": "service:knowledge-data-init",
+      "kind": "service",
+      "label": "knowledge-data-init",
+      "group": "runtime",
+      "community": "compose",
+      "status": "configured",
+      "meta": {
+        "image": "git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:?Set IMAGE_TAG to an immutable release tag, for example 1.6.2}"
+      }
+    },
+    {
       "id": "service:neuroforge",
       "kind": "service",
       "label": "neuroforge",
@@ -21323,7 +21442,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "ollama/ollama:latest"
+        "image": "${OLLAMA_IMAGE:-ollama/ollama@sha256:292ee7945dfc3d5840a181f3ab86fedb1e66703e02c8af98b50f4da56b7e278c}"
       }
     },
     {
@@ -21334,7 +21453,7 @@
       "community": "compose",
       "status": "configured",
       "meta": {
-        "image": "${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}"
+        "image": "${SEARXNG_IMAGE:-docker.io/searxng/searxng@sha256:76b0bf285aca014c7191fc4d9234c4bfb358624ac33d8883833d496c059ec072}"
       }
     }
   ],
@@ -25888,6 +26007,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/cluster.go-\u003efunction:neuroforge/internal/store:validClusterEntryID:defines",
+      "from": "file:platform/neuroforge/internal/store/cluster.go",
+      "to": "function:neuroforge/internal/store:validClusterEntryID",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/cluster.go-\u003efunction:neuroforge/internal/store:writeJSONSync:defines",
       "from": "file:platform/neuroforge/internal/store/cluster.go",
       "to": "function:neuroforge/internal/store:writeJSONSync",
@@ -25927,6 +26052,12 @@
       "id": "file:platform/neuroforge/internal/store/cluster.go-\u003epackage:path/filepath:imports",
       "from": "file:platform/neuroforge/internal/store/cluster.go",
       "to": "package:path/filepath",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/cluster.go-\u003epackage:regexp:imports",
+      "from": "file:platform/neuroforge/internal/store/cluster.go",
+      "to": "package:regexp",
       "kind": "imports"
     },
     {
@@ -27196,9 +27327,21 @@
       "kind": "defines"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/segment.go-\u003efunction:neuroforge/internal/store:recoverInterruptedRebuild:defines",
+      "from": "file:platform/neuroforge/internal/store/segment.go",
+      "to": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "kind": "defines"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/segment.go-\u003efunction:neuroforge/internal/store:segmentName:defines",
       "from": "file:platform/neuroforge/internal/store/segment.go",
       "to": "function:neuroforge/internal/store:segmentName",
+      "kind": "defines"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/segment.go-\u003efunction:neuroforge/internal/store:syncDirBestEffort:defines",
+      "from": "file:platform/neuroforge/internal/store/segment.go",
+      "to": "function:neuroforge/internal/store:syncDirBestEffort",
       "kind": "defines"
     },
     {
@@ -27253,6 +27396,12 @@
       "id": "file:platform/neuroforge/internal/store/segment.go-\u003epackage:path/filepath:imports",
       "from": "file:platform/neuroforge/internal/store/segment.go",
       "to": "package:path/filepath",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/segment.go-\u003epackage:runtime:imports",
+      "from": "file:platform/neuroforge/internal/store/segment.go",
+      "to": "package:runtime",
       "kind": "imports"
     },
     {
@@ -27952,6 +28101,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:runtime:imports",
+      "from": "file:platform/neuroforge/internal/store/store.go",
+      "to": "package:runtime",
+      "kind": "imports"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/store.go-\u003epackage:sort:imports",
       "from": "file:platform/neuroforge/internal/store/store.go",
       "to": "package:sort",
@@ -28492,6 +28647,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:platform/neuroforge/internal/store/wal.go-\u003epackage:bytes:imports",
+      "from": "file:platform/neuroforge/internal/store/wal.go",
+      "to": "package:bytes",
+      "kind": "imports"
+    },
+    {
       "id": "file:platform/neuroforge/internal/store/wal.go-\u003epackage:encoding/json:imports",
       "from": "file:platform/neuroforge/internal/store/wal.go",
       "to": "package:encoding/json",
@@ -28507,6 +28668,12 @@
       "id": "file:platform/neuroforge/internal/store/wal.go-\u003epackage:fmt:imports",
       "from": "file:platform/neuroforge/internal/store/wal.go",
       "to": "package:fmt",
+      "kind": "imports"
+    },
+    {
+      "id": "file:platform/neuroforge/internal/store/wal.go-\u003epackage:io:imports",
+      "from": "file:platform/neuroforge/internal/store/wal.go",
+      "to": "package:io",
       "kind": "imports"
     },
     {
@@ -29098,6 +29265,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:services/agent/cmd/agent/main.go-\u003efunction:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL:defines",
+      "from": "file:services/agent/cmd/agent/main.go",
+      "to": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/agent/cmd/agent/main.go-\u003efunction:github.com/example/glpi-ai-agent/cmd/agent:main:defines",
       "from": "file:services/agent/cmd/agent/main.go",
       "to": "function:github.com/example/glpi-ai-agent/cmd/agent:main",
@@ -29221,6 +29394,12 @@
       "id": "file:services/agent/cmd/agent/main.go-\u003epackage:net/http:imports",
       "from": "file:services/agent/cmd/agent/main.go",
       "to": "package:net/http",
+      "kind": "imports"
+    },
+    {
+      "id": "file:services/agent/cmd/agent/main.go-\u003epackage:net:imports",
+      "from": "file:services/agent/cmd/agent/main.go",
+      "to": "package:net",
       "kind": "imports"
     },
     {
@@ -29371,6 +29550,12 @@
       "id": "file:services/agent/internal/agent/agent.go-\u003efunction:github.com/example/glpi-ai-agent/internal/agent:Service.healthLoop:defines",
       "from": "file:services/agent/internal/agent/agent.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/agent:Service.healthLoop",
+      "kind": "defines"
+    },
+    {
+      "id": "file:services/agent/internal/agent/agent.go-\u003efunction:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket:defines",
+      "from": "file:services/agent/internal/agent/agent.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket",
       "kind": "defines"
     },
     {
@@ -29911,12 +30096,6 @@
       "id": "file:services/agent/internal/agent/escalation.go-\u003epackage:strings:imports",
       "from": "file:services/agent/internal/agent/escalation.go",
       "to": "package:strings",
-      "kind": "imports"
-    },
-    {
-      "id": "file:services/agent/internal/agent/escalation.go-\u003epackage:sync:imports",
-      "from": "file:services/agent/internal/agent/escalation.go",
-      "to": "package:sync",
       "kind": "imports"
     },
     {
@@ -32374,6 +32553,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:services/agent/internal/learning/store.go-\u003efunction:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic:defines",
+      "from": "file:services/agent/internal/learning/store.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/agent/internal/learning/store.go-\u003epackage:crypto/rand:imports",
       "from": "file:services/agent/internal/learning/store.go",
       "to": "package:crypto/rand",
@@ -33406,6 +33591,12 @@
       "kind": "defines"
     },
     {
+      "id": "file:services/agent/internal/queue/queue.go-\u003efunction:github.com/example/glpi-ai-agent/internal/queue:Queue.Full:defines",
+      "from": "file:services/agent/internal/queue/queue.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/queue:Queue.Full",
+      "kind": "defines"
+    },
+    {
       "id": "file:services/agent/internal/queue/queue.go-\u003efunction:github.com/example/glpi-ai-agent/internal/queue:Queue.Len:defines",
       "from": "file:services/agent/internal/queue/queue.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/queue:Queue.Len",
@@ -33604,6 +33795,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:services/agent/internal/state/store.go-\u003epackage:bytes:imports",
+      "from": "file:services/agent/internal/state/store.go",
+      "to": "package:bytes",
+      "kind": "imports"
+    },
+    {
       "id": "file:services/agent/internal/state/store.go-\u003epackage:encoding/json:imports",
       "from": "file:services/agent/internal/state/store.go",
       "to": "package:encoding/json",
@@ -33625,6 +33822,18 @@
       "id": "file:services/agent/internal/state/store.go-\u003epackage:github.com/example/glpi-ai-agent/internal/model:imports",
       "from": "file:services/agent/internal/state/store.go",
       "to": "package:github.com/example/glpi-ai-agent/internal/model",
+      "kind": "imports"
+    },
+    {
+      "id": "file:services/agent/internal/state/store.go-\u003epackage:io:imports",
+      "from": "file:services/agent/internal/state/store.go",
+      "to": "package:io",
+      "kind": "imports"
+    },
+    {
+      "id": "file:services/agent/internal/state/store.go-\u003epackage:log/slog:imports",
+      "from": "file:services/agent/internal/state/store.go",
+      "to": "package:log/slog",
       "kind": "imports"
     },
     {
@@ -34123,6 +34332,12 @@
       "id": "file:services/agent/internal/web/server.go-\u003efunction:github.com/example/glpi-ai-agent/internal/web:boolMetric:defines",
       "from": "file:services/agent/internal/web/server.go",
       "to": "function:github.com/example/glpi-ai-agent/internal/web:boolMetric",
+      "kind": "defines"
+    },
+    {
+      "id": "file:services/agent/internal/web/server.go-\u003efunction:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline:defines",
+      "from": "file:services/agent/internal/web/server.go",
+      "to": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
       "kind": "defines"
     },
     {
@@ -35050,6 +35265,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:services/knowledge/cmd/server/app.go-\u003epackage:log:imports",
+      "from": "file:services/knowledge/cmd/server/app.go",
+      "to": "package:log",
+      "kind": "imports"
+    },
+    {
       "id": "file:services/knowledge/cmd/server/app.go-\u003epackage:net/http:imports",
       "from": "file:services/knowledge/cmd/server/app.go",
       "to": "package:net/http",
@@ -35416,6 +35637,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:services/knowledge/internal/brainactivity/client.go-\u003epackage:io:imports",
+      "from": "file:services/knowledge/internal/brainactivity/client.go",
+      "to": "package:io",
+      "kind": "imports"
+    },
+    {
       "id": "file:services/knowledge/internal/brainactivity/client.go-\u003epackage:net/http:imports",
       "from": "file:services/knowledge/internal/brainactivity/client.go",
       "to": "package:net/http",
@@ -35722,9 +35949,15 @@
       "kind": "defines"
     },
     {
-      "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.writeNew:defines",
+      "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.updateLocked:defines",
       "from": "file:services/knowledge/internal/staging/staging.go",
-      "to": "function:kb-editor/internal/staging:Store.writeNew",
+      "to": "function:kb-editor/internal/staging:Store.updateLocked",
+      "kind": "defines"
+    },
+    {
+      "id": "file:services/knowledge/internal/staging/staging.go-\u003efunction:kb-editor/internal/staging:Store.writeNewLocked:defines",
+      "from": "file:services/knowledge/internal/staging/staging.go",
+      "to": "function:kb-editor/internal/staging:Store.writeNewLocked",
       "kind": "defines"
     },
     {
@@ -35851,6 +36084,12 @@
       "id": "file:services/knowledge/internal/staging/staging.go-\u003epackage:regexp:imports",
       "from": "file:services/knowledge/internal/staging/staging.go",
       "to": "package:regexp",
+      "kind": "imports"
+    },
+    {
+      "id": "file:services/knowledge/internal/staging/staging.go-\u003epackage:runtime:imports",
+      "from": "file:services/knowledge/internal/staging/staging.go",
+      "to": "package:runtime",
       "kind": "imports"
     },
     {
@@ -36208,6 +36447,12 @@
       "kind": "imports"
     },
     {
+      "id": "file:services/knowledge/internal/store/store.go-\u003epackage:runtime:imports",
+      "from": "file:services/knowledge/internal/store/store.go",
+      "to": "package:runtime",
+      "kind": "imports"
+    },
+    {
       "id": "file:services/knowledge/internal/store/store.go-\u003epackage:sort:imports",
       "from": "file:services/knowledge/internal/store/store.go",
       "to": "package:sort",
@@ -36236,6 +36481,20 @@
       "from": "file:services/knowledge/internal/store/store.go",
       "to": "package:time",
       "kind": "imports"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL-\u003epackage:net:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL",
+      "to": "package:net",
+      "kind": "calls_package",
+      "label": "SplitHostPort"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL-\u003epackage:strings:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL",
+      "to": "package:strings",
+      "kind": "calls_package",
+      "label": "TrimSpace"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/cmd/agent:main-\u003efunction:github.com/example/glpi-ai-agent/cmd/agent:runHealthcheck:calls",
@@ -36383,6 +36642,12 @@
       "label": "ToLower"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/cmd/agent:runHealthcheck-\u003efunction:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL:calls",
+      "from": "function:github.com/example/glpi-ai-agent/cmd/agent:runHealthcheck",
+      "to": "function:github.com/example/glpi-ai-agent/cmd/agent:healthcheckURL",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/cmd/agent:runHealthcheck-\u003epackage:net/http:calls_package",
       "from": "function:github.com/example/glpi-ai-agent/cmd/agent:runHealthcheck",
       "to": "package:net/http",
@@ -36394,7 +36659,7 @@
       "from": "function:github.com/example/glpi-ai-agent/cmd/agent:runHealthcheck",
       "to": "package:os",
       "kind": "calls_package",
-      "label": "Exit"
+      "label": "Getenv"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/cmd/agent:waitForOllamaPool-\u003epackage:log/slog:calls_package",
@@ -36724,6 +36989,12 @@
       "id": "function:github.com/example/glpi-ai-agent/internal/agent:Service.ProcessWork-\u003efunction:github.com/example/glpi-ai-agent/internal/agent:Service.getCategories:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/agent:Service.ProcessWork",
       "to": "function:github.com/example/glpi-ai-agent/internal/agent:Service.getCategories",
+      "kind": "calls"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/agent:Service.ProcessWork-\u003efunction:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/agent:Service.ProcessWork",
+      "to": "function:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket",
       "kind": "calls"
     },
     {
@@ -37328,6 +37599,12 @@
       "id": "function:github.com/example/glpi-ai-agent/internal/agent:Service.processEscalation-\u003efunction:github.com/example/glpi-ai-agent/internal/agent:Service.executeEscalationPlan:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/agent:Service.processEscalation",
       "to": "function:github.com/example/glpi-ai-agent/internal/agent:Service.executeEscalationPlan",
+      "kind": "calls"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/agent:Service.processEscalation-\u003efunction:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/agent:Service.processEscalation",
+      "to": "function:github.com/example/glpi-ai-agent/internal/agent:Service.lockTicket",
       "kind": "calls"
     },
     {
@@ -42937,18 +43214,17 @@
       "kind": "calls"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked-\u003efunction:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked",
+      "to": "function:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked-\u003epackage:encoding/json:calls_package",
       "from": "function:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked",
       "to": "package:encoding/json",
       "kind": "calls_package",
       "label": "MarshalIndent"
-    },
-    {
-      "id": "function:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked-\u003epackage:os:calls_package",
-      "from": "function:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked",
-      "to": "package:os",
-      "kind": "calls_package",
-      "label": "WriteFile"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/learning:Store.Delete-\u003efunction:github.com/example/glpi-ai-agent/internal/learning:OutcomeStore.saveLocked:calls",
@@ -43003,6 +43279,13 @@
       "to": "package:encoding/hex",
       "kind": "calls_package",
       "label": "EncodeToString"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic-\u003epackage:os:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/learning:writeFileAtomic",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "OpenFile"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/metrics:Metrics.WritePrometheus-\u003efunction:github.com/example/glpi-ai-agent/internal/metrics:Metrics.GLPIKBStatus:calls",
@@ -44793,7 +45076,14 @@
       "from": "function:github.com/example/glpi-ai-agent/internal/state:Store.load",
       "to": "package:bufio",
       "kind": "calls_package",
-      "label": "NewScanner"
+      "label": "NewReaderSize"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/state:Store.load-\u003epackage:bytes:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/state:Store.load",
+      "to": "package:bytes",
+      "kind": "calls_package",
+      "label": "TrimSpace"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/state:Store.load-\u003epackage:encoding/json:calls_package",
@@ -44808,6 +45098,13 @@
       "to": "package:errors",
       "kind": "calls_package",
       "label": "Is"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/state:Store.load-\u003epackage:log/slog:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/state:Store.load",
+      "to": "package:log/slog",
+      "kind": "calls_package",
+      "label": "Warn"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/state:Store.load-\u003epackage:sort:calls_package",
@@ -45208,6 +45505,12 @@
       "label": "NotFound"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/web:Server.categoryMappingsPut-\u003efunction:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/web:Server.categoryMappingsPut",
+      "to": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/web:Server.categoryMappingsPut-\u003efunction:github.com/example/glpi-ai-agent/internal/web:respondJSON:calls",
       "from": "function:github.com/example/glpi-ai-agent/internal/web:Server.categoryMappingsPut",
       "to": "function:github.com/example/glpi-ai-agent/internal/web:respondJSON",
@@ -45508,6 +45811,12 @@
       "label": "Error"
     },
     {
+      "id": "function:github.com/example/glpi-ai-agent/internal/web:Server.knowledgeExportObsidian-\u003efunction:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/web:Server.knowledgeExportObsidian",
+      "to": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
+      "kind": "calls"
+    },
+    {
       "id": "function:github.com/example/glpi-ai-agent/internal/web:Server.knowledgeExportObsidian-\u003epackage:github.com/example/glpi-ai-agent/internal/obsidian:calls_package",
       "from": "function:github.com/example/glpi-ai-agent/internal/web:Server.knowledgeExportObsidian",
       "to": "package:github.com/example/glpi-ai-agent/internal/obsidian",
@@ -45712,6 +46021,12 @@
       "to": "package:io",
       "kind": "calls_package",
       "label": "WriteString"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/web:Server.qualityReplay-\u003efunction:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline:calls",
+      "from": "function:github.com/example/glpi-ai-agent/internal/web:Server.qualityReplay",
+      "to": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
+      "kind": "calls"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/web:Server.qualityReplay-\u003efunction:github.com/example/glpi-ai-agent/internal/web:respondJSON:calls",
@@ -45939,6 +46254,20 @@
       "to": "package:strings",
       "kind": "calls_package",
       "label": "Join"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline-\u003epackage:net/http:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
+      "to": "package:net/http",
+      "kind": "calls_package",
+      "label": "NewResponseController"
+    },
+    {
+      "id": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline-\u003epackage:time:calls_package",
+      "from": "function:github.com/example/glpi-ai-agent/internal/web:extendWriteDeadline",
+      "to": "package:time",
+      "kind": "calls_package",
+      "label": "Now"
     },
     {
       "id": "function:github.com/example/glpi-ai-agent/internal/web:extractTicketID-\u003efunction:github.com/example/glpi-ai-agent/internal/web:walkID:calls",
@@ -46267,6 +46596,13 @@
       "to": "package:kb-editor/internal/obsidian",
       "kind": "calls_package",
       "label": "WriteZIP"
+    },
+    {
+      "id": "function:kb-editor/cmd/server:app.handleObsidianExport-\u003epackage:log:calls_package",
+      "from": "function:kb-editor/cmd/server:app.handleObsidianExport",
+      "to": "package:log",
+      "kind": "calls_package",
+      "label": "Printf"
     },
     {
       "id": "function:kb-editor/cmd/server:app.handleObsidianExport-\u003epackage:time:calls_package",
@@ -47164,6 +47500,13 @@
       "label": "Marshal"
     },
     {
+      "id": "function:kb-editor/internal/brainactivity:asyncSender.start-\u003epackage:io:calls_package",
+      "from": "function:kb-editor/internal/brainactivity:asyncSender.start",
+      "to": "package:io",
+      "kind": "calls_package",
+      "label": "Copy"
+    },
+    {
       "id": "function:kb-editor/internal/brainactivity:asyncSender.start-\u003epackage:net/http:calls_package",
       "from": "function:kb-editor/internal/brainactivity:asyncSender.start",
       "to": "package:net/http",
@@ -47801,21 +48144,21 @@
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.Update:calls",
-      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
-      "to": "function:kb-editor/internal/staging:Store.Update",
-      "kind": "calls"
-    },
-    {
       "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.findByIntegrationKey:calls",
       "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
       "to": "function:kb-editor/internal/staging:Store.findByIntegrationKey",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.writeNew:calls",
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.updateLocked:calls",
       "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
-      "to": "function:kb-editor/internal/staging:Store.writeNew",
+      "to": "function:kb-editor/internal/staging:Store.updateLocked",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.SaveFromIntegration-\u003efunction:kb-editor/internal/staging:Store.writeNewLocked:calls",
+      "from": "function:kb-editor/internal/staging:Store.SaveFromIntegration",
+      "to": "function:kb-editor/internal/staging:Store.writeNewLocked",
       "kind": "calls"
     },
     {
@@ -47890,36 +48233,10 @@
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.Update-\u003efunction:kb-editor/internal/staging:Store.Get:calls",
+      "id": "function:kb-editor/internal/staging:Store.Update-\u003efunction:kb-editor/internal/staging:Store.updateLocked:calls",
       "from": "function:kb-editor/internal/staging:Store.Update",
-      "to": "function:kb-editor/internal/staging:Store.Get",
+      "to": "function:kb-editor/internal/staging:Store.updateLocked",
       "kind": "calls"
-    },
-    {
-      "id": "function:kb-editor/internal/staging:Store.Update-\u003efunction:kb-editor/internal/staging:Store.pathForKey:calls",
-      "from": "function:kb-editor/internal/staging:Store.Update",
-      "to": "function:kb-editor/internal/staging:Store.pathForKey",
-      "kind": "calls"
-    },
-    {
-      "id": "function:kb-editor/internal/staging:Store.Update-\u003efunction:kb-editor/internal/staging:atomicWrite:calls",
-      "from": "function:kb-editor/internal/staging:Store.Update",
-      "to": "function:kb-editor/internal/staging:atomicWrite",
-      "kind": "calls"
-    },
-    {
-      "id": "function:kb-editor/internal/staging:Store.Update-\u003epackage:encoding/json:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.Update",
-      "to": "package:encoding/json",
-      "kind": "calls_package",
-      "label": "MarshalIndent"
-    },
-    {
-      "id": "function:kb-editor/internal/staging:Store.Update-\u003epackage:os:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.Update",
-      "to": "package:os",
-      "kind": "calls_package",
-      "label": "Stat"
     },
     {
       "id": "function:kb-editor/internal/staging:Store.archive-\u003efunction:kb-editor/internal/staging:Store.pathForKey:calls",
@@ -48016,48 +48333,80 @@
       "label": "TrimSpace"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003efunction:kb-editor/internal/staging:Store.pathForKey:calls",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
+      "id": "function:kb-editor/internal/staging:Store.updateLocked-\u003efunction:kb-editor/internal/staging:Store.Get:calls",
+      "from": "function:kb-editor/internal/staging:Store.updateLocked",
+      "to": "function:kb-editor/internal/staging:Store.Get",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.updateLocked-\u003efunction:kb-editor/internal/staging:Store.pathForKey:calls",
+      "from": "function:kb-editor/internal/staging:Store.updateLocked",
       "to": "function:kb-editor/internal/staging:Store.pathForKey",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003efunction:kb-editor/internal/staging:atomicWrite:calls",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
+      "id": "function:kb-editor/internal/staging:Store.updateLocked-\u003efunction:kb-editor/internal/staging:atomicWrite:calls",
+      "from": "function:kb-editor/internal/staging:Store.updateLocked",
       "to": "function:kb-editor/internal/staging:atomicWrite",
       "kind": "calls"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003epackage:encoding/json:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
+      "id": "function:kb-editor/internal/staging:Store.updateLocked-\u003epackage:encoding/json:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.updateLocked",
       "to": "package:encoding/json",
       "kind": "calls_package",
       "label": "MarshalIndent"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003epackage:errors:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
-      "to": "package:errors",
-      "kind": "calls_package",
-      "label": "Is"
-    },
-    {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003epackage:fmt:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
-      "to": "package:fmt",
-      "kind": "calls_package",
-      "label": "Errorf"
-    },
-    {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003epackage:os:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
+      "id": "function:kb-editor/internal/staging:Store.updateLocked-\u003epackage:os:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.updateLocked",
       "to": "package:os",
       "kind": "calls_package",
       "label": "Stat"
     },
     {
-      "id": "function:kb-editor/internal/staging:Store.writeNew-\u003epackage:path/filepath:calls_package",
-      "from": "function:kb-editor/internal/staging:Store.writeNew",
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003efunction:kb-editor/internal/staging:Store.pathForKey:calls",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "to": "function:kb-editor/internal/staging:Store.pathForKey",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003efunction:kb-editor/internal/staging:atomicWrite:calls",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "to": "function:kb-editor/internal/staging:atomicWrite",
+      "kind": "calls"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003epackage:encoding/json:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "to": "package:encoding/json",
+      "kind": "calls_package",
+      "label": "MarshalIndent"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003epackage:errors:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "to": "package:errors",
+      "kind": "calls_package",
+      "label": "Is"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003epackage:fmt:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003epackage:os:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "Stat"
+    },
+    {
+      "id": "function:kb-editor/internal/staging:Store.writeNewLocked-\u003epackage:path/filepath:calls_package",
+      "from": "function:kb-editor/internal/staging:Store.writeNewLocked",
       "to": "package:path/filepath",
       "kind": "calls_package",
       "label": "Base"
@@ -48929,11 +49278,11 @@
       "label": "ToLower"
     },
     {
-      "id": "function:kb-editor/internal/store:replaceAllFold-\u003epackage:strings:calls_package",
+      "id": "function:kb-editor/internal/store:replaceAllFold-\u003epackage:regexp:calls_package",
       "from": "function:kb-editor/internal/store:replaceAllFold",
-      "to": "package:strings",
+      "to": "package:regexp",
       "kind": "calls_package",
-      "label": "ToLower"
+      "label": "MustCompile"
     },
     {
       "id": "function:kb-editor/internal/store:safeFilenameBase-\u003epackage:strings:calls_package",
@@ -58209,6 +58558,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003efunction:neuroforge/internal/store:MemoryPageCache.Get:calls",
+      "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+      "to": "function:neuroforge/internal/store:MemoryPageCache.Get",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003efunction:neuroforge/internal/store:SegmentStore.AppendUpsert:calls",
       "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
       "to": "function:neuroforge/internal/store:SegmentStore.AppendUpsert",
@@ -58221,9 +58576,21 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003efunction:neuroforge/internal/store:memoryBodyResident:calls",
+      "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+      "to": "function:neuroforge/internal/store:memoryBodyResident",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003efunction:neuroforge/internal/store:openSegmentStore:calls",
       "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
       "to": "function:neuroforge/internal/store:openSegmentStore",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003efunction:neuroforge/internal/store:syncDirBestEffort:calls",
+      "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+      "to": "function:neuroforge/internal/store:syncDirBestEffort",
       "kind": "calls"
     },
     {
@@ -58233,11 +58600,25 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
+    },
+    {
       "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003epackage:os:calls_package",
       "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
       "to": "package:os",
       "kind": "calls_package",
       "label": "RemoveAll"
+    },
+    {
+      "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003epackage:path/filepath:calls_package",
+      "from": "function:neuroforge/internal/store:SegmentStore.Rebuild",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Dir"
     },
     {
       "id": "function:neuroforge/internal/store:SegmentStore.Rebuild-\u003epackage:sort:calls_package",
@@ -58452,6 +58833,12 @@
       "id": "function:neuroforge/internal/store:Store.AbortPreparedClusterEntry-\u003efunction:neuroforge/internal/store:Store.pendingClusterDir:calls",
       "from": "function:neuroforge/internal/store:Store.AbortPreparedClusterEntry",
       "to": "function:neuroforge/internal/store:Store.pendingClusterDir",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.AbortPreparedClusterEntry-\u003efunction:neuroforge/internal/store:validClusterEntryID:calls",
+      "from": "function:neuroforge/internal/store:Store.AbortPreparedClusterEntry",
+      "to": "function:neuroforge/internal/store:validClusterEntryID",
       "kind": "calls"
     },
     {
@@ -58869,6 +59256,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:Store.ClusterDecision-\u003efunction:neuroforge/internal/store:validClusterEntryID:calls",
+      "from": "function:neuroforge/internal/store:Store.ClusterDecision",
+      "to": "function:neuroforge/internal/store:validClusterEntryID",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/store:Store.ClusterDecision-\u003epackage:path/filepath:calls_package",
       "from": "function:neuroforge/internal/store:Store.ClusterDecision",
       "to": "package:path/filepath",
@@ -58939,6 +59332,12 @@
       "id": "function:neuroforge/internal/store:Store.CommitPreparedClusterEntry-\u003efunction:neuroforge/internal/store:Store.pendingClusterDir:calls",
       "from": "function:neuroforge/internal/store:Store.CommitPreparedClusterEntry",
       "to": "function:neuroforge/internal/store:Store.pendingClusterDir",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.CommitPreparedClusterEntry-\u003efunction:neuroforge/internal/store:validClusterEntryID:calls",
+      "from": "function:neuroforge/internal/store:Store.CommitPreparedClusterEntry",
+      "to": "function:neuroforge/internal/store:validClusterEntryID",
       "kind": "calls"
     },
     {
@@ -60091,6 +60490,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:Store.PrepareClusterEntry-\u003efunction:neuroforge/internal/store:validClusterEntryID:calls",
+      "from": "function:neuroforge/internal/store:Store.PrepareClusterEntry",
+      "to": "function:neuroforge/internal/store:validClusterEntryID",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/store:Store.PrepareClusterEntry-\u003efunction:neuroforge/internal/store:writeJSONSync:calls",
       "from": "function:neuroforge/internal/store:Store.PrepareClusterEntry",
       "to": "function:neuroforge/internal/store:writeJSONSync",
@@ -60322,6 +60727,12 @@
       "id": "function:neuroforge/internal/store:Store.RecordClusterDecision-\u003efunction:neuroforge/internal/store:Store.decisionClusterDir:calls",
       "from": "function:neuroforge/internal/store:Store.RecordClusterDecision",
       "to": "function:neuroforge/internal/store:Store.decisionClusterDir",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.RecordClusterDecision-\u003efunction:neuroforge/internal/store:validClusterEntryID:calls",
+      "from": "function:neuroforge/internal/store:Store.RecordClusterDecision",
+      "to": "function:neuroforge/internal/store:validClusterEntryID",
       "kind": "calls"
     },
     {
@@ -60996,6 +61407,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:Store.UpdateConfig-\u003efunction:neuroforge/internal/store:New:calls",
+      "from": "function:neuroforge/internal/store:Store.UpdateConfig",
+      "to": "function:neuroforge/internal/store:New",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/store:Store.UpdateConfig-\u003efunction:neuroforge/internal/store:SegmentStore.HasRecords:calls",
       "from": "function:neuroforge/internal/store:Store.UpdateConfig",
       "to": "function:neuroforge/internal/store:SegmentStore.HasRecords",
@@ -61363,6 +61780,12 @@
       "id": "function:neuroforge/internal/store:Store.appendClusterLogEntry-\u003efunction:neuroforge/internal/store:Store.ensureClusterLog:calls",
       "from": "function:neuroforge/internal/store:Store.appendClusterLogEntry",
       "to": "function:neuroforge/internal/store:Store.ensureClusterLog",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.appendSegmentEventLocked-\u003efunction:neuroforge/internal/store:MemoryPageCache.Delete:calls",
+      "from": "function:neuroforge/internal/store:Store.appendSegmentEventLocked",
+      "to": "function:neuroforge/internal/store:MemoryPageCache.Delete",
       "kind": "calls"
     },
     {
@@ -62187,7 +62610,14 @@
       "from": "function:neuroforge/internal/store:Store.replayWALFile",
       "to": "package:bufio",
       "kind": "calls_package",
-      "label": "NewScanner"
+      "label": "NewReaderSize"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.replayWALFile-\u003epackage:bytes:calls_package",
+      "from": "function:neuroforge/internal/store:Store.replayWALFile",
+      "to": "package:bytes",
+      "kind": "calls_package",
+      "label": "TrimSpace"
     },
     {
       "id": "function:neuroforge/internal/store:Store.replayWALFile-\u003epackage:encoding/json:calls_package",
@@ -62195,6 +62625,13 @@
       "to": "package:encoding/json",
       "kind": "calls_package",
       "label": "Unmarshal"
+    },
+    {
+      "id": "function:neuroforge/internal/store:Store.replayWALFile-\u003epackage:errors:calls_package",
+      "from": "function:neuroforge/internal/store:Store.replayWALFile",
+      "to": "package:errors",
+      "kind": "calls_package",
+      "label": "Is"
     },
     {
       "id": "function:neuroforge/internal/store:Store.replayWALFile-\u003epackage:fmt:calls_package",
@@ -63458,6 +63895,12 @@
       "kind": "calls"
     },
     {
+      "id": "function:neuroforge/internal/store:openSegmentStore-\u003efunction:neuroforge/internal/store:recoverInterruptedRebuild:calls",
+      "from": "function:neuroforge/internal/store:openSegmentStore",
+      "to": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "kind": "calls"
+    },
+    {
       "id": "function:neuroforge/internal/store:openSegmentStore-\u003epackage:os:calls_package",
       "from": "function:neuroforge/internal/store:openSegmentStore",
       "to": "package:os",
@@ -63590,6 +64033,40 @@
       "label": "Now"
     },
     {
+      "id": "function:neuroforge/internal/store:recoverInterruptedRebuild-\u003efunction:neuroforge/internal/store:syncDirBestEffort:calls",
+      "from": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "to": "function:neuroforge/internal/store:syncDirBestEffort",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:recoverInterruptedRebuild-\u003epackage:errors:calls_package",
+      "from": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "to": "package:errors",
+      "kind": "calls_package",
+      "label": "Is"
+    },
+    {
+      "id": "function:neuroforge/internal/store:recoverInterruptedRebuild-\u003epackage:fmt:calls_package",
+      "from": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "to": "package:fmt",
+      "kind": "calls_package",
+      "label": "Errorf"
+    },
+    {
+      "id": "function:neuroforge/internal/store:recoverInterruptedRebuild-\u003epackage:os:calls_package",
+      "from": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "Stat"
+    },
+    {
+      "id": "function:neuroforge/internal/store:recoverInterruptedRebuild-\u003epackage:path/filepath:calls_package",
+      "from": "function:neuroforge/internal/store:recoverInterruptedRebuild",
+      "to": "package:path/filepath",
+      "kind": "calls_package",
+      "label": "Dir"
+    },
+    {
       "id": "function:neuroforge/internal/store:residentBodyBytes-\u003efunction:neuroforge/internal/store:memoryApproxBytes:calls",
       "from": "function:neuroforge/internal/store:residentBodyBytes",
       "to": "function:neuroforge/internal/store:memoryApproxBytes",
@@ -63658,6 +64135,19 @@
       "to": "package:fmt",
       "kind": "calls_package",
       "label": "Sprintf"
+    },
+    {
+      "id": "function:neuroforge/internal/store:syncDirBestEffort-\u003efunction:neuroforge/internal/store:ClusterLog.Close:calls",
+      "from": "function:neuroforge/internal/store:syncDirBestEffort",
+      "to": "function:neuroforge/internal/store:ClusterLog.Close",
+      "kind": "calls"
+    },
+    {
+      "id": "function:neuroforge/internal/store:syncDirBestEffort-\u003epackage:os:calls_package",
+      "from": "function:neuroforge/internal/store:syncDirBestEffort",
+      "to": "package:os",
+      "kind": "calls_package",
+      "label": "Open"
     },
     {
       "id": "function:neuroforge/internal/store:unmapSegmentFile-\u003epackage:syscall:calls_package",
@@ -67245,6 +67735,12 @@
       "kind": "depends_on"
     },
     {
+      "id": "service:knowledge-\u003eservice:knowledge-data-init:depends_on",
+      "from": "service:knowledge",
+      "to": "service:knowledge-data-init",
+      "kind": "depends_on"
+    },
+    {
       "id": "service:knowledge-\u003eservice:ollama:depends_on",
       "from": "service:knowledge",
       "to": "service:ollama",
@@ -67276,10 +67772,10 @@
     }
   ],
   "meta": {
-    "edges": 7316,
+    "edges": 7376,
     "format_version": 1,
     "generator": "go-ast+compose",
     "modules": 4,
-    "nodes": 1857
+    "nodes": 1867
   }
 }

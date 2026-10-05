@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -209,9 +210,24 @@ func main() {
 	slog.Info("shutdown complete")
 }
 
+// healthcheckURL derives the local probe URL from HTTP_ADDR. Wildcard or
+// empty hosts are probed via loopback; an unparsable value falls back to 8080.
+func healthcheckURL(addr string) string {
+	host, port := "127.0.0.1", "8080"
+	if h, p, err := net.SplitHostPort(strings.TrimSpace(addr)); err == nil {
+		if p != "" {
+			port = p
+		}
+		if h != "" && h != "0.0.0.0" && h != "::" {
+			host = h
+		}
+	}
+	return "http://" + net.JoinHostPort(host, port) + "/healthz"
+}
+
 func runHealthcheck() {
 	client := &http.Client{Timeout: 2 * time.Second}
-	req, err := http.NewRequest(http.MethodGet, "http://127.0.0.1:8080/healthz", nil)
+	req, err := http.NewRequest(http.MethodGet, healthcheckURL(os.Getenv("HTTP_ADDR")), nil)
 	if err != nil {
 		os.Exit(1)
 	}

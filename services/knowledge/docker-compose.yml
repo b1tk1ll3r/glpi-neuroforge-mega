@@ -1,10 +1,36 @@
 services:
+  # One-shot: hands the bind mounts to the non-root runtime user (65532).
+  kb-data-init:
+    build: .
+    image: kb-helpdesk:local
+    restart: "no"
+    user: "0:0"
+    entrypoint: [/usr/local/bin/kb-data-init]
+    volumes:
+      - "${KB_DATA_PATH:-./knowledge}:/data/knowledge:${KB_DATA_MOUNT_MODE:-rw}"
+      - "${KB_BACKUP_PATH:-./backups}:/data/backups:rw"
+      - "${KB_STAGING_PATH:-./staging}:/data/staging:rw"
+    network_mode: none
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - FOWNER
+      - DAC_READ_SEARCH
+
   kb-helpdesk:
     build: .
+    image: kb-helpdesk:local
     container_name: kb-helpdesk
+    depends_on:
+      kb-data-init:
+        condition: service_completed_successfully
     restart: unless-stopped
     ports:
-      - "${KB_EDITOR_PORT:-8080}:8080"
+      - "127.0.0.1:${KB_EDITOR_PORT:-8080}:8080"
     environment:
       APP_MODE: "${APP_MODE:-editor}"
       APP_TITLE: "${APP_TITLE:-}"
@@ -14,8 +40,8 @@ services:
       BACKUP_DIR: /data/backups
       STAGING_DIR: /data/staging
       LISTEN_ADDR: :8080
-      BASIC_AUTH_USER: "${BASIC_AUTH_USER:-}"
-      BASIC_AUTH_PASSWORD: "${BASIC_AUTH_PASSWORD:-}"
+      BASIC_AUTH_USER: "${BASIC_AUTH_USER:?Set the Knowledge web user}"
+      BASIC_AUTH_PASSWORD: "${BASIC_AUTH_PASSWORD:?Set the Knowledge web password}"
       AI_FALLBACK_ENABLED: "${AI_FALLBACK_ENABLED:-false}"
       OLLAMA_BASE_URL: "${OLLAMA_BASE_URL:-http://ollama:11434}"
       OLLAMA_API_KEY: ${OLLAMA_API_KEY:-}

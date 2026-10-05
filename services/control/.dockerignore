@@ -1,0 +1,12 @@
+.git
+.env
+.env_local
+*.md
+*.log
+*.zip
+*.out
+*.test
+*.prof
+coverage*
+/control
+/control.exe

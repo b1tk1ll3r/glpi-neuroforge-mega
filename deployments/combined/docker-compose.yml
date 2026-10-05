@@ -66,6 +66,22 @@ services:
       start_period: 10s
     stop_grace_period: 20s
 
+  # One-shot: hands the Knowledge bind mounts to the non-root runtime user (65532).
+  knowledge-data-init:
+    image: ${KNOWLEDGE_IMAGE:-git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:-1.6.2}}
+    restart: "no"
+    user: "0:0"
+    entrypoint: [/usr/local/bin/kb-data-init]
+    volumes:
+      - ${CORE_DATA_ROOT:-../../runtime}/knowledge:/data/knowledge:rw
+      - ${CORE_DATA_ROOT:-../../runtime}/staging:/data/staging:rw
+      - ${CORE_DATA_ROOT:-../../runtime}/backups:/data/backups:rw
+    network_mode: none
+    read_only: true
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_READ_SEARCH]
+
   knowledge:
     image: ${KNOWLEDGE_IMAGE:-git.send.nrw/sendnrw/glpi-neuroforge-mega-knowledge:${IMAGE_TAG:-1.6.2}}
     restart: unless-stopped
@@ -86,6 +102,8 @@ services:
       - ${CORE_DATA_ROOT:-../../runtime}/staging:/data/staging:rw
       - ${CORE_DATA_ROOT:-../../runtime}/backups:/data/backups:rw
     depends_on:
+      knowledge-data-init:
+        condition: service_completed_successfully
       ollama:
         condition: service_started
     networks: [core]

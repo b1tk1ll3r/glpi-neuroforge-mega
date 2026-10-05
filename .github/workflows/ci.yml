@@ -1,0 +1,137 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      build-images:
+        description: Build the image set (cache only) after the source gates
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: test (${{ matrix.module }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        module:
+          - platform/neuroforge
+          - services/agent
+          - services/knowledge
+          - services/control
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: ${{ matrix.module }}/go.mod
+          # Stdlib-only modules without go.sum; nothing to cache.
+          cache: false
+      - name: Vet
+        working-directory: ${{ matrix.module }}
+        run: go vet ./...
+      - name: Test
+        working-directory: ${{ matrix.module }}
+        run: go test -count=1 ./...
+      - name: Build
+        working-directory: ${{ matrix.module }}
+        run: go build ./...
+
+  gates:
+    name: release gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: services/control/go.mod
+          cache: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+      - name: Install PyYAML
+        run: python -m pip install --disable-pip-version-check pyyaml
+      - name: Preflight (static)
+        run: ./scripts/preflight.sh --static
+      - name: Compose environment check
+        run: python scripts/check-compose-env.py
+      - name: Secret scan
+        run: ./scripts/secret-scan.sh
+      - name: Engineering graph is up to date
+        run: make engineering-graph-check
+      - name: Package layout
+        run: ./scripts/verify-package.sh
+      # Same targeted race checks as scripts/release-gate.sh.
+      - name: Race checks
+        run: |
+          (cd platform/neuroforge && go test -race ./internal/store ./internal/brain ./internal/httpapi)
+          (cd services/agent && go test -race ./internal/state ./internal/knowledge ./internal/learning ./internal/agent)
+          (cd services/knowledge && go test -race ./internal/store ./internal/staging ./cmd/server)
+          (cd services/control && go test -race .)
+
+  images:
+    name: images
+    needs: [test, gates]
+    # inputs.build-images is only set when called from release.yml; empty otherwise.
+    if: format('{0}', inputs.build-images) != 'false'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Resolve registry and version
+        id: meta
+        shell: bash
+        env:
+          REGISTRY_VAR: ${{ vars.REGISTRY }}
+        run: |
+          set -euo pipefail
+          registry="${REGISTRY_VAR:-ghcr.io/${GITHUB_REPOSITORY_OWNER}}"
+          registry="$(printf '%s' "$registry" | tr '[:upper:]' '[:lower:]')"
+          echo "registry=$registry" >> "$GITHUB_OUTPUT"
+          echo "host=${registry%%/*}" >> "$GITHUB_OUTPUT"
+          echo "version=$(git describe --tags --always | sed 's/^v//')" >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        if: env.PUBLISH == 'true' && steps.meta.outputs.host == 'ghcr.io'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to external registry
+        if: env.PUBLISH == 'true' && steps.meta.outputs.host != 'ghcr.io'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.meta.outputs.host }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build (and on main push) all images
+        env:
+          REGISTRY: ${{ steps.meta.outputs.registry }}
+          IMAGE_TAG: ${{ steps.meta.outputs.version }}
+          EXTRA_TAGS: latest
+          SOURCE_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if [ "$PUBLISH" = "true" ]; then
+            docker buildx bake --push
+          else
+            docker buildx bake --set '*.output=type=cacheonly'
+          fi

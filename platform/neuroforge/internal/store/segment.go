@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -68,6 +69,9 @@ func openSegmentStore(dir string, maxBytes int64, mmapSealed bool) (*SegmentStor
 		dir: dir, maxSegmentBytes: maxBytes, mmapSealed: mmapSealed,
 		index: map[string]segmentLocation{}, mmaps: map[string][]byte{}, scanMetadata: map[string]core.Memory{},
 	}
+	if err := recoverInterruptedRebuild(dir); err != nil {
+		return nil, err
+	}
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, err
 	}
@@ -76,6 +80,40 @@ func openSegmentStore(dir string, maxBytes int64, mmapSealed bool) (*SegmentStor
 		return nil, err
 	}
 	return ss, nil
+}
+
+// recoverInterruptedRebuild handles a crash between the two renames in
+// Rebuild: dir is gone but dir.old still holds the previous segments.
+func recoverInterruptedRebuild(dir string) error {
+	if _, err := os.Stat(dir); !errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	backup := dir + ".old"
+	if st, err := os.Stat(backup); err != nil || !st.IsDir() {
+		return nil
+	}
+	if err := os.Rename(backup, dir); err != nil {
+		return fmt.Errorf("restore %s after interrupted segment rebuild: %w", backup, err)
+	}
+	_ = os.RemoveAll(dir + ".rebuild")
+	return syncDirBestEffort(filepath.Dir(dir))
+}
+
+// syncDirBestEffort persists renames in dir. Windows cannot fsync directory
+// handles; NTFS persists renames without it.
+func syncDirBestEffort(dir string) error {
+	if runtime.GOOS == "windows" {
+		return nil
+	}
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	err = d.Sync()
+	if cerr := d.Close(); err == nil {
+		err = cerr
+	}
+	return err
 }
 
 func (s *SegmentStore) Close() {
@@ -146,6 +184,16 @@ func (s *SegmentStore) scanFile(path string) error {
 	}
 	defer f.Close()
 	var offset int64
+	// A crash can leave a partial tail. It was never acknowledged, so cut it
+	// off: otherwise the next append lands behind the garbage and the following
+	// restart misreads garbage+record as one corrupt record.
+	dropTornTail := func() error {
+		_ = f.Close()
+		if err := os.Truncate(path, offset); err != nil {
+			return fmt.Errorf("truncate torn segment tail %s:%d: %w", path, offset, err)
+		}
+		return nil
+	}
 	for {
 		var hdr [4]byte
 		_, err := io.ReadFull(f, hdr[:])
@@ -153,8 +201,7 @@ func (s *SegmentStore) scanFile(path string) error {
 			return nil
 		}
 		if errors.Is(err, io.ErrUnexpectedEOF) {
-			// A crash can leave a partial tail. Ignore only that tail.
-			return nil
+			return dropTornTail()
 		}
 		if err != nil {
 			return err
@@ -166,7 +213,7 @@ func (s *SegmentStore) scanFile(path string) error {
 		buf := make([]byte, n)
 		if _, err := io.ReadFull(f, buf); err != nil {
 			if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
-				return nil
+				return dropTornTail()
 			}
 			return err
 		}
@@ -267,9 +314,11 @@ func (s *SegmentStore) appendRecords(records []segmentRecord) error {
 		binary.BigEndian.PutUint32(hdr[:], uint32(len(payload)))
 		start := s.activeSize
 		if _, err := f.Write(hdr[:]); err != nil {
+			_ = f.Truncate(start) // keep offsets of later records valid
 			return err
 		}
 		if _, err := f.Write(payload); err != nil {
+			_ = f.Truncate(start)
 			return err
 		}
 		s.activeSize += recordBytes
@@ -570,7 +619,22 @@ func (s *SegmentStore) Rebuild(memories map[string]*core.Memory, revision uint64
 	}
 	sort.Strings(ids)
 	for _, id := range ids {
-		if err := fresh.AppendUpsert(revision, []core.Memory{cloneMemory(*memories[id])}); err != nil {
+		m := cloneMemory(*memories[id])
+		if !memoryBodyResident(&m) {
+			// Metadata-only entry (hydrated at boot or evicted by tiering): carry
+			// the body over from the current segments before they are replaced,
+			// otherwise compaction would permanently drop text and vector.
+			full, found, deleted, err := s.Get(id)
+			if err != nil {
+				fresh.Close()
+				return fmt.Errorf("rebuild segments: load body of %s: %w", id, err)
+			}
+			if found && !deleted {
+				m.Text = full.Text
+				m.Vector = full.Vector
+			}
+		}
+		if err := fresh.AppendUpsert(revision, []core.Memory{m}); err != nil {
 			fresh.Close()
 			return err
 		}
@@ -583,6 +647,10 @@ func (s *SegmentStore) Rebuild(memories map[string]*core.Memory, revision uint64
 	}
 	if err := os.Rename(tmp, s.dir); err != nil {
 		_ = os.Rename(backup, s.dir)
+		return err
+	}
+	// Make both renames durable before the old segments are deleted.
+	if err := syncDirBestEffort(filepath.Dir(s.dir)); err != nil {
 		return err
 	}
 	_ = os.RemoveAll(backup)

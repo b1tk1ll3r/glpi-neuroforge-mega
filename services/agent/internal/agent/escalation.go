@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/example/glpi-ai-agent/internal/model"
@@ -57,13 +56,7 @@ func (s *Service) scanEscalations(ctx context.Context) {
 
 func (s *Service) processEscalation(ctx context.Context, item queue.WorkItem) error {
 	id := item.TicketID
-	muAny, _ := s.locks.LoadOrStore(id, &sync.Mutex{})
-	mu := muAny.(*sync.Mutex)
-	mu.Lock()
-	defer func() {
-		mu.Unlock()
-		s.locks.Delete(id)
-	}()
+	defer s.lockTicket(id)()
 
 	start := time.Now()
 	run := model.RunRecord{RunID: newRunID(), TicketID: id, Trigger: "scheduled_escalation", StartedAt: start, DryRun: s.cfg.DryRun, Outcome: "error"}

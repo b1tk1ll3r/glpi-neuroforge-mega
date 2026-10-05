@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -77,9 +78,18 @@ func (s *Store) NextClusterIndex(term uint64) (uint64, error) {
 	return last + 1, nil
 }
 
+// clusterEntryIDPattern matches NewID output. Entry IDs become file names in
+// the pending/decision directories, so separators and dots must be rejected.
+var clusterEntryIDPattern = regexp.MustCompile(`^[A-Za-z0-9_-]{1,128}$`)
+
+func validClusterEntryID(id string) bool { return clusterEntryIDPattern.MatchString(id) }
+
 func (s *Store) PrepareClusterEntry(entry core.ClusterEntry) error {
 	if entry.ID == "" || entry.Type == "" || entry.Term == 0 || entry.Index == 0 || entry.LeaderID == "" {
 		return errors.New("invalid cluster entry")
+	}
+	if !validClusterEntryID(entry.ID) {
+		return errors.New("invalid cluster entry id")
 	}
 	s.mu.RLock()
 	cfg := s.state.Config.Cluster
@@ -116,6 +126,9 @@ func (s *Store) AbortPreparedClusterEntry(id string) error {
 	if strings.TrimSpace(id) == "" {
 		return errors.New("entry id required")
 	}
+	if !validClusterEntryID(id) {
+		return errors.New("invalid cluster entry id")
+	}
 	err := os.Remove(filepath.Join(s.pendingClusterDir(), id+".json"))
 	if errors.Is(err, os.ErrNotExist) {
 		return nil
@@ -151,6 +164,9 @@ func (s *Store) RecordClusterDecision(entry core.ClusterEntry, decision string) 
 	if decision != "commit" && decision != "abort" {
 		return errors.New("cluster decision must be commit or abort")
 	}
+	if !validClusterEntryID(entry.ID) {
+		return errors.New("invalid cluster entry id")
+	}
 	d := ClusterDecision{EntryID: entry.ID, Term: entry.Term, Index: entry.Index, Decision: decision, CreatedAt: time.Now().UTC()}
 	if err := s.appendClusterLogDecision(d); err != nil {
 		return err
@@ -160,6 +176,9 @@ func (s *Store) RecordClusterDecision(entry core.ClusterEntry, decision string) 
 
 func (s *Store) ClusterDecision(id string) (ClusterDecision, bool) {
 	var d ClusterDecision
+	if !validClusterEntryID(id) {
+		return ClusterDecision{}, false
+	}
 	if err := s.loadJSON(filepath.Join(s.decisionClusterDir(), id+".json"), &d); err != nil {
 		return ClusterDecision{}, false
 	}
@@ -167,6 +186,9 @@ func (s *Store) ClusterDecision(id string) (ClusterDecision, bool) {
 }
 
 func (s *Store) CommitPreparedClusterEntry(entry core.ClusterEntry) error {
+	if !validClusterEntryID(entry.ID) {
+		return errors.New("invalid cluster entry id")
+	}
 	if d, ok := s.ClusterDecision(entry.ID); ok && d.Decision == "abort" {
 		return errors.New("cluster entry was aborted")
 	}

@@ -2,8 +2,10 @@ package staging
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 )
 
@@ -111,5 +113,65 @@ func TestIntegrationKeyUpdatesExistingDraft(t *testing.T) {
 	}
 	if list.Total != 1 {
 		t.Fatalf("expected one active staging draft, got %d", list.Total)
+	}
+}
+
+func TestIntegrationMetadataCannotOverrideComputedFields(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := s.SaveFromIntegration("vpn", "NeuroForge Research", Draft{Title: "VPN", Answer: "Antwort"}, false, .85, IntegrationOptions{
+		IntegrationKey: "neuroforge-goal:g1",
+		Metadata: map[string]any{
+			"id": "KB-EVIL", "auto_reply": true, "source": "Forged", "categories": []string{"Prod"},
+			"answer": "Forged", "title": "Forged", "integration_key": "other", "min_score": 0.1,
+			"created_at": "1970-01-01T00:00:00Z", "language": "en-US", "research_goal_id": "g1",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	doc := result.Document
+	if doc["id"] == "KB-EVIL" || doc["auto_reply"] != false || doc["source"] != "NeuroForge Research (AI-Staging)" ||
+		doc["answer"] != "Antwort" || doc["title"] != "VPN" || doc["integration_key"] != "neuroforge-goal:g1" ||
+		doc["created_at"] == "1970-01-01T00:00:00Z" || doc["language"] != "de-DE" {
+		t.Fatalf("metadata overrode computed fields: %#v", doc)
+	}
+	if cats := toStrings(doc["categories"]); len(cats) != 1 || cats[0] != "AI-Staging" {
+		t.Fatalf("metadata overrode categories: %#v", doc["categories"])
+	}
+	if score, _ := number(doc["min_score"]); score != .85 {
+		t.Fatalf("metadata overrode min_score: %#v", doc["min_score"])
+	}
+	if doc["research_goal_id"] != "g1" {
+		t.Fatalf("new metadata key was not added: %#v", doc)
+	}
+}
+
+func TestIntegrationKeyConcurrentSavesDoNotDuplicate(t *testing.T) {
+	s, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	errs := make(chan error, 16)
+	for i := 0; i < 16; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			_, err := s.SaveFromIntegration(fmt.Sprintf("vpn %d", i), "NeuroForge Research", Draft{Title: "VPN", Answer: "Antwort"}, false, .85, IntegrationOptions{IntegrationKey: "neuroforge-goal:g1"})
+			errs <- err
+		}(i)
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	if n := s.Count(); n != 1 {
+		t.Fatalf("expected one staging draft after concurrent saves, got %d", n)
 	}
 }

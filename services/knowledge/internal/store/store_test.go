@@ -186,3 +186,18 @@ func TestImportDocumentCreatesNewFileAndRejectsDuplicateID(t *testing.T) {
 		t.Fatal("expected duplicate ID to be rejected")
 	}
 }
+
+func TestReplaceAllFoldUnicodeLengthChange(t *testing.T) {
+	if got := replaceAllFold("İstanbul Büro: Drucker", "drucker", "Printer"); got != "İstanbul Büro: Printer" {
+		t.Fatalf("unexpected replacement: %q", got)
+	}
+	if got := replaceAllFold("Kelvin K und k", "K", "x"); got != "xelvin x und x" {
+		t.Fatalf("unexpected Kelvin replacement: %q", got)
+	}
+	if got := replaceAllFold("a.b", "", "x"); got != "a.b" {
+		t.Fatalf("empty find must be a no-op: %q", got)
+	}
+	if got := replaceAllFold("a.b A.B", "a.b", "$1"); got != "$1 $1" {
+		t.Fatalf("find/replace must be literal: %q", got)
+	}
+}

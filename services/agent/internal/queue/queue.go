@@ -102,6 +102,13 @@ func (q *Queue) EnqueueWork(item WorkItem) bool {
 	return true
 }
 
+// Full reports whether the queue is at its capacity limit.
+func (q *Queue) Full() bool {
+	q.mu.Lock()
+	defer q.mu.Unlock()
+	return len(q.items) >= q.limit
+}
+
 func (q *Queue) signal() {
 	select {
 	case q.notify <- struct{}{}:

@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -169,13 +170,22 @@ func (s *Store) SaveFromIntegration(query, source string, draft Draft, autoReply
 	if key != "" {
 		doc["integration_key"] = clampString(key, 240)
 	}
+	// Metadata may only add new provenance keys; it must never override the
+	// fields computed above or the timestamps managed below.
 	for k, v := range opts.Metadata {
 		k = strings.TrimSpace(k)
-		if k == "" || k == "id" || k == "auto_reply" {
+		if k == "" || k == "id" || k == "auto_reply" || k == "created_at" || k == "updated_at" {
+			continue
+		}
+		if _, exists := doc[k]; exists {
 			continue
 		}
 		doc[k] = v
 	}
+	// Hold the lock across lookup and write so concurrent calls with the same
+	// IntegrationKey cannot both miss the lookup and create duplicate drafts.
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	if key != "" {
 		if existing, ok := s.findByIntegrationKey(key); ok {
 			doc["id"] = existing.Key
@@ -183,7 +193,7 @@ func (s *Store) SaveFromIntegration(query, source string, draft Draft, autoReply
 				doc["created_at"] = oldCreated
 			}
 			doc["updated_at"] = now.Format(time.RFC3339)
-			if _, err := s.Update(existing.Key, doc); err != nil {
+			if _, err := s.updateLocked(existing.Key, doc); err != nil {
 				return Result{}, err
 			}
 			result, err := s.Get(existing.Key)
@@ -195,7 +205,7 @@ func (s *Store) SaveFromIntegration(query, source string, draft Draft, autoReply
 	}
 	doc["created_at"] = now.Format(time.RFC3339)
 	doc["updated_at"] = now.Format(time.RFC3339)
-	if err := s.writeNew(id, doc); err != nil {
+	if err := s.writeNewLocked(id, doc); err != nil {
 		return Result{}, err
 	}
 	result, err := s.Get(id)
@@ -328,6 +338,11 @@ func (s *Store) Update(key string, doc map[string]any) (Result, error) {
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.updateLocked(key, doc)
+}
+
+// updateLocked is Update without locking; the caller must hold s.mu.
+func (s *Store) updateLocked(key string, doc map[string]any) (Result, error) {
 	path, err := s.pathForKey(key)
 	if err != nil {
 		return Result{}, os.ErrNotExist
@@ -398,9 +413,8 @@ func (s *Store) archive(key, bucket string) (string, error) {
 	return dst, nil
 }
 
-func (s *Store) writeNew(key string, doc map[string]any) error {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+// writeNewLocked creates a new staging file; the caller must hold s.mu.
+func (s *Store) writeNewLocked(key string, doc map[string]any) error {
 	path, err := s.pathForKey(key)
 	if err != nil {
 		return err
@@ -455,6 +469,10 @@ func atomicWrite(path string, payload []byte, mode os.FileMode) error {
 }
 
 func syncDir(dir string) error {
+	// Windows cannot fsync directory handles; NTFS persists renames without it.
+	if runtime.GOOS == "windows" {
+		return nil
+	}
 	f, err := os.Open(dir)
 	if err != nil {
 		return err

@@ -2,9 +2,11 @@ package store
 
 import (
 	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -36,11 +38,14 @@ func (s *Store) commitLocked(kind string, payload any) error {
 	if err := s.appendWALLocked(ev); err != nil {
 		return err
 	}
+	// The durable WAL line is the commit point. Advance the revision before the
+	// segment append so a segment failure can never cause the next event to
+	// reuse this revision (replay would then silently skip the second event).
+	s.state.Revision = ev.Revision
+	s.walEventsSinceCheckpoint++
 	if err := s.appendSegmentEventLocked(ev); err != nil {
 		return err
 	}
-	s.state.Revision = ev.Revision
-	s.walEventsSinceCheckpoint++
 	every := s.state.Config.Storage.CheckpointEvery
 	if every <= 0 {
 		every = 500
@@ -130,12 +135,34 @@ func (s *Store) replayWALFile(path string) error {
 		return err
 	}
 	defer f.Close()
-	scan := bufio.NewScanner(f)
-	buf := make([]byte, 64<<10)
-	scan.Buffer(buf, 16<<20)
-	for scan.Scan() {
+	// bufio.Reader instead of Scanner: a single memory.upsert batch may exceed
+	// any fixed line limit.
+	br := bufio.NewReaderSize(f, 1<<20)
+	var offset int64
+	for {
+		line, readErr := br.ReadBytes('\n')
+		if readErr != nil && !errors.Is(readErr, io.EOF) {
+			return readErr
+		}
+		start := offset
+		offset += int64(len(line))
+		if len(bytes.TrimSpace(line)) == 0 {
+			if readErr != nil {
+				return nil
+			}
+			continue
+		}
 		var ev walEvent
-		if err := json.Unmarshal(scan.Bytes(), &ev); err != nil {
+		if err := json.Unmarshal(line, &ev); err != nil {
+			if readErr != nil {
+				// Unterminated last line: a write torn by a crash. It was never
+				// acknowledged, so drop it to keep later appends parseable.
+				_ = f.Close()
+				if terr := os.Truncate(path, start); terr != nil {
+					return fmt.Errorf("truncate torn WAL tail: %w", terr)
+				}
+				return nil
+			}
 			return err
 		}
 		if ev.Revision <= s.state.Revision {
@@ -151,8 +178,10 @@ func (s *Store) replayWALFile(path string) error {
 			return fmt.Errorf("segment replay revision %d type %s: %w", ev.Revision, ev.Type, err)
 		}
 		s.state.Revision = ev.Revision
+		if readErr != nil {
+			return nil
+		}
 	}
-	return scan.Err()
 }
 
 func (s *Store) appendSegmentEventLocked(ev walEvent) error {
@@ -164,6 +193,13 @@ func (s *Store) appendSegmentEventLocked(ev walEvent) error {
 		var items []core.Memory
 		if err := json.Unmarshal(ev.Data, &items); err != nil {
 			return err
+		}
+		// Drop cached cold bodies of updated memories; otherwise a later cold
+		// read after tier eviction would return (and re-commit) the old version.
+		if s.pageCache != nil {
+			for i := range items {
+				s.pageCache.Delete(items[i].ID)
+			}
 		}
 		return s.segments.AppendUpsert(ev.Revision, items)
 	case "memory.delete":

@@ -3,6 +3,7 @@ package brainactivity
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -83,6 +84,8 @@ func (s *asyncSender) start() {
 			}
 			resp, err := s.http.Do(req)
 			if err == nil {
+				// Drain a bounded amount so the keep-alive connection can be reused.
+				_, _ = io.Copy(io.Discard, io.LimitReader(resp.Body, 64<<10))
 				_ = resp.Body.Close()
 			}
 		}
