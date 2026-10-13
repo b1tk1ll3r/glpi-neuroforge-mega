@@ -1,4 +1,4 @@
-FROM golang:1.26-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /src
 COPY go.mod ./
 COPY cmd ./cmd
@@ -9,7 +9,7 @@ RUN go test ./... && \
 
 # One-shot helper used by docker compose to prepare the persistent volume for
 # the distroless non-root runtime user (UID/GID 65532).
-FROM golang:1.26-alpine AS data-init
+FROM golang:1.27-alpine AS data-init
 ENTRYPOINT ["sh", "-c", "mkdir -p /app/data && chown -R 65532:65532 /app/data && chmod 0750 /app/data"]
 
 FROM gcr.io/distroless/static-debian12:nonroot
