@@ -33,8 +33,8 @@ jobs:
           - services/knowledge
           - services/control
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: ${{ matrix.module }}/go.mod
           # Stdlib-only modules without go.sum; nothing to cache.
@@ -53,12 +53,12 @@ jobs:
     name: release gates
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-go@v6
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version-file: services/control/go.mod
           cache: false
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.x'
       - name: Install PyYAML
@@ -93,7 +93,7 @@ jobs:
     env:
       PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Resolve registry and version
@@ -108,17 +108,17 @@ jobs:
           echo "registry=$registry" >> "$GITHUB_OUTPUT"
           echo "host=${registry%%/*}" >> "$GITHUB_OUTPUT"
           echo "version=$(git describe --tags --always | sed 's/^v//')" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
       - name: Login to GHCR
         if: env.PUBLISH == 'true' && steps.meta.outputs.host == 'ghcr.io'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to external registry
         if: env.PUBLISH == 'true' && steps.meta.outputs.host != 'ghcr.io'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ steps.meta.outputs.host }}
           username: ${{ secrets.DOCKER_USERNAME }}
