@@ -1,4 +1,4 @@
-FROM golang:1.26-alpine AS build
+FROM golang:1.27-alpine AS build
 WORKDIR /src
 COPY go.mod ./
 COPY cmd ./cmd
@@ -9,7 +9,7 @@ RUN go test ./... && \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/neuroforge-worker ./cmd/worker && \
     CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/neuroforge-bench ./cmd/bench
 
-FROM alpine:3.21 AS server
+FROM alpine:3.24 AS server
 RUN apk add --no-cache ca-certificates poppler-utils && \
     addgroup -S neuroforge && adduser -S -G neuroforge neuroforge && \
     mkdir -p /app/data && chown -R neuroforge:neuroforge /app
@@ -21,7 +21,7 @@ EXPOSE 8080
 HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=4 CMD wget -q -O - http://127.0.0.1:8080/readyz >/dev/null || exit 1
 ENTRYPOINT ["neuroforge", "-data", "/app/data", "-listen", ":8080"]
 
-FROM alpine:3.21 AS worker
+FROM alpine:3.24 AS worker
 RUN apk add --no-cache ca-certificates && addgroup -S neuroforge && adduser -S -G neuroforge neuroforge
 COPY --from=build /out/neuroforge-worker /usr/local/bin/neuroforge-worker
 USER neuroforge
